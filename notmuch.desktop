@@ -1,7 +1,0 @@
-[Desktop Entry]
-Name=Notmuch (emacs interface)
-Exec=emacs -f notmuch
-Icon=emblem-mail
-Terminal=false
-Type=Application
-Categories=Network;Email;

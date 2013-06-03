@@ -1,2 +1,0 @@
-include notmuch
-#recursive-include docs/html *
