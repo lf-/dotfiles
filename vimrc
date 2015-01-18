@@ -33,7 +33,7 @@ set backspace=indent,eol,start
 set laststatus=2
 set relativenumber
 set undofile
-" WHAT DO YOU MEAN IT MATTERS WHAT SHELL I USE IN FREAKING VIM???
+" You mean I can't use fish and vundle at the same time? Wat?
 set shell=bash
 set expandtab
 set sw=2
