@@ -6,7 +6,7 @@ call plug#begin('~/.nvim/plugged')
 
 Plug 'ervandew/supertab'
 Plug 'tomtom/tcomment_vim'
-Plug 'msanders/snipmate.nvim'
+Plug 'msanders/snipmate.vim'
 Plug 'tpope/vim-surround'
 Plug 'bruno-/vim-alt-mappings'
 Plug 'altercation/vim-colors-solarized'
