@@ -7,7 +7,7 @@ To use:
 Install polkadots
 ~~~~~~~~~~~~~~~~~
 
-:bash:`pip install polkadots_dotfile_manager`
+`pip install polkadots_dotfile_manager`
 
 Install the dotfiles
 ~~~~~~~~~~~~~~~~~~~~
@@ -18,5 +18,3 @@ Install the dotfiles
         # deal with the rest of them
         polkadots
 
-.. role:: bash(code)
-        :language: bash
