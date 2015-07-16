@@ -1,0 +1,14 @@
+{
+        "actions": [
+            {
+                "type": "SymlinkAction",
+                "source": "polkadots",
+                "destination": "~/.config/polkadots"
+            },
+            {
+                "type": "SymlinkAction",
+                "source": "lighthouse",
+                "destination": "~/.config/lighthouse"
+            }
+        ]
+}
