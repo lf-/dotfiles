@@ -1,0 +1,19 @@
+super + alt + Escape
+    bspc quit && pkill panel
+
+super + {minus,equal}
+    bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
+
+#
+# other hotkeys
+#
+
+# not a spotlight clone
+ctrl + space
+    lighthouse | sh
+
+super + Return
+    urxvt
+
+super + Escape
+    pkill -USR1 sxhkd

@@ -1,14 +1,20 @@
 {
-        "actions": [
-            {
-                "type": "SymlinkAction",
-                "source": "polkadots",
-                "destination": "~/.config/polkadots"
-            },
-            {
-                "type": "SymlinkAction",
-                "source": "lighthouse",
-                "destination": "~/.config/lighthouse"
-            }
-        ]
+    "dotfile_repo": "~/.dotfiles",
+    "actions": [
+        {
+            "type": "SymlinkAction",
+            "source": "polkadots",
+            "destination": "~/.config/polkadots"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "lighthouse",
+            "destination": "~/.config/lighthouse"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "sxhkd",
+            "destination": "~/.config/sxhkd"
+        }
+    ]
 }
