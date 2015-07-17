@@ -1,0 +1,22 @@
+!
+! shamelessly stolen font config
+!
+URxvt.font:              xft:Source Code Pro for Powerline-9:hinting=True;antialias:True,xft:WenQuanYi Bitmap Song-9:medium;antialias=False,xft:WenQuanYi Zen Hei-9:medium;antialias=True,xft:HanaMinA-9:medium;antialias:True,xft:HanaMinB-9:medium;antialias:True,xft:HanaMinPlus-9:medium;antialias:True
+URxvt.boldFont:           xft:Source Code Pro for Powerline-9:bold;hinting=True;antialias:True,xft:WenQuanYi Bitmap Song-9:bold;antialias=False,xft:WenQuanYi Zen Hei-9:bold;antialias=True,xft:HanaMinA-9:bold;antialias:True,xft:HanaMinB-9:bold;antialias:True,xft:HanaMinPlus-9:bold;antialias:True
+!
+! scroll bar
+!
+URxvt*scrollBar:           true
+URxvt*thickness:           7
+URxvt*scollColor:          #1E1E1E
+URxvt*troughColor:         #333333
+URxvt*scrollBar_floating:  false
+URxvt*scrollBar_right:     true
+URxvt*scrollstyle:         plain
+!
+! stuff expected of a modern terminal
+!
+! url matching, scrolling in man and less
+URxvt.perl-ext-common:     default,matcher,vtwheel
+URxvt.url-launcher:        /usr/bin/firefox
+URxvt.matcher.button:      1

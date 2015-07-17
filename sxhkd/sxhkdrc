@@ -1,3 +1,6 @@
+super + F4
+    bspc window focused -k
+
 super + alt + Escape
     bspc quit && pkill panel
 

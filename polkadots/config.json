@@ -15,6 +15,12 @@
             "type": "SymlinkAction",
             "source": "sxhkd",
             "destination": "~/.config/sxhkd"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "main",
+            "destination": "~",
+            "dir_mode": true
         }
     ]
 }
