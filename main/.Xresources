@@ -1,8 +1,9 @@
-!
-! shamelessly stolen font config
-!
-URxvt.font:              xft:Source Code Pro for Powerline-9:hinting=True;antialias:True,xft:WenQuanYi Bitmap Song-9:medium;antialias=False,xft:WenQuanYi Zen Hei-9:medium;antialias=True,xft:HanaMinA-9:medium;antialias:True,xft:HanaMinB-9:medium;antialias:True,xft:HanaMinPlus-9:medium;antialias:True
-URxvt.boldFont:           xft:Source Code Pro for Powerline-9:bold;hinting=True;antialias:True,xft:WenQuanYi Bitmap Song-9:bold;antialias=False,xft:WenQuanYi Zen Hei-9:bold;antialias=True,xft:HanaMinA-9:bold;antialias:True,xft:HanaMinB-9:bold;antialias:True,xft:HanaMinPlus-9:bold;antialias:True
+URxvt*font: xft:Source Code Pro for Powerline:size=9,\
+            -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
+URxvt*boldFont: xft:Source Code Pro for Powerline:bold:size=9
+
+URxvt.iso14755:            false
+URxvt.termName:            rxvt-256color
 !
 ! scroll bar
 !

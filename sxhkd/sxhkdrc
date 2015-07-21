@@ -1,11 +1,46 @@
+# CONTROL the window, move it onto a workspace
+super + ctrl + {h,j,k,l}
+    bspc window focused -d {left,down,up,right}
+
+# switch windows with vim keybinds
+super + {h,j,k,l}
+    bspc window {left,down,up,right} -f
+
+# swap windows with vim keybinds
+super + shift + {h,j,k,l}
+    bspc window focused -s {left,down,up,right}
+
+# Fullscreen/Focus
+super + f
+    bspc window focused -t fullscreen
+
+# floAt
+super + a
+    bspc window focused -t floating
+
+# Stick
+super + s
+    bspc window focused -t sticky
+
+# close all the things with S-w
+super + w
+    bspc window focused -c
+
+# alt+f4, super mode
 super + F4
     bspc window focused -k
 
+# oh shit button
 super + alt + Escape
     bspc quit && pkill panel
 
+# control the gaps
 super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
+
+# resize windows
+super + button{1-3}
+    bspc pointer -g {move,resize_side,resize_corner}
 
 #
 # other hotkeys
@@ -18,5 +53,6 @@ ctrl + space
 super + Return
     urxvt
 
+# reload sxhkd configs
 super + Escape
     pkill -USR1 sxhkd

@@ -1,0 +1,10 @@
+"1.2pre
+
+loadplugins '\.(js|penta)$'
+group user
+cabbreviate aw tabopen archwiki-en
+cabbreviate g tabopen google
+map -count -modes=n ; -builtin <count>:
+set cdpath=''
+
+" vim: set ft=pentadactyl:
