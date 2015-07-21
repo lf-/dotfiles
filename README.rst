@@ -23,6 +23,8 @@ Set a symlink for the wallpaper variant you want
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
+
         ln -s "$(pwd)/wallpaper_orig.png" "$(pwd)/wallpaper.png"
         # or
         ln -s "$(pwd)/wallpaper_4-3.png" "$(pwd)/wallpaper.png"
+
