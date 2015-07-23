@@ -1,8 +1,9 @@
 #include "solarized-dark.xresources"
 
-URxvt*font: xft:Source Code Pro for Powerline:size=9,\
+URxvt*font: xft:Source Code Pro:size=9,\
+            xft:DejaVu Sans Mono:size=9,\
             -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
-URxvt*boldFont: xft:Source Code Pro for Powerline:bold:size=9
+URxvt*boldFont: xft:Source Code Pro:bold:size=9
 
 URxvt.iso14755:            false
 URxvt.termName:            rxvt-256color
