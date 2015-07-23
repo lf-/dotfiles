@@ -7,6 +7,11 @@ URxvt*boldFont: xft:Source Code Pro for Powerline:bold:size=9
 URxvt.iso14755:            false
 URxvt.termName:            rxvt-256color
 !
+! Get solarized to work despite gremlin infestation
+!
+
+URxvt.intensityStyles: false
+
 ! scroll bar
 !
 URxvt*scrollBar:           true
