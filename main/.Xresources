@@ -1,3 +1,5 @@
+#include "solarized-dark.xresources"
+
 URxvt*font: xft:Source Code Pro for Powerline:size=9,\
             -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 URxvt*boldFont: xft:Source Code Pro for Powerline:bold:size=9

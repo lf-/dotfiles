@@ -21,6 +21,11 @@
             "source": "main",
             "destination": "~",
             "dir_mode": true
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "colors",
+            "destination": "~/.colors"
         }
     ]
 }
