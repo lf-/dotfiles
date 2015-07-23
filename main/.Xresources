@@ -11,7 +11,7 @@ URxvt.termName:            rxvt-256color
 !
 URxvt*scrollBar:           true
 URxvt*thickness:           7
-URxvt*scollColor:          #1E1E1E
+!URxvt*scrollColor:         #1E1E1E
 URxvt*troughColor:         #333333
 URxvt*scrollBar_floating:  false
 URxvt*scrollBar_right:     true
