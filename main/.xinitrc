@@ -1,6 +1,6 @@
 #!/bin/sh
 
-xrdb_args="-I$HOME/.colors/custom -I$HOME/.colors/base16"
+xrdb_args="-I$HOME/.colors"
 userresources=$HOME/.Xresources
 usermodmap=$HOME/.Xmodmap
 sysresources=/etc/X11/xinit/.Xresources

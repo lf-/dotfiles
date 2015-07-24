@@ -26,6 +26,16 @@
             "type": "SymlinkAction",
             "source": "colors",
             "destination": "~/.colors"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "qt4/Trolltech.conf",
+            "destination": "~/.config/Trolltech.conf"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "gtk3",
+            "destination": "~/.config/gtk-3.0"
         }
     ]
 }

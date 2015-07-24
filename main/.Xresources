@@ -1,4 +1,4 @@
-#include "solarized-dark.xresources"
+#include "custom/solarized-dark.xresources"
 
 URxvt*font: xft:Source Code Pro:size=9,\
             xft:DejaVu Sans Mono:size=9,\
