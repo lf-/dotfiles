@@ -8,6 +8,8 @@ Plug 'ervandew/supertab'
 Plug 'tomtom/tcomment_vim'
 Plug 'msanders/snipmate.vim'
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-markdown'
+Plug 'jtratner/vim-flavored-markdown'
 Plug 'bruno-/vim-alt-mappings'
 Plug 'altercation/vim-colors-solarized'
 Plug 'bling/vim-airline'
@@ -27,13 +29,12 @@ set hidden
 set wildmenu
 set wildmode=list:longest
 set visualbell
-set ttyfast
 set ruler
 set backspace=indent,eol,start
 set laststatus=2
 set undofile
 " You mean I can't use fish and vundle at the same time? Wat?
-set shell=bash
+set shell=zsh
 set backupdir=~/.nvim/backup//
 set directory=~/.nvim/swap//
 set undodir=~/.nvim/undo//
@@ -65,22 +66,33 @@ set number
 let g:airline_powerline_fonts = 1
 set list
 set listchars=trail:•
+augroup markdown
+  au!
+  au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
+augroup END
 
-" Mapping
+"" Mapping
 nnoremap ; :
 " chord lk to go directly from insert to ex mode
+" also fix the timeout length so I can type polkadots without getting too
+" annoyed
+set timeoutlen=500
 inoremap lk <esc>:
 inoremap kl <esc>:
 inoremap <C-BS> <C-W>
 set pastetoggle=<F2>
+tnoremap <C-w>h <C-\><C-n>:wincmd h<CR>
+tnoremap <C-w>j <C-\><C-n>:wincmd j<CR>
+tnoremap <C-w>k <C-\><C-n>:wincmd k<CR>
+tnoremap <C-w>l <C-\><C-n>:wincmd l<CR>
 
-" Leader commands
+"" Leader commands
 let mapleader=","
 noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
 
-" Spacing
+"" Spacing
 augroup spacing
   autocmd FileType ruby,eruby,yaml setlocal si sw=2 sts=2 et
   autocmd FileType ruby,eruby,yaml setlocal path+=lib
@@ -92,4 +104,4 @@ augroup spacing
   autocmd FileType python setlocal si sw=4 sts=4 et
 augroup END
 " % works in more cases
-runtime macros/matchit.nvim
+runtime macros/matchit.vim
