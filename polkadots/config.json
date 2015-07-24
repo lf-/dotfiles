@@ -36,6 +36,16 @@
             "type": "SymlinkAction",
             "source": "gtk3",
             "destination": "~/.config/gtk-3.0"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "nvim",
+            "destination": "~/.nvim"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "prezto",
+            "destination": "~/.zprezto"
         }
     ]
 }

@@ -4,3 +4,6 @@
 [submodule "nvim"]
 	path = nvim
 	url = https://github.com/lf-/.vim
+[submodule "prezto"]
+	path = prezto
+	url = https://github.com/lf-/prezto
