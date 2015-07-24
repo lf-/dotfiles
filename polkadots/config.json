@@ -46,6 +46,11 @@
             "type": "SymlinkAction",
             "source": "prezto",
             "destination": "~/.zprezto"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "icons",
+            "destination": "~/.icons"
         }
     ]
 }
