@@ -4,12 +4,13 @@ filetype off                  " required
 " Use Plug as package manager
 call plug#begin('~/.nvim/plugged')
 
-Plug 'ervandew/supertab'
+" Plug 'ervandew/supertab'
 Plug 'tomtom/tcomment_vim'
 Plug 'msanders/snipmate.vim'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-markdown'
 Plug 'jtratner/vim-flavored-markdown'
+Plug 'davidhalter/jedi-vim'
 Plug 'bruno-/vim-alt-mappings'
 Plug 'altercation/vim-colors-solarized'
 Plug 'bling/vim-airline'
