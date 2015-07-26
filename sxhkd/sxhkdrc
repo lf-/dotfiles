@@ -1,5 +1,5 @@
-# CONTROL the window, move it onto a workspace
-super + ctrl + {h,j,k,l}
+# ALTERNATE window workspace
+super + alt + {h,j,k,l}
     bspc window focused -d {left,down,up,right}
 
 # switch windows with vim keybinds
@@ -38,16 +38,36 @@ super + alt + Escape
 super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
 
-# resize windows
-super + button{1-3}
-    bspc pointer -g {move,resize_side,resize_corner}
+# resize/move windows, activate action
+super + button{1,3}
+    bspc pointer -g {move,resize_corner}
+
+# resize/move windows, pointer move action
+super + !button{1,3}
+    bspc pointer -t %i, %i
+
+# resize/move windows, end action
+super + @button{1,3}
+    bspc pointer -u
+
+# switch windows
+super + alt + button1
+    bspc pointer -g focus
+
+# ""
+super + alt + !button1
+    bspc pointer -t %i, %i
+
+# ""
+super + alt + @button1
+    bspc pointer -u
 
 #
 # other hotkeys
 #
 
 # not a spotlight clone
-ctrl + space
+super + space
     lighthouse | sh
 
 super + Return
