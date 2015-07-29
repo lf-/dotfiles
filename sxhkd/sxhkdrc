@@ -1,14 +1,32 @@
-# ALTERNATE window workspace
-super + alt + {h,j,k,l}
-    bspc window focused -d {left,down,up,right}
+# General rules:
+# ALL keybinds should start with super to avoid interference.
+
+###Window Operations###
+# Logical basis:
+# Alt = desktop ops
+# Shift = shift a window
+
+##Switching##
 
 # switch windows with vim keybinds
 super + {h,j,k,l}
     bspc window {left,down,up,right} -f
 
-# swap windows with vim keybinds
+super + alt + {h,l}
+    bspc desktop {prev,next} -f
+
+##Window shifting##
+
+# shift a window to a desktop
+super + shift + alt + {h,l}
+    bspc window focused -d {prev,next}
+
+# shift a window
 super + shift + {h,j,k,l}
     bspc window focused -s {left,down,up,right}
+
+
+##Active window operations##
 
 # Fullscreen/Focus
 super + f
@@ -29,6 +47,8 @@ super + w
 # alt+f4, super mode
 super + F4
     bspc window focused -k
+
+###Global Operations###
 
 # oh shit button
 super + alt + Escape

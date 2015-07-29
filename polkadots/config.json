@@ -51,6 +51,11 @@
             "type": "SymlinkAction",
             "source": "icons",
             "destination": "~/.icons"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "bspwm",
+            "destination": "~/.config/bspwm"
         }
     ]
 }
