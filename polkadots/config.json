@@ -56,6 +56,11 @@
             "type": "SymlinkAction",
             "source": "bspwm",
             "destination": "~/.config/bspwm"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "bin",
+            "destination": "~/bin"
         }
     ]
 }
