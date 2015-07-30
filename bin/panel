@@ -16,7 +16,11 @@ fi
 get_time_from_minutes() {
 	running_time_min=$1
 	(( running_time_hr = running_time_min / 60 ))
-	echo -n "${running_time_hr}:${running_time_min}"
+	(( running_time_rmin = running_time_min % 60 ))
+	if [[ running_time_rmin == 0 ]]; then
+		running_time_rmin="00"
+	fi
+	echo -n "${running_time_hr}:${running_time_rmin}"
 }
 
 trap 'trap - TERM; kill 0' INT TERM QUIT EXIT
@@ -36,25 +40,25 @@ done > $PANEL_FIFO &
 
 while true; do
 	# super simple battery handling for thinkpads only
-	power_str="P\uf0e7"
+	power_str="P\uf0e7 "
 	percent_remaining="$(cat $BATT_SYSFS/remaining_percent)"
-	if [[ $percent_remaining > 75 ]]; then
+	if (( $percent_remaining > 75 )); then
 		power_str="$power_str \uf240"
 	fi
-	if [[ $percent_remaining <= 75 && $percent_remaining > 50 ]]; then
+	if (( $percent_remaining <= 75 && $percent_remaining > 50 )); then
 		power_str="$power_str \uf241"
 	fi
-	if [[ $percent_remaining <= 50 && $percent_remaining > 25 ]]; then
+	if (( $percent_remaining <= 50 && $percent_remaining > 25 )); then
 		power_str="$power_str \uf242"
 	fi
-	if [[ $percent_remaining <= 25 && $percent_remaining > 10 ]]; then
+	if (( $percent_remaining <= 25 && $percent_remaining > 10 )); then
 		power_str="$power_str \uf243"
 	fi
-	if [[ $percent_remaining <= 10 ]]; then
+	if (( $percent_remaining <= 10 )); then
 		power_str="$power_str %{Fred}\uf244%{F-}"
 	fi
 	rtmin=$(cat $BATT_SYSFS/remaining_running_time)
-	if [[ rtmin != "not_discharging" ]]; then
+	if [[ $rtmin != "not_discharging" ]]; then
 		rtstr="($(get_time_from_minutes $rtmin) rt)"
 	else
 		rtstr=""
@@ -77,8 +81,7 @@ while true; do
 	net_str='N\uf0ac'
 
 	if [[ "$(cat /sys/class/net/$WIRELESS_DEVICE/operstate)" == "up" ]]; then
-		net_str="$net_str \uf1eb lolno"
-		#net_str="$net_str \uf1eb $(get_essid $WIRELESS_DEVICE | tr -d '\n')"
+		net_str="$net_str \uf1eb $(get_essid $WIRELESS_DEVICE | tr -d '\n')"
 		WIFI_UP=1
 	else
 		WIFI_UP=0
