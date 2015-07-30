@@ -1,2 +1,3 @@
 #!/bin/bash
 bspc monitor -d I II III IV
+panel &

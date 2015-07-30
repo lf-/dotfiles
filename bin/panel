@@ -8,8 +8,8 @@ PANEL_HEIGHT=20
 PANEL_FONT="xft:CamingoCode:size=9"
 ICON_FONT="FontAwesome:size=11"
 
-if pgrep -x panel >/dev/null; then
-	printf "%s\n" "Panel already running." >&2
+if [[ $(pgrep -cx panel) > 1 ]]; then
+	echo "Panel already running." >&2
 	exit 1
 fi
 
