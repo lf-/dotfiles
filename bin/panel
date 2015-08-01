@@ -7,6 +7,8 @@ PANEL_FIFO=/tmp/panel-fifo
 PANEL_HEIGHT=20
 PANEL_FONT="xft:CamingoCode:size=9"
 ICON_FONT="FontAwesome:size=11"
+GET_ESSID="get_essid $WIRELESS_DEVICE | tr -d '\n'"
+source `which panel_config`
 
 if [[ $(pgrep -cx panel) > 1 ]]; then
 	echo "Panel already running." >&2
@@ -71,7 +73,7 @@ while true; do
 	net_str='N\uf0ac'
 
 	if [[ "$(cat /sys/class/net/$WIRELESS_DEVICE/operstate)" == "up" ]]; then
-		net_str="$net_str \uf1eb $(get_essid $WIRELESS_DEVICE | tr -d '\n')"
+		net_str="$net_str \uf1eb $($GET_ESSID)"
 		WIFI_UP=1
 	else
 		WIFI_UP=0
