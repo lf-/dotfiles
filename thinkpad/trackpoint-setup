@@ -1,0 +1,12 @@
+# append /serio2 if using a thinkpad with an enabled trackpad
+trackpoint_device=/sys/devices/platform/i8042/serio1
+sensitivity=200
+speed=180
+
+if [[ $(id -u) != 0 ]]; then
+	echo 'set-trackpoint-speed: Must be run as root!' >&2
+	exit 1
+fi
+
+echo -n $sensitivity > $trackpoint_device/sensitivity
+echo -n $speed > $trackpoint_device/speed

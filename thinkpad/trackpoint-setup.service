@@ -1,0 +1,9 @@
+[Unit]
+Description=Set up a TrackPoint device
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/trackpoint-setup
+
+[Install]
+WantedBy=graphical.target
