@@ -73,7 +73,7 @@ while true; do
 	net_str='N\uf0ac'
 
 	if [[ "$(cat /sys/class/net/$WIRELESS_DEVICE/operstate)" == "up" ]]; then
-		net_str="$net_str \uf1eb $($GET_ESSID)"
+		net_str="$net_str \uf1eb $(eval $GET_ESSID)"
 		WIFI_UP=1
 	else
 		WIFI_UP=0
