@@ -1,0 +1,9 @@
+[Unit]
+Description=Set battery charge thresholds
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/set-batt-levels 40 80
+
+[Install]
+WantedBy=multi-user.target

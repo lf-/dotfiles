@@ -1,0 +1,10 @@
+[Unit]
+Name=TrackPoint Setup
+Description=Set the speed and sensitivity for a TrackPoint
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sudo /usr/local/bin/trackpoint-setup 180 180
+
+[Install]
+WantedBy=default.target
