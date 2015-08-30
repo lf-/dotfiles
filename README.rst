@@ -15,7 +15,7 @@ Install the dotfiles
 .. code:: bash
 
         # go meta
-        ln -s "$(pwd)/polkadots" ~/.config/polkadots
+        ln -s ~+/polkadots ~/.config/polkadots
         # deal with the rest of them
         polkadots
 
@@ -24,7 +24,7 @@ Set a symlink for the wallpaper variant you want
 
 .. code:: bash
 
-        ln -s "$(pwd)/wallpaper_orig.png" "$(pwd)/wallpaper.png"
+        ln -s ~+/wallpaper_orig.png ~+/wallpaper.png
         # or
-        ln -s "$(pwd)/wallpaper_4-3.png" "$(pwd)/wallpaper.png"
+        ln -s ~+/wallpaper_4-3.png ~+/wallpaper.png
 
