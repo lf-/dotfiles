@@ -5,7 +5,7 @@ ETHERNET_DEVICE=ens2
 BATT_SYSFS=/sys/devices/platform/smapi/BAT0
 PANEL_FIFO=/tmp/panel-fifo
 PANEL_HEIGHT=20
-PANEL_FONT="xft:CamingoCode:size=9"
+PANEL_FONT="Source Sans Pro:size=10"
 ICON_FONT="FontAwesome:size=11"
 GET_ESSID="get_essid $WIRELESS_DEVICE | tr -d '\n'"
 source `which panel_config`
@@ -22,7 +22,7 @@ get_time_from_minutes() {
 	printf "%d:%02d" ${hr} ${rmin}
 }
 
-trap 'exit 0' INT TERM QUIT EXIT
+#trap 'exit 0' INT TERM QUIT EXIT
 
 [[ -e "$PANEL_FIFO" ]] && rm "$PANEL_FIFO"
 mkfifo "$PANEL_FIFO"
@@ -39,7 +39,7 @@ done > $PANEL_FIFO &
 
 while true; do
 	# super simple battery handling for thinkpads only
-	power_str="P\uf0e7 "
+	power_str="P\uf0e7"
 	percent_remaining="$(cat $BATT_SYSFS/remaining_percent)"
 	icons=(
 		"$power_str %{Fred}\uf244%{F-}"
@@ -47,11 +47,12 @@ while true; do
 		"$power_str \uf242"
 		"$power_str \uf241"
 		"$power_str \uf240"
+		"$power_str \uf240"
 	)
-	power_str=$icons[$(($percent_remaining / 20))]
+	power_str=$icons[$(($percent_remaining / 20 + 1))]
 	rtmin=$(cat $BATT_SYSFS/remaining_running_time)
 	if [[ $rtmin != "not_discharging" ]]; then
-		rtstr="($(get_time_from_minutes $rtmin) rt)"
+		rtstr=" ($(get_time_from_minutes $rtmin) rt)"
 	else
 		rtstr=""
 	fi
@@ -94,5 +95,5 @@ while true; do
 	sleep 10
 done > $PANEL_FIFO &
 
-cat "$PANEL_FIFO" | panel_bar | lemonbar "-f$PANEL_FONT" "-f$ICON_FONT" -gx$PANEL_HEIGHT
+cat "$PANEL_FIFO" | panel_bar | lemonbar "-f$PANEL_FONT" "-f$ICON_FONT" -gx$PANEL_HEIGHT | bash
 wait
