@@ -34,6 +34,8 @@ fi
 export XDG_CONFIG_HOME="$HOME/.config"
 
 export QT_STYLE_OVERRIDE=GTK+
+# screen locking in combination with loginctl lock-sessions
+systemd-lock-handler physlock -s &
 feh --bg-scale ~/.dotfiles/wallpaper.png &
 xsetroot -cursor_name left_ptr &
 sxhkd &
