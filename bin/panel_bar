@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source panel_colours
 num_mon=$(bspc query -M | wc -l)
 P=" | "
 
@@ -16,9 +17,61 @@ while read -r line; do
 			# clock
 			clock="${line#?}"
 			;;
+		T*)
+			# title
+			title="${line#?}"
+			;;
 		W*)
-			# bspwm arcana. For now, a noop.
+			# bspwm arcana
+			wm_infos=""
+			item=$1
+			name=${item#?}
+			IFS=":"
+			set -- ${line#?}
+			while [[ $# > 0 ]]; do
+				item=$1
+				name=${item#?}
+				case $item in
+					M*)
+						# active monitor
+						if [[ $num_mon > 1 ]]; then
+							wm_infos="${wm_infos}%{F$COLOUR_ACTIVE_MONITOR_FG}%{B$COLOR_ACTIVE_MONITOR_BG} ${name} %{B-}%{F-}  "
+						fi
+						;;
+					m*)
+						# inactive monitor
+						if [[ $num_mon > 1 ]]; then
+							wm_infos="${wm_infos}%{F$COLOUR_INACTIVE_MONITOR_FG}%{B$COLOR_INACTIVE_MONITOR_BG} ${name} %{B-}%{F-}  "
+						fi
+						;;
+					O*)
+						# focussed occupied desktop
+						wm_infos="${wm_infos}%{F$COLOUR_FOCUSSED_OCCUPIED_FG}%{B$COLOUR_FOCUSSED_OCCUPIED_BG} ${name} %{B-}%{F-}"
+						;;
+					o*)
+						# occupied desktop
+						wm_infos="${wm_infos}%{F$COLOUR_OCCUPIED_FG}%{B$COLOUR_OCCUPIED_BG} ${name} %{B-}%{F-}"
+						;;
+					F*)
+						# focussed free desktop
+						wm_infos="${wm_infos}%{F$COLOUR_FOCUSSED_FREE_FG}%{B$COLOUR_FOCUSSED_FREE_BG} ${name} %{B-}%{F-}"
+						;;
+					f*)
+						# free desktop
+						wm_infos="${wm_infos}%{F$COLOUR_FREE_FG}%{B$COLOUR_FREE_BG} ${name} %{B-}%{F-}"
+						;;
+					u*)
+						# urgent desktop
+						wm_infos="${wm_infos}%{F$COLOUR_URGENT_FG}%{B$COLOUR_URGENT_BG} ${name} %{B-}%{F-}"
+						;;
+					L*)
+						# layout
+						wm_infos="${wm_infos}   %{F$COLOUR_LAYOUT_FG}%{B$COLOUR_LAYOUT_BG} ${name} %{B-}%{F-}"
+						;;
+				esac
+				shift
+			done
 			;;
 	esac
-	echo -e "%{r}${network}${P}${power}${P}${clock}  "
+	echo -e "%{l}${wm_infos}%{c}${title}%{r}${network}${P}${power}${P}${clock}  "
 done

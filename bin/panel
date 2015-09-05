@@ -5,7 +5,7 @@ ETHERNET_DEVICE=ens2
 BATT_SYSFS=/sys/devices/platform/smapi/BAT0
 PANEL_FIFO=/tmp/panel-fifo
 PANEL_HEIGHT=20
-PANEL_FONT="Source Sans Pro:size=10"
+PANEL_FONT="Source Sans Pro:size=11"
 ICON_FONT="FontAwesome:size=11"
 GET_ESSID="get_essid $WIRELESS_DEVICE | tr -d '\n'"
 source `which panel_config`
@@ -74,7 +74,8 @@ while true; do
 	net_str='N\uf0ac'
 
 	if [[ "$(cat /sys/class/net/$WIRELESS_DEVICE/operstate)" == "up" ]]; then
-		net_str="$net_str \uf1eb $(eval $GET_ESSID)"
+		#net_str="$net_str \uf1eb $(eval $GET_ESSID)"
+		net_str="$net_str \uf1eb sekritwifi"
 		WIFI_UP=1
 	else
 		WIFI_UP=0
