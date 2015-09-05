@@ -11,10 +11,12 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-markdown'
 Plug 'tpope/vim-fugitive'
 Plug 'jtratner/vim-flavored-markdown'
-Plug 'davidhalter/jedi-vim'
-Plug 'bruno-/vim-alt-mappings'
 Plug 'altercation/vim-colors-solarized'
 Plug 'bling/vim-airline'
+
+" Python
+Plug 'davidhalter/jedi-vim'
+Plug 'nvie/vim-flake8'
 
 " All of your Plugs must be added before the following line
 call plug#end()
