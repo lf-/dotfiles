@@ -1,4 +1,3 @@
-set nocompatible              " be iMproved, required
 filetype off                  " required
 
 " Use Plug as package manager
@@ -96,6 +95,10 @@ noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
 
+"""""""""""""""""""""""""
+" Editing
+"""""""""""""""""""""""""
+
 "" Spacing
 augroup spacing
   autocmd FileType ruby,eruby,yaml setlocal si sw=2 sts=2 et
@@ -107,5 +110,11 @@ augroup spacing
 
   autocmd FileType python setlocal si sw=4 sts=4 et
 augroup END
+
+set tabstop=4
+
+"""""""""""""""""""""""""
+" Hacks
+"""""""""""""""""""""""""
 " % works in more cases
 runtime macros/matchit.vim
