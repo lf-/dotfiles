@@ -12,6 +12,9 @@
 super + {h,j,k,l}
     bspc window {left,down,up,right} -f
 
+super + {bracketleft,bracketright}
+    bspc window {prev,next} -f
+
 super + alt + {h,l}
     bspc desktop {prev,next} -f
 
@@ -26,7 +29,7 @@ super + shift + {h,j,k,l}
     bspc window focused -s {left,down,up,right}
 
 
-##Active window operations##
+##Active Window Operations##
 
 # Fullscreen/Focus
 super + f
@@ -48,7 +51,21 @@ super + w
 super + F4
     bspc window focused -k
 
-###Global Operations###
+##Desktop Operations##
+
+# cycle desktop layouts
+super + q
+    bspc desktop -l next
+
+# reset split ratios
+super + e
+    bspc desktop focused -E
+
+# rotate the tree
+super + r
+    bspc desktop focused -R 90
+
+##Global Operations##
 
 # oh shit button
 super + alt + Escape
