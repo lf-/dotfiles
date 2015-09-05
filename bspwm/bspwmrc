@@ -1,3 +1,4 @@
 #!/bin/bash
 bspc monitor -d I II III IV
 panel &
+which compton 2>&1 > /dev/null && compton &
