@@ -1,3 +1,4 @@
-#Files specific to the best laptop in the world, the ThinkPad
+# ThinkPad specific stuff
 
-These aren't necessarily linked by polkadots but it makes sense to have them with everything else.
+Configuration pertaining to my specific laptop model. There are a few more
+scattered bits of ThinkPad specific code, but most of it is confined here.
