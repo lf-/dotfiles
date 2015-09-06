@@ -61,6 +61,11 @@
             "type": "SymlinkAction",
             "source": "bin",
             "destination": "~/bin"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "fonts",
+            "destination": "~/.fonts"
         }
     ]
 }
