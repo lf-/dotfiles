@@ -6,6 +6,5 @@ if [[ $EUID != 0 ]]; then
 	exit 1
 fi
 
-cp units/* /etc/systemd/system
-cp bin/* /usr/local/bin
 cp xinitrc.d/* /etc/X11/xinitrc.d
+cp tlp /etc/default
