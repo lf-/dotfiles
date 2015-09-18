@@ -31,11 +31,20 @@ if [ -d /etc/X11/xinit/xinitrc.d ] ; then
  unset f
 fi
 
+# environment
 export XDG_CONFIG_HOME="$HOME/.config"
 
+# UI stuff
 export QT_STYLE_OVERRIDE=GTK+
-# screen locking in combination with loginctl lock-sessions
-systemd-lock-handler physlock -s &
+setxkbmap -option compose:menu
+
+# screensaver/locking bits
+xset s 240 60
+xss-lock -n dim-screen -- physlock -s &
+
+if [[ -e ~/.calibration ]]; then
+	source ~/.calibration
+fi
 feh --bg-scale ~/.dotfiles/wallpaper.png &
 xsetroot -cursor_name left_ptr &
 sxhkd &
