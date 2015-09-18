@@ -6,5 +6,5 @@ cabbreviate aw tabopen archwiki-en
 cabbreviate g tabopen google
 map -count -modes=n ; -builtin <count>:
 set cdpath=''
-
+autocmd LocationChange reddit.com :normal! <C-z>
 " vim: set ft=pentadactyl:
