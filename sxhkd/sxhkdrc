@@ -1,6 +1,3 @@
-# General rules:
-# ALL keybinds should start with super to avoid interference.
-
 ###Window Operations###
 # Logical basis:
 # Alt = desktop ops
@@ -103,10 +100,22 @@ super + alt + @button1
 # other hotkeys
 #
 
+XF86Audio{Raise,Lower}Volume
+    pactl set-sink-volume 0 {+,-}5%
+
+
+XF86AudioMute
+    pactl set-sink-mute 0 toggle
+
+
+XF86AudioMicMute
+    pactl set-source-mute 1 toggle
+
 # not a spotlight clone
 super + space
     lighthouse | sh
 
+# terminal
 super + Return
     urxvt
 
