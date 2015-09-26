@@ -15,16 +15,22 @@ super + {bracketleft,bracketright}
 super + alt + {h,l}
     bspc desktop {prev,next} -f
 
+super + ctrl + {h,l}
+    bspc monitor {prev,next} -f
+
 ##Window shifting##
 
 # shift a window to a desktop
 super + shift + alt + {h,l}
     bspc window focused -d {prev,next}
 
+# shift a window to a monitor
+super + ctrl + shift + alt + {h,l}
+    bspc window focused -m {prev,next}
+
 # shift a window
 super + shift + {h,j,k,l}
     bspc window focused -s {left,down,up,right}
-
 
 ##Active Window Operations##
 
