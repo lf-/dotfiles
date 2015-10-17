@@ -1,0 +1,7 @@
+#!/bin/bash
+# lock screen, possibly go into sleep mode as well
+physlock -sdm
+if [[ -z "$XSS_SLEEP_LOCK_FD" ]]; then
+  # sleep if not triggered by sleep
+  systemctl suspend
+fi

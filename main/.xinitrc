@@ -40,7 +40,7 @@ setxkbmap -option compose:menu
 
 # screensaver/locking bits
 xset s 240 60
-xss-lock -n dim-screen -- physlock -s &
+xss-lock -l -n dim-screen -- lock_screen &
 
 if [[ -e ~/.calibration ]]; then
 	source ~/.calibration
