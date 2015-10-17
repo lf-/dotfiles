@@ -1,0 +1,14 @@
+#!/bin/bash
+
+VMNAME=${VMNAME:-arch}
+VMROOT=${VMROOT:-$HOME/vms}
+VMDIR=${VMDIR:-$VMROOT/$VMNAME}
+
+qemu-system-x86_64 -enable-kvm -m 4096 \
+	-name Arch \
+	-device virtio-net,netdev=net0 \
+	-netdev user,id=net0 \
+	-drive file=$VMDIR/arch.img,if=virtio,id=arch \
+	-monitor stdio \
+	-vga qxl -spice port=59001,addr=127.0.0.1,disable-ticketing \
+	"$@"

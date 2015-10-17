@@ -1,0 +1,33 @@
+#!/bin/bash
+
+VMNAME=${VMNAME:-osx}
+VMROOT=${VMROOT:-$HOME/vms}
+VMDIR=${VMDIR:-$VMROOT/$VMNAME}
+CHAMELEON_VERSION=${CHAMELEON_VERSION:-svn2534}
+
+# bail if there is no OSK in /etc/osk
+if [[ ! -e /etc/osk ]]; then
+	echo 'No OSK available in /etc/osk! Bailing.'
+	exit 1
+fi
+
+# bail if sysfs setting for KVM ignoring MSRs is disabled
+if [[ $(cat /sys/module/kvm/parameters/ignore_msrs) != Y ]]; then
+	echo 'KVM is not ignoring MSRs! The VM would have blown up. Bailing.'
+	exit 1
+fi
+
+qemu-system-x86_64 -enable-kvm -m 4096 -cpu core2duo \
+	-machine q35 \
+	-usb -device usb-kbd -device usb-mouse \
+	-device isa-applesmc,osk="$(cat /etc/osk)" \
+	-kernel $VMDIR/chameleon_${CHAMELEON_VERSION}_boot \
+	-smbios type=2 \
+	-device ide-drive,bus=ide.2,drive=MacHD \
+	-drive id=MacHD,if=none,file=$VMDIR/mac_hd.img \
+	-netdev user,id=hub0port0 \
+	-device e1000-82545em,netdev=hub0port0,id=mac_vnet0 \
+	-monitor stdio \
+	-smp 4,cores=2 \
+	-device ide-drive,bus=ide.0,drive=MacDVD \
+	-drive id=MacDVD,if=none,snapshot=on,file=$VMDIR/yosemite.iso

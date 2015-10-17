@@ -1,0 +1,13 @@
+#!/bin/bash
+
+VMNAME=${VMNAME:-win10}
+VMROOT=${VMROOT:-$HOME/vms}
+VMDIR=${VMDIR:-$VMROOT/$VMNAME}
+
+qemu-system-x86_64 -enable-kvm -m 4096 \
+	-name Win10 \
+	-cpu core2duo \
+	-net nic,model=rtl8139 -net user,id=win10 \
+	-drive file=$VMDIR/win10.img,if=virtio,id=win10 \
+	-monitor stdio \
+	"$@"

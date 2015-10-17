@@ -1,0 +1,19 @@
+#!/bin/bash
+
+VMNAME=${VMNAME:-win7}
+VMROOT=${VMROOT:-$HOME/vms}
+VMDIR=${VMDIR:-$VMROOT/$VMNAME}
+export QEMU_AUDIO_DRV=spice
+
+qemu-system-x86_64 -enable-kvm -m 4096 \
+	-name Win7 \
+	-cpu core2duo \
+	-smp 2 \
+	-device virtio-net,netdev=net0 \
+	-netdev user,id=net0,smb=$VMDIR/share \
+	-drive file=$VMDIR/win7.qcow2,if=virtio,id=win7 \
+	-monitor stdio \
+	-vga qxl -spice port=59000,addr=127.0.0.1,disable-ticketing \
+	-usb -device usb-host,hostbus=2,hostaddr=3 \
+	-soundhw hda \
+	"$@"

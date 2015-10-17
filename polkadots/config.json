@@ -66,6 +66,11 @@
             "type": "SymlinkAction",
             "source": "fonts",
             "destination": "~/.fonts"
+        },
+        {
+            "type": "SymlinkAction",
+            "source": "qemu-box",
+            "destination": "~/.config/qemu-box"
         }
     ]
 }
