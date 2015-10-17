@@ -3,9 +3,10 @@
 WIRELESS_DEVICE=wls3
 ETHERNET_DEVICE=ens2
 BATT_SYSFS=/sys/devices/platform/smapi/BAT0
-PANEL_FIFO=/tmp/panel-fifo
+PANEL_FIFO="$(mktemp -ut panel.XXXXXX)"
 PANEL_HEIGHT=20
 PANEL_FONT="Source Sans Pro:size=11"
+TITLE_LIMIT=80
 ICON_FONT="FontAwesome:size=11"
 GET_ESSID="get_essid $WIRELESS_DEVICE | tr -d '\n'"
 source `which panel_config`
@@ -24,17 +25,25 @@ get_time_from_minutes() {
 
 #trap 'exit 0' INT TERM QUIT EXIT
 
-[[ -e "$PANEL_FIFO" ]] && rm "$PANEL_FIFO"
 mkfifo "$PANEL_FIFO"
 
 bspc config top_padding $PANEL_HEIGHT
 bspc control --subscribe > "$PANEL_FIFO" &
 
-xtitle -sf 'T%s' > $PANEL_FIFO &
+xtitle -s -f 'T%s' -t $TITLE_LIMIT > $PANEL_FIFO &
 
 while true; do
 	echo 'C\uf017' $(date +"%b %d %H:%M")
 	sleep $((60 - $(date +%s) % 60))
+done > $PANEL_FIFO &
+
+while true; do
+	if (( $(pgrep -cx compton) >= 1 )); then
+		echo 'Oy'
+	else
+		echo 'On'
+	fi
+	sleep 5
 done > $PANEL_FIFO &
 
 while true; do
