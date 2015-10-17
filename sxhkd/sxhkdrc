@@ -117,6 +117,10 @@ XF86AudioMute
 XF86AudioMicMute
     pactl set-source-mute 1 toggle
 
+# toggle compton with thinkvantage button
+XF86Launch1
+    killall compton || compton &
+
 # not a spotlight clone
 super + space
     lighthouse | sh
