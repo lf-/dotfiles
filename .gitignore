@@ -2,3 +2,4 @@ bundle/*
 plugged/*
 autoload/*
 .netrwhist
+spell/*
