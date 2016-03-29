@@ -40,7 +40,7 @@
         {
             "type": "SymlinkAction",
             "source": "nvim",
-            "destination": "~/.nvim"
+            "destination": "~/.config/nvim"
         },
         {
             "type": "SymlinkAction",
