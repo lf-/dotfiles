@@ -28,7 +28,7 @@ get_time_from_minutes() {
 mkfifo "$PANEL_FIFO"
 
 bspc config top_padding $PANEL_HEIGHT
-bspc control --subscribe > "$PANEL_FIFO" &
+bspc subscribe report > "$PANEL_FIFO" &
 
 xtitle -s -f 'T%s' -t $TITLE_LIMIT > $PANEL_FIFO &
 
@@ -83,8 +83,8 @@ while true; do
 	net_str='N\uf0ac'
 
 	if [[ "$(cat /sys/class/net/$WIRELESS_DEVICE/operstate)" == "up" ]]; then
-		#net_str="$net_str \uf1eb $(eval $GET_ESSID)"
-		net_str="$net_str \uf1eb sekritwifi"
+		net_str="$net_str \uf1eb $(eval $GET_ESSID)"
+		#net_str="$net_str \uf1eb sekritwifi"
 		WIFI_UP=1
 	else
 		WIFI_UP=0
@@ -105,5 +105,5 @@ while true; do
 	sleep 10
 done > $PANEL_FIFO &
 
-cat "$PANEL_FIFO" | panel_bar | lemonbar "-f$PANEL_FONT" "-f$ICON_FONT" -gx$PANEL_HEIGHT | bash
+panel_bar < "$PANEL_FIFO" | lemonbar "-f$PANEL_FONT" "-f$ICON_FONT" -gx$PANEL_HEIGHT | bash
 wait

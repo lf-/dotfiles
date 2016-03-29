@@ -7,10 +7,10 @@
 
 # switch windows with vim keybinds
 super + {h,j,k,l}
-    bspc window {left,down,up,right} -f
+    bspc node {west,south,north,east} -f
 
 super + {bracketleft,bracketright}
-    bspc window {prev,next} -f
+    bspc node {prev,next} -f
 
 super + alt + {h,l}
     bspc desktop {prev,next} -f
@@ -22,37 +22,37 @@ super + ctrl + {h,l}
 
 # shift a window to a desktop
 super + shift + alt + {h,l}
-    bspc window focused -d {prev,next}
+    bspc node focused -d {prev,next}
 
 # shift a window to a monitor
 super + ctrl + shift + alt + {h,l}
-    bspc window focused -m {prev,next}
+    bspc node focused -m {prev,next}
 
 # shift a window
 super + shift + {h,j,k,l}
-    bspc window focused -s {left,down,up,right}
+    bspc node focused -s {west,south,north,east}
 
 ##Active Window Operations##
 
 # Fullscreen/Focus
 super + f
-    bspc window focused -t fullscreen
+    bspc node focused -t fullscreen
 
 # floAt
 super + a
-    bspc window focused -t floating
+    bspc node focused -t floating
 
 # Stick
 super + s
-    bspc window focused -t sticky
+    bspc node focused -t sticky
 
 # close all the things with S-w
 super + w
-    bspc window focused -c
+    bspc node focused -c
 
 # alt+f4, super mode
 super + F4
-    bspc window focused -k
+    bspc node focused -k
 
 ##Desktop Operations##
 
@@ -69,6 +69,10 @@ super + r
     bspc desktop focused -R 90
 
 ##Global Operations##
+
+# autotype clipboard: very useful for vbox
+super + v
+    sleep 0.5; xdotool type "$(xsel --clipboard)"
 
 # oh shit button
 super + alt + Escape
@@ -116,6 +120,12 @@ XF86AudioMute
 
 XF86AudioMicMute
     pactl set-source-mute 1 toggle
+
+XF86AudioNext
+    mpc next
+
+XF86AudioPrev
+    mpc prev
 
 # toggle compton with thinkvantage button
 XF86Launch1
