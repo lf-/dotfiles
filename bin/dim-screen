@@ -36,6 +36,8 @@ get_brightness() {
     fi
 }
 
+old_brightness=$(get_brightness)
+
 set_brightness() {
     if [[ -z $sysfs_path ]]; then
         xbacklight -steps 1 -set $1
@@ -45,6 +47,7 @@ set_brightness() {
 }
 
 fade_brightness() {
+    old_brightness=$(get_brightness)
     if [[ -z $sysfs_path ]]; then
         xbacklight -time $fade_time -steps $fade_steps -set $1
     elif [[ -z $fade_step_time ]]; then
@@ -59,7 +62,7 @@ fade_brightness() {
 }
 
 trap 'exit 0' TERM INT
-trap "set_brightness $(get_brightness); kill %%" EXIT
+trap "set_brightness $old_brightness; kill %%" EXIT
 fade_brightness $min_brightness
 sleep 2147483647 &
 wait
