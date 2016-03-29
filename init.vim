@@ -17,6 +17,9 @@ Plug 'bling/vim-airline'
 Plug 'davidhalter/jedi-vim'
 Plug 'nvie/vim-flake8'
 
+" web
+Plug 'mattn/emmet-vim'
+
 " All of your Plugs must be added before the following line
 call plug#end()
 filetype plugin indent on
