@@ -10,3 +10,14 @@ version = "0.0.1"
 
 [dependencies]
 clap = "2.4.0"
+requests = "*"
+serde = "*"
+serde_macros = "*"
+serde_json = "*"
+
+[dependencies.clippy]
+optional = true
+version = "*"
+
+[features]
+default = []
