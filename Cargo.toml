@@ -1,0 +1,11 @@
+[package]
+name = "cargo-info"
+version = "0.1.0"
+authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
+repository = "https://gitlab.com/imp/cargo-info.git"
+license = "Apache-2.0/MIT"
+description = "Extends cargo to query remote registry for crates details"
+homepage = "https://gitlab.com/imp/cargo-info"
+keywords = ["cargo", "info", "subcommand"]
+
+[dependencies]
