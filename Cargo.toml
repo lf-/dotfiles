@@ -6,7 +6,7 @@ keywords = ["cargo", "info", "subcommand"]
 license = "Apache-2.0/MIT"
 name = "cargo-info"
 repository = "https://gitlab.com/imp/cargo-info.git"
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 requests = "0.0.10"
