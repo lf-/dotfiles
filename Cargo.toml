@@ -20,7 +20,7 @@ features = ["unstable"]
 
 [dependencies.clippy]
 optional = true
-version = "*"
+version = "0.0.*"
 
 [features]
 default = []
