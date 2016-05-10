@@ -15,20 +15,20 @@ mod crates;
 
 const CARGO: &'static str = "cargo";
 
-fn report(krate: crates::Reply) {
-
+fn report(reply: crates::Reply) {
+    println!("{}", reply.krate);
 }
 
 fn query(krate: &str) -> Option<crates::Reply> {
     let response = requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap();
     //println!("{:?}", response.json().unwrap());
     let reply = response.from_json::<crates::Reply>().unwrap();
-    println!("{:?}", reply.krate);
+    println!("{:#?}", reply.krate);
     Some(reply)
 }
 
 fn debug<T>(item: &T) where T: fmt::Debug {
-    println!("{:?}", item);
+    println!("{:#?}", item);
 }
 
 fn main() {
@@ -53,7 +53,7 @@ fn main() {
 
         for krate in crates {
             debug(&krate);
-            query(krate);
+            query(krate).map(report);
         }
     }
 }
