@@ -76,11 +76,18 @@ impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let ref empty = String::new();
         let description = self.description.as_ref().unwrap_or(empty);
+        let documentation = self.documentation.as_ref().unwrap_or(empty);
+        let homepage = self.homepage.as_ref().unwrap_or(empty);
+        let repository = self.repository.as_ref().unwrap_or(empty);
 
         write!(f,
-               "{}\n{}",
-               format_args!("{}:{}", "Crate", self.name),
-               format_args!("{}:{}", "Description", description))
+               "{}\n{}\n{}\n{}\n{}\n{}",
+               format_args!("{:<16}{}", "Crate:", self.name),
+               format_args!("{:<16}{}", "Version:", self.max_version),
+               format_args!("{:<16}{}", "Description:", description),
+               format_args!("{:<16}{}", "Homepage:", homepage),
+               format_args!("{:<16}{}", "Documentation:", documentation),
+               format_args!("{:<16}{}", "Repository:", repository))
     }
 }
 
