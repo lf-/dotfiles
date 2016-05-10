@@ -77,10 +77,10 @@ impl fmt::Display for Crate {
         let ref empty = String::new();
         let description = self.description.as_ref().unwrap_or(empty);
 
-        write!(f, "{}\n{}",
-            format_args!("{}:{}", "Crate", self.name),
-            format_args!("{}:{}", "Description", description)
-        )
+        write!(f,
+               "{}\n{}",
+               format_args!("{}:{}", "Crate", self.name),
+               format_args!("{}:{}", "Description", description))
     }
 }
 
