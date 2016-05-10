@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Default, Deserialize)]
 pub struct Error {
@@ -69,6 +70,18 @@ pub struct Reply {
     pub krate: Crate,
     pub keywords: Vec<Keyword>,
     pub versions: Vec<Version>,
+}
+
+impl fmt::Display for Crate {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let ref empty = String::new();
+        let description = self.description.as_ref().unwrap_or(empty);
+
+        write!(f, "{}\n{}",
+            format_args!("{}:{}", "Crate", self.name),
+            format_args!("{}:{}", "Description", description)
+        )
+    }
 }
 
 pub type CratesReply = HashMap<String, String>;
