@@ -9,7 +9,6 @@ extern crate requests;
 extern crate serde;
 extern crate serde_json;
 
-use std::fmt;
 use clap::{App, SubCommand, AppSettings};
 mod crates;
 
@@ -22,16 +21,15 @@ fn report(reply: crates::Reply) {
 fn query(krate: &str) -> Option<crates::Reply> {
     let response = requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap();
     // println!("{:?}", response.json().unwrap());
-    let reply = response.from_json::<crates::Reply>().unwrap();
-    println!("{:#?}", reply.krate);
-    Some(reply)
+    response.from_json::<crates::Reply>()
 }
 
-fn debug<T>(item: &T)
-    where T: fmt::Debug
-{
-    println!("{:#?}", item);
-}
+// use std::fmt;
+// fn debug<T>(item: &T)
+//     where T: fmt::Debug
+// {
+//     println!("{:#?}", item);
+// }
 
 fn main() {
 
@@ -53,7 +51,7 @@ fn main() {
     if let Some(crates) = matches.subcommand_matches("info")
                                  .and_then(|m| m.values_of("crate")) {
         for krate in crates {
-            debug(&krate);
+            // debug(&krate);
             query(krate).map(report);
         }
     }
