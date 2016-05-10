@@ -74,7 +74,7 @@ pub struct Reply {
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let ref empty = String::new();
+        let empty = &String::new();
         let description = self.description.as_ref().unwrap_or(empty);
         let documentation = self.documentation.as_ref().unwrap_or(empty);
         let homepage = self.homepage.as_ref().unwrap_or(empty);
