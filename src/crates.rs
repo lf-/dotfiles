@@ -7,7 +7,7 @@ pub struct Error {
 
 #[derive(Debug, Deserialize)]
 pub struct CrateLinks {
-    pub owners: String,
+    pub owners: Option<String>,
     pub reverse_dependencies: String,
     pub version_downloads: String,
     pub versions: Option<String>,
@@ -18,17 +18,17 @@ pub struct Crate {
     pub created_at: String,
     pub description: Option<String>,
     pub documentation: Option<String>,
-    pub downloads: u64,
+    pub downloads: i32,
     pub homepage: Option<String>,
     pub id: String,
-    pub keywords: Vec<String>,
-    pub license: String,
+    pub keywords: Option<Vec<String>>,
+    pub license: Option<String>,
     pub links: CrateLinks,
     pub max_version: String,
     pub name: String,
-    pub repository: String,
+    pub repository: Option<String>,
     pub updated_at: String,
-    pub versions: Vec<u64>,
+    pub versions: Option<Vec<u64>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,9 +52,9 @@ pub struct Version {
     pub krate: String,
     pub created_at: String,
     pub dl_path: String,
-    pub downloads: u64,
+    pub downloads: i32,
     pub features: HashMap<String, Vec<String>>,
-    pub id: u64,
+    pub id: i32,
     pub links: VersionLinks,
     pub num: String,
     pub updated_at: String,
