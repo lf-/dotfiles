@@ -37,7 +37,7 @@ fn main() {
 
     let matches = App::new(CARGO)
                       .bin_name(CARGO)
-                      //.author(crate_author!())
+                      .author(crate_authors!())
                       .version(crate_version!())
                       .about("Querys registry for crates details")
                       .setting(AppSettings::GlobalVersion)
