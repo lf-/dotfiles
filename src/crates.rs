@@ -81,10 +81,11 @@ impl fmt::Display for Crate {
         let repository = self.repository.as_ref().unwrap_or(empty);
 
         write!(f,
-               "{}\n{}\n{}\n{}\n{}\n{}",
+               "{}\n{}\n{}\n{}\n{}\n{}\n{}",
                format_args!("{:<16}{}", "Crate:", self.name),
                format_args!("{:<16}{}", "Version:", self.max_version),
                format_args!("{:<16}{}", "Description:", description),
+               format_args!("{:<16}{}", "Downloads:", self.downloads),
                format_args!("{:<16}{}", "Homepage:", homepage),
                format_args!("{:<16}{}", "Documentation:", documentation),
                format_args!("{:<16}{}", "Repository:", repository))
