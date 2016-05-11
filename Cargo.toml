@@ -15,7 +15,7 @@ serde_macros = "0.7.4"
 serde_json = "0.7.0"
 
 [dependencies.clap]
-version = "2.4"
+version = "2"
 features = ["unstable"]
 
 [dependencies.clippy]
