@@ -1,6 +1,6 @@
 [package]
 authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
-description = "Extends cargo to query remote registry for crates details"
+description = "Extends cargo to query crates.io registry for crates details"
 homepage = "https://gitlab.com/imp/cargo-info"
 keywords = ["cargo", "info", "subcommand"]
 license = "Apache-2.0/MIT"
