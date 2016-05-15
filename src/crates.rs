@@ -75,20 +75,39 @@ pub struct Reply {
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let empty = &String::new();
+        let empty_vec = &vec![empty.clone()];
         let description = self.description.as_ref().unwrap_or(empty);
         let documentation = self.documentation.as_ref().unwrap_or(empty);
         let homepage = self.homepage.as_ref().unwrap_or(empty);
         let repository = self.repository.as_ref().unwrap_or(empty);
+        let license = self.license.as_ref().unwrap_or(empty);
+        let keywords = self.keywords.as_ref().unwrap_or(empty_vec);
 
-        write!(f,
-               "{}\n{}\n{}\n{}\n{}\n{}\n{}",
-               format_args!("{:<16}{}", "Crate:", self.name),
-               format_args!("{:<16}{}", "Version:", self.max_version),
-               format_args!("{:<16}{}", "Description:", description),
-               format_args!("{:<16}{}", "Downloads:", self.downloads),
-               format_args!("{:<16}{}", "Homepage:", homepage),
-               format_args!("{:<16}{}", "Documentation:", documentation),
-               format_args!("{:<16}{}", "Repository:", repository))
+        if f.alternate() {
+            write!(f,
+                   "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+                   format_args!("{:<16}{}", "Crate:", self.name),
+                   format_args!("{:<16}{}", "Version:", self.max_version),
+                   format_args!("{:<16}{}", "Description:", description),
+                   format_args!("{:<16}{}", "Downloads:", self.downloads),
+                   format_args!("{:<16}{}", "Homepage:", homepage),
+                   format_args!("{:<16}{}", "Documentation:", documentation),
+                   format_args!("{:<16}{}", "Repository:", repository),
+                   format_args!("{:<16}{}", "License:", license),
+                   format_args!("{:<16}{:?}", "Keywords:", keywords),
+                   format_args!("{:<16}{}", "Created at:", self.created_at),
+                   format_args!("{:<16}{}", "Updated at:", self.updated_at))
+        } else {
+            write!(f,
+                   "{}\n{}\n{}\n{}\n{}\n{}\n{}",
+                   format_args!("{:<16}{}", "Crate:", self.name),
+                   format_args!("{:<16}{}", "Version:", self.max_version),
+                   format_args!("{:<16}{}", "Description:", description),
+                   format_args!("{:<16}{}", "Downloads:", self.downloads),
+                   format_args!("{:<16}{}", "Homepage:", homepage),
+                   format_args!("{:<16}{}", "Documentation:", documentation),
+                   format_args!("{:<16}{}", "Repository:", repository))
+        }
     }
 }
 

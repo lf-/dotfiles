@@ -14,8 +14,12 @@ mod crates;
 
 const CARGO: &'static str = "cargo";
 
-fn report(reply: crates::Reply) {
-    println!("{}", reply.krate);
+fn reportv(reply: crates::Reply, verbose: bool) {
+    if verbose {
+        println!("{:#}", reply.krate);
+    } else {
+        println!("{}", reply.krate);
+    }
 }
 
 fn query(krate: &str) -> Option<crates::Reply> {
@@ -45,14 +49,18 @@ fn main() {
                       .subcommand(SubCommand::with_name("info")
                                       .setting(AppSettings::ArgRequiredElseHelp)
                                       .setting(AppSettings::TrailingVarArg)
+                                      .arg_from_usage("-v, --verbose 'Provides more info'")
                                       .arg_from_usage("<crate>... 'crate to query'"))
                       .get_matches();
 
-    if let Some(crates) = matches.subcommand_matches("info")
-                                 .and_then(|m| m.values_of("crate")) {
-        for krate in crates {
-            // debug(&krate);
-            query(krate).map(report);
+    if let Some(info) = matches.subcommand_matches("info") {
+        let verbose = info.is_present("verbose");
+        let report = |k| reportv(k, verbose);
+        if let Some(crates) = info.values_of("crate") {
+            for krate in crates {
+                // debug(&krate);
+                query(krate).map(&report);
+            }
         }
     }
 }
