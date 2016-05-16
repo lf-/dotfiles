@@ -58,13 +58,13 @@ impl Report {
 
     pub fn report(&self, name: &str) {
         if let Some(krate) = query(name).map(|r| r.krate) {
-            for flag in self.flags.iter() {
-                match flag {
-                    &Flags::Repository => krate.print_repository(self.verbose),
-                    &Flags::Documentation => krate.print_documentation(self.verbose),
-                    &Flags::Downloads => krate.print_downloads(self.verbose),
-                    &Flags::Homepage => krate.print_homepage(self.verbose),
-                    &Flags::Everything => reportv(&krate, self.verbose),
+            for flag in &self.flags {
+                match *flag {
+                    Flags::Repository => krate.print_repository(self.verbose),
+                    Flags::Documentation => krate.print_documentation(self.verbose),
+                    Flags::Downloads => krate.print_downloads(self.verbose),
+                    Flags::Homepage => krate.print_homepage(self.verbose),
+                    Flags::Everything => reportv(&krate, self.verbose),
                 }
             }
         }

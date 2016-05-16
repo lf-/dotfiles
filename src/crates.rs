@@ -35,9 +35,10 @@ pub struct Crate {
 impl Crate {
     pub fn print_repository(&self, verbose: bool) {
         if let Some(repository) = self.repository.as_ref() {
-            let fmt = match verbose {
-                false => format!("{}", repository),
-                true => format!("{:<16}{}", "Repository:", repository),
+            let fmt = if verbose {
+                format!("{:<16}{}", "Repository:", repository)
+            } else {
+                repository.clone()
             };
             println!("{}", fmt);
         }
@@ -45,27 +46,30 @@ impl Crate {
 
     pub fn print_documentation(&self, verbose: bool) {
         if let Some(documentation) = self.documentation.as_ref() {
-            let fmt = match verbose {
-                false => format!("{}", documentation),
-                true => format!("{:<16}{}", "Documentation:", documentation),
+            let fmt = if verbose {
+                format!("{:<16}{}", "Documentation:", documentation)
+            } else {
+                documentation.clone()
             };
             println!("{}", fmt);
         }
     }
 
     pub fn print_downloads(&self, verbose: bool) {
-        let fmt = match verbose {
-            false => format!("{}", self.downloads),
-            true => format!("{:<16}{}", "Downloads:", self.downloads),
+        let fmt = if verbose {
+            format!("{:<16}{}", "Downloads:", self.downloads)
+        } else {
+            format!("{}", self.downloads)
         };
         println!("{}", fmt);
     }
 
     pub fn print_homepage(&self, verbose: bool) {
         if let Some(homepage) = self.homepage.as_ref() {
-            let fmt = match verbose {
-                false => format!("{}", homepage),
-                true => format!("{:<16}{}", "Homepage:", homepage),
+            let fmt = if verbose {
+                format!("{:<16}{}", "Homepage:", homepage)
+            } else {
+                homepage.clone()
             };
             println!("{}", fmt);
         }
