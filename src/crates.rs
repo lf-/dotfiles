@@ -32,6 +32,46 @@ pub struct Crate {
     pub versions: Option<Vec<u64>>,
 }
 
+impl Crate {
+    pub fn print_repository(&self, verbose: bool) {
+        if let Some(repository) = self.repository.as_ref() {
+            let fmt = match verbose {
+                false => format!("{}", repository),
+                true => format!("{:<16}{}", "Repository:", repository),
+            };
+            println!("{}", fmt);
+        }
+    }
+
+    pub fn print_documentation(&self, verbose: bool) {
+        if let Some(documentation) = self.documentation.as_ref() {
+            let fmt = match verbose {
+                false => format!("{}", documentation),
+                true => format!("{:<16}{}", "Documentation:", documentation),
+            };
+            println!("{}", fmt);
+        }
+    }
+
+    pub fn print_downloads(&self, verbose: bool) {
+        let fmt = match verbose {
+            false => format!("{}", self.downloads),
+            true => format!("{:<16}{}", "Downloads:", self.downloads),
+        };
+        println!("{}", fmt);
+    }
+
+    pub fn print_homepage(&self, verbose: bool) {
+        if let Some(homepage) = self.homepage.as_ref() {
+            let fmt = match verbose {
+                false => format!("{}", homepage),
+                true => format!("{:<16}{}", "Homepage:", homepage),
+            };
+            println!("{}", fmt);
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Keyword {
     pub crates_cnt: u64,

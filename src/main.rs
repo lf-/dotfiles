@@ -9,16 +9,73 @@ extern crate requests;
 extern crate serde;
 extern crate serde_json;
 
-use clap::{App, SubCommand, AppSettings};
+use clap::{App, SubCommand, AppSettings, ArgMatches};
 mod crates;
 
 const CARGO: &'static str = "cargo";
 
-fn reportv(reply: crates::Reply, verbose: bool) {
+#[derive(Debug, PartialEq)]
+enum Flags {
+    Repository,
+    Documentation,
+    Downloads,
+    Homepage,
+    Everything,
+}
+
+#[derive(Debug)]
+struct Report {
+    flags: Vec<Flags>,
+    verbose: bool,
+}
+
+impl Report {
+    pub fn new(info: &ArgMatches) -> Self {
+
+        let mut flags: Vec<Flags> = vec![];
+        if info.is_present("repository") {
+            flags.push(Flags::Repository);
+        }
+        if info.is_present("documentation") {
+            flags.push(Flags::Documentation);
+        }
+        if info.is_present("downloads") {
+            flags.push(Flags::Downloads);
+        }
+        if info.is_present("homepage") {
+            flags.push(Flags::Homepage);
+        }
+
+        if flags.is_empty() {
+            flags.push(Flags::Everything);
+        }
+
+        Report {
+            flags: flags,
+            verbose: info.is_present("verbose"),
+        }
+    }
+
+    pub fn report(&self, name: &str) {
+        if let Some(krate) = query(name).map(|r| r.krate) {
+            for flag in self.flags.iter() {
+                match flag {
+                    &Flags::Repository => krate.print_repository(self.verbose),
+                    &Flags::Documentation => krate.print_documentation(self.verbose),
+                    &Flags::Downloads => krate.print_downloads(self.verbose),
+                    &Flags::Homepage => krate.print_homepage(self.verbose),
+                    &Flags::Everything => reportv(&krate, self.verbose),
+                }
+            }
+        }
+    }
+}
+
+fn reportv(krate: &crates::Crate, verbose: bool) {
     if verbose {
-        println!("{:#}", reply.krate);
+        println!("{:#}", krate);
     } else {
-        println!("{}", reply.krate);
+        println!("{}", krate);
     }
 }
 
@@ -51,18 +108,18 @@ fn main() {
             .setting(AppSettings::TrailingVarArg)
             .arg_from_usage("-d, --documentation 'Report documentation URL'")
             .arg_from_usage("-D, --downloads 'Report number of crate downloads'")
-            .arg_from_usage("-H, --home 'Report home page URL'")
+            .arg_from_usage("-H, --homepage 'Report home page URL'")
             .arg_from_usage("-r, --repository 'Report crate repository URL'")
             .arg_from_usage("-v, --verbose 'Provides more info'")
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
 
     if let Some(info) = matches.subcommand_matches("info") {
-        let report = |k| reportv(k, info.is_present("verbose"));
         if let Some(crates) = info.values_of("crate") {
+            let rep = Report::new(info);
             for krate in crates {
                 // debug(&krate);
-                query(krate).map(&report);
+                rep.report(krate);
             }
         }
     }
