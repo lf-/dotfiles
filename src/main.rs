@@ -54,8 +54,7 @@ fn main() {
                       .get_matches();
 
     if let Some(info) = matches.subcommand_matches("info") {
-        let verbose = info.is_present("verbose");
-        let report = |k| reportv(k, verbose);
+        let report = |k| reportv(k, info.is_present("verbose"));
         if let Some(crates) = info.values_of("crate") {
             for krate in crates {
                 // debug(&krate);
