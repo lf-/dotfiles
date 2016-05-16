@@ -38,20 +38,22 @@ fn query(krate: &str) -> Option<crates::Reply> {
 fn main() {
 
     let matches = App::new(CARGO)
-                      .bin_name(CARGO)
-                      .author(crate_authors!())
-                      .version(crate_version!())
-                      .about("Queries registry for crates details")
-                      .setting(AppSettings::GlobalVersion)
-                      .setting(AppSettings::VersionlessSubcommands)
-                      .setting(AppSettings::SubcommandRequired)
-                      .setting(AppSettings::ArgRequiredElseHelp)
-                      .subcommand(SubCommand::with_name("info")
-                                      .setting(AppSettings::ArgRequiredElseHelp)
-                                      .setting(AppSettings::TrailingVarArg)
-                                      .arg_from_usage("-v, --verbose 'Provides more info'")
-                                      .arg_from_usage("<crate>... 'crate to query'"))
-                      .get_matches();
+        .bin_name(CARGO)
+        .author(crate_authors!())
+        .version(crate_version!())
+        .about("Queries registry for crates details")
+        .setting(AppSettings::GlobalVersion)
+        .setting(AppSettings::VersionlessSubcommands)
+        .setting(AppSettings::SubcommandRequired)
+        .setting(AppSettings::ArgRequiredElseHelp)
+        .subcommand(SubCommand::with_name("info")
+            .setting(AppSettings::ArgRequiredElseHelp)
+            .setting(AppSettings::TrailingVarArg)
+            .arg_from_usage("-v, --verbose 'Provides more info'")
+            .arg_from_usage("-v, --verbose 'Provides more info'")
+            .arg_from_usage("-v, --verbose 'Provides more info'")
+            .arg_from_usage("<crate>... 'crate to query'"))
+        .get_matches();
 
     if let Some(info) = matches.subcommand_matches("info") {
         let report = |k| reportv(k, info.is_present("verbose"));
