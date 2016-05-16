@@ -41,7 +41,7 @@ fn main() {
                       .bin_name(CARGO)
                       .author(crate_authors!())
                       .version(crate_version!())
-                      .about("Querys registry for crates details")
+                      .about("Queries registry for crates details")
                       .setting(AppSettings::GlobalVersion)
                       .setting(AppSettings::VersionlessSubcommands)
                       .setting(AppSettings::SubcommandRequired)
