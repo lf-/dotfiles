@@ -49,8 +49,10 @@ fn main() {
         .subcommand(SubCommand::with_name("info")
             .setting(AppSettings::ArgRequiredElseHelp)
             .setting(AppSettings::TrailingVarArg)
-            .arg_from_usage("-v, --verbose 'Provides more info'")
-            .arg_from_usage("-v, --verbose 'Provides more info'")
+            .arg_from_usage("-d, --documentation 'Report documentation URL'")
+            .arg_from_usage("-D, --downloads 'Report number of crate downloads'")
+            .arg_from_usage("-H, --home 'Report home page URL'")
+            .arg_from_usage("-r, --repository 'Report crate repository URL'")
             .arg_from_usage("-v, --verbose 'Provides more info'")
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
