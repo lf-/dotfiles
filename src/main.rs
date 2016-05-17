@@ -15,7 +15,7 @@ mod crates;
 const CARGO: &'static str = "cargo";
 
 #[derive(Debug, PartialEq)]
-enum Flags {
+enum Flag {
     Repository,
     Documentation,
     Downloads,
@@ -25,29 +25,29 @@ enum Flags {
 
 #[derive(Debug)]
 struct Report {
-    flags: Vec<Flags>,
+    flags: Vec<Flag>,
     verbose: bool,
 }
 
 impl Report {
     pub fn new(info: &ArgMatches) -> Self {
 
-        let mut flags: Vec<Flags> = vec![];
+        let mut flags: Vec<Flag> = vec![];
         if info.is_present("repository") {
-            flags.push(Flags::Repository);
+            flags.push(Flag::Repository);
         }
         if info.is_present("documentation") {
-            flags.push(Flags::Documentation);
+            flags.push(Flag::Documentation);
         }
         if info.is_present("downloads") {
-            flags.push(Flags::Downloads);
+            flags.push(Flag::Downloads);
         }
         if info.is_present("homepage") {
-            flags.push(Flags::Homepage);
+            flags.push(Flag::Homepage);
         }
 
         if flags.is_empty() {
-            flags.push(Flags::Default);
+            flags.push(Flag::Default);
         }
 
         Report {
@@ -60,11 +60,11 @@ impl Report {
         if let Some(krate) = query(name).map(|r| r.krate) {
             for flag in &self.flags {
                 match *flag {
-                    Flags::Repository => krate.print_repository(self.verbose),
-                    Flags::Documentation => krate.print_documentation(self.verbose),
-                    Flags::Downloads => krate.print_downloads(self.verbose),
-                    Flags::Homepage => krate.print_homepage(self.verbose),
-                        Flags::Default => reportv(&krate, self.verbose),
+                    Flag::Repository => krate.print_repository(self.verbose),
+                    Flag::Documentation => krate.print_documentation(self.verbose),
+                    Flag::Downloads => krate.print_downloads(self.verbose),
+                    Flag::Homepage => krate.print_homepage(self.verbose),
+                        Flag::Default => reportv(&krate, self.verbose),
                 }
             }
         }
