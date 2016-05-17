@@ -20,7 +20,7 @@ enum Flags {
     Documentation,
     Downloads,
     Homepage,
-    Everything,
+    Default,
 }
 
 #[derive(Debug)]
@@ -47,7 +47,7 @@ impl Report {
         }
 
         if flags.is_empty() {
-            flags.push(Flags::Everything);
+            flags.push(Flags::Default);
         }
 
         Report {
@@ -64,7 +64,7 @@ impl Report {
                     Flags::Documentation => krate.print_documentation(self.verbose),
                     Flags::Downloads => krate.print_downloads(self.verbose),
                     Flags::Homepage => krate.print_homepage(self.verbose),
-                    Flags::Everything => reportv(&krate, self.verbose),
+                        Flags::Default => reportv(&krate, self.verbose),
                 }
             }
         }
