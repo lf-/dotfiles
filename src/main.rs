@@ -64,7 +64,7 @@ impl Report {
                     Flag::Documentation => krate.print_documentation(self.verbose),
                     Flag::Downloads => krate.print_downloads(self.verbose),
                     Flag::Homepage => krate.print_homepage(self.verbose),
-                        Flag::Default => reportv(&krate, self.verbose),
+                    Flag::Default => reportv(&krate, self.verbose),
                 }
             }
         }
