@@ -1,6 +1,10 @@
 # 0.2.0
 
 Add flags for getting a specific crate detail
+-H - homepage
+-d - documentation
+-D - downloads
+-r - repository
 
 # 0.1.2
 
