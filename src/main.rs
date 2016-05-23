@@ -109,7 +109,7 @@ fn main() {
             .arg_from_usage("-D, --downloads 'Report number of crate downloads'")
             .arg_from_usage("-H, --homepage 'Report home page URL'")
             .arg_from_usage("-r, --repository 'Report crate repository URL'")
-            .arg_from_usage("-v, --verbose 'Provides more info'")
+            .arg_from_usage("-v, --verbose 'Report more details'")
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
 
