@@ -20,6 +20,7 @@ enum Flag {
     Documentation,
     Downloads,
     Homepage,
+    Json,
     Default,
 }
 
@@ -46,6 +47,10 @@ impl Report {
             flags.push(Flag::Homepage);
         }
 
+        if info.is_present("json") {
+            flags.push(Flag::Json);
+        }
+
         if flags.is_empty() {
             flags.push(Flag::Default);
         }
@@ -64,6 +69,7 @@ impl Report {
                     Flag::Documentation => krate.print_documentation(self.verbose),
                     Flag::Downloads => krate.print_downloads(self.verbose),
                     Flag::Homepage => krate.print_homepage(self.verbose),
+                    Flag::Json => {},
                     Flag::Default => reportv(&krate, self.verbose),
                 }
             }
