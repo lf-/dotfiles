@@ -18,9 +18,5 @@ serde_json = "0.7.0"
 version = "2"
 features = ["unstable"]
 
-[dependencies.clippy]
-optional = true
-version = "0.0.*"
-
-[features]
-default = []
+[dev-dependencies]
+clippy = "0.0.*"
