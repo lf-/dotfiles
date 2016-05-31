@@ -73,13 +73,13 @@ impl Report {
 
     pub fn report_json(&self, response: &requests::Response) {
         if self.verbose {
-            if let Some(json) = response.text() {
+            if let Some(Ok(json)) = response.from_json::<crates::Reply>()
+                .as_ref()
+                .map(to_string_pretty) {
                 println!("{}", json);
             }
         } else {
-            if let Some(Ok(json)) = response.from_json::<crates::Reply>()
-                                            .as_ref()
-                                            .map(to_string_pretty::<crates::Reply>) {
+            if let Some(json) = response.text() {
                 println!("{}", json);
             }
         }
