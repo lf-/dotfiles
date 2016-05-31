@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 use std::fmt;
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Error {
     pub detail: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct CrateLinks {
     pub owners: Option<String>,
     pub reverse_dependencies: String,
@@ -14,7 +14,7 @@ pub struct CrateLinks {
     pub versions: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Crate {
     pub created_at: String,
     pub description: Option<String>,
@@ -76,7 +76,7 @@ impl Crate {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Keyword {
     pub crates_cnt: u64,
     pub created_at: String,
@@ -84,14 +84,14 @@ pub struct Keyword {
     pub keyword: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct VersionLinks {
     pub authors: String,
     pub dependencies: String,
     pub version_downloads: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Version {
     #[serde(rename="crate")]
     pub krate: String,
@@ -106,7 +106,7 @@ pub struct Version {
     pub yanked: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Reply {
     #[serde(default)]
     pub errors: Error,
