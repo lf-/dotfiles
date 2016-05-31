@@ -9,10 +9,10 @@ repository = "https://gitlab.com/imp/cargo-info.git"
 version = "0.2.0"
 
 [dependencies]
-requests = "0.0.10"
-serde = "0.7.4"
-serde_macros = "0.7.4"
-serde_json = "0.7.0"
+requests = "0.0.11"
+serde = "0.7.6"
+serde_macros = "0.7.5"
+serde_json = "0.7.1"
 
 [dependencies.clap]
 version = "2"
