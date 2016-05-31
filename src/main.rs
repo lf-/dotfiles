@@ -9,8 +9,10 @@ extern crate requests;
 extern crate serde;
 extern crate serde_json;
 
-use clap::{App, SubCommand, AppSettings, ArgMatches};
 mod crates;
+
+use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
+use serde_json::ser::to_string_pretty;
 
 const CARGO: &'static str = "cargo";
 
@@ -20,7 +22,6 @@ enum Flag {
     Documentation,
     Downloads,
     Homepage,
-    Json,
     Default,
 }
 
@@ -28,6 +29,7 @@ enum Flag {
 struct Report {
     flags: Vec<Flag>,
     verbose: bool,
+    json: bool,
 }
 
 impl Report {
@@ -47,10 +49,6 @@ impl Report {
             flags.push(Flag::Homepage);
         }
 
-        if info.is_present("json") {
-            flags.push(Flag::Json);
-        }
-
         if flags.is_empty() {
             flags.push(Flag::Default);
         }
@@ -58,20 +56,43 @@ impl Report {
         Report {
             flags: flags,
             verbose: info.is_present("verbose"),
+            json: info.is_present("json"),
         }
     }
 
     pub fn report(&self, name: &str) {
-        if let Some(krate) = query(name).map(|r| r.krate) {
-            for flag in &self.flags {
-                match *flag {
-                    Flag::Repository => krate.print_repository(self.verbose),
-                    Flag::Documentation => krate.print_documentation(self.verbose),
-                    Flag::Downloads => krate.print_downloads(self.verbose),
-                    Flag::Homepage => krate.print_homepage(self.verbose),
-                    Flag::Json => {},
-                    Flag::Default => reportv(&krate, self.verbose),
-                }
+        let response = query(name);
+        if self.json {
+            self.report_json(&response);
+        } else {
+            if let Some(krate) = get_crate(&response) {
+                self.report_crate(&krate);
+            }
+        }
+    }
+
+    pub fn report_json(&self, response: &requests::Response) {
+        if self.verbose {
+            if let Some(json) = response.text() {
+                println!("{}", json);
+            }
+        } else {
+            if let Some(Ok(json)) = response.from_json::<crates::Reply>()
+                                            .as_ref()
+                                            .map(to_string_pretty::<crates::Reply>) {
+                println!("{}", json);
+            }
+        }
+    }
+
+    pub fn report_crate(&self, krate: &crates::Crate) {
+        for flag in &self.flags {
+            match *flag {
+                Flag::Repository => krate.print_repository(self.verbose),
+                Flag::Documentation => krate.print_documentation(self.verbose),
+                Flag::Downloads => krate.print_downloads(self.verbose),
+                Flag::Homepage => krate.print_homepage(self.verbose),
+                Flag::Default => reportv(&krate, self.verbose),
             }
         }
     }
@@ -85,10 +106,14 @@ fn reportv(krate: &crates::Crate, verbose: bool) {
     }
 }
 
-fn query(krate: &str) -> Option<crates::Reply> {
-    let response = requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap();
+fn query(krate: &str) -> requests::Response {
+    requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap()
     // println!("{:?}", response.json().unwrap());
-    response.from_json::<crates::Reply>()
+    // response.from_json::<crates::Reply>()
+}
+
+fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
+    response.from_json::<crates::Reply>().map(|r| r.krate)
 }
 
 // use std::fmt;
@@ -111,10 +136,20 @@ fn main() {
         .subcommand(SubCommand::with_name("info")
             .setting(AppSettings::ArgRequiredElseHelp)
             .setting(AppSettings::TrailingVarArg)
-            .arg_from_usage("-d, --documentation 'Report documentation URL'")
+            .arg(Arg::with_name("documentation")
+                .short("d")
+                .long("documentation")
+                .help("Report documentation URL"))
+            // .arg_from_usage("-d, --documentation 'Report documentation URL'")
             .arg_from_usage("-D, --downloads 'Report number of crate downloads'")
             .arg_from_usage("-H, --homepage 'Report home page URL'")
             .arg_from_usage("-r, --repository 'Report crate repository URL'")
+            .arg(Arg::with_name("json")
+                .short("j")
+                .long("json")
+                .help("Report raw JSON data from crates.io")
+                .conflicts_with_all(&["documentation", "downloads", "homepage", "repository"]))
+            // .arg_from_usage("-j, --json 'Report raw json data from crates.io'")
             .arg_from_usage("-v, --verbose 'Report more details'")
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
