@@ -2,7 +2,7 @@
 name = "cargo-info"
 version = "0.2.0"
 dependencies = [
- "clap 2.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clippy 0.0.70 (registry+https://github.com/rust-lang/crates.io-index)",
  "requests 0.0.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -32,7 +32,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.5.1"
+version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
