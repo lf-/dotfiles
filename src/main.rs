@@ -54,12 +54,13 @@ impl Report {
     }
 
     pub fn report(&self, name: &str) {
-        let response = query(name);
-        if self.json {
-            self.report_json(&response);
-        } else {
-            if let Some(krate) = get_crate(&response) {
-                self.report_crate(&krate);
+        if let Ok(response) = query(name) {
+            if self.json {
+                self.report_json(&response);
+            } else {
+                if let Some(krate) = get_crate(&response) {
+                    self.report_crate(&krate);
+                }
             }
         }
     }
@@ -97,8 +98,8 @@ fn reportv(krate: &crates::Crate, verbose: bool) {
     }
 }
 
-fn query(krate: &str) -> requests::Response {
-    requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap()
+fn query(krate: &str) -> requests::RequestsResult {
+    requests::get(&format!("http://crates.io/api/v1/crates/{}", krate))
 }
 
 fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
