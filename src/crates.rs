@@ -100,7 +100,6 @@ impl Crate {
 
     pub fn print_downloads(&self, verbose: bool) {
         if let JsonValue::Number(downloads) = self.json["downloads"] {
-            let downloads = downloads as i32;
             let fmt = if verbose {
                 format!("{:<16}{}", "Downloads:", downloads)
             } else {
@@ -125,10 +124,11 @@ impl Crate {
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let empty = &String::new();
+        let zero = &0f64;
 
         let name = self.json["name"].as_string().unwrap_or(empty);
         let max_version = self.json["max_version"].as_string().unwrap_or(empty);
-        let downloads = self.json["downloads"].as_string().unwrap_or(empty);
+        let downloads = self.json["downloads"].as_number().unwrap_or(zero);
         let created_at = self.json["created_at"].as_string().unwrap_or(empty);
         let updated_at = self.json["updated_at"].as_string().unwrap_or(empty);
 
