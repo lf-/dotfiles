@@ -99,8 +99,6 @@ fn reportv(krate: &crates::Crate, verbose: bool) {
 
 fn query(krate: &str) -> requests::Response {
     requests::get(&format!("http://crates.io/api/v1/crates/{}", krate)).unwrap()
-    // println!("{:?}", response.json().unwrap());
-    // response.from_json::<crates::Reply>()
 }
 
 fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
