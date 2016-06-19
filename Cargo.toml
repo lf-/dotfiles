@@ -9,12 +9,12 @@ repository = "https://gitlab.com/imp/cargo-info.git"
 version = "0.3.0"
 
 [dependencies]
+requests = "0.0.*"
 json = "0.4"
-
-[dependencies.requests]
-version = "0.0.*"
-default-features = false
 
 [dependencies.clap]
 version = "2"
 features = ["unstable"]
+
+[features]
+default = []
