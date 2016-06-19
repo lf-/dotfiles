@@ -1,3 +1,7 @@
+## 0.3.1
+
+Disable SSL support and save some code and compilation time
+
 ## 0.3.0
 
 Add support for raw JSON output (-j)
