@@ -1,18 +1,14 @@
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
-#![feature(custom_derive, plugin)]
-#![plugin(serde_macros)]
 
 #[macro_use]
 extern crate clap;
 extern crate requests;
-extern crate serde;
-extern crate serde_json;
+extern crate json;
 
 mod crates;
 
 use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
-use serde_json::ser::to_string_pretty;
 
 const CARGO: &'static str = "cargo";
 
@@ -73,10 +69,8 @@ impl Report {
 
     pub fn report_json(&self, response: &requests::Response) {
         if self.verbose {
-            if let Some(Ok(json)) = response.from_json::<crates::Reply>()
-                .as_ref()
-                .map(to_string_pretty) {
-                println!("{}", json);
+            if let Ok(json) = response.json() {
+                println!("{:?}", json);
             }
         } else {
             if let Some(json) = response.text() {
@@ -113,7 +107,7 @@ fn query(krate: &str) -> requests::Response {
 }
 
 fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
-    response.from_json::<crates::Reply>().map(|r| r.krate)
+    response.json().ok().map(|k| crates::Crate::new(k["crate"].clone()))
 }
 
 // use std::fmt;
