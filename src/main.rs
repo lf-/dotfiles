@@ -67,7 +67,7 @@ impl Report {
     pub fn report_json(&self, response: &requests::Response) {
         if self.verbose {
             if let Ok(json) = response.json() {
-                println!("{:?}", json);
+                println!("{}", json::stringify(json));
             }
         } else {
             if let Some(json) = response.text() {
