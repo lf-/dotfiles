@@ -1,6 +1,6 @@
 ## 0.3.1
 
-Disable SSL support and save some code and compilation time
+Make -jv print pretty JSON
 
 ## 0.3.0
 
