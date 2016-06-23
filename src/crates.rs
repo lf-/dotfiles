@@ -123,24 +123,23 @@ impl Crate {
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let empty = &String::new();
-        let zero = &0f64;
+        let empty = "";
 
-        let name = self.json["name"].as_string().unwrap_or(empty);
-        let max_version = self.json["max_version"].as_string().unwrap_or(empty);
-        let downloads = self.json["downloads"].as_number().unwrap_or(zero);
-        let created_at = self.json["created_at"].as_string().unwrap_or(empty);
-        let updated_at = self.json["updated_at"].as_string().unwrap_or(empty);
+        let name = self.json["name"].as_str().unwrap_or(empty);
+        let max_version = self.json["max_version"].as_str().unwrap_or(empty);
+        let downloads = self.json["downloads"].as_i32().unwrap_or(0);
+        let created_at = self.json["created_at"].as_str().unwrap_or(empty);
+        let updated_at = self.json["updated_at"].as_str().unwrap_or(empty);
 
-        let description = self.json["description"].as_string().unwrap_or(empty);
-        let documentation = self.json["documentation"].as_string().unwrap_or(empty);
-        let homepage = self.json["homepage"].as_string().unwrap_or(empty);
-        let repository = self.json["repository"].as_string().unwrap_or(empty);
-        let license = self.json["license"].as_string().unwrap_or(empty);
+        let description = self.json["description"].as_str().unwrap_or(empty);
+        let documentation = self.json["documentation"].as_str().unwrap_or(empty);
+        let homepage = self.json["homepage"].as_str().unwrap_or(empty);
+        let repository = self.json["repository"].as_str().unwrap_or(empty);
+        let license = self.json["license"].as_str().unwrap_or(empty);
 
         let keywords = self.json["keywords"]
             .members()
-            .filter_map(|jv| jv.as_string().ok())
+            .filter_map(|jv| jv.as_str())
             .collect::<Vec<_>>();
 
         if f.alternate() {
