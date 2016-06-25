@@ -44,6 +44,8 @@ set shell=zsh
 set backupdir=~/.nvim/backup//
 set directory=~/.nvim/swap//
 set undodir=~/.nvim/undo//
+" Avoid unintentionally causing suicide with the auto from completion in jedi
+let g:jedi#smart_auto_mappings = 0
 
 """""""""""""""""""""""""
 " Text UI
