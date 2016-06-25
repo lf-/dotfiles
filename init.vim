@@ -11,7 +11,8 @@ Plug 'tpope/vim-markdown'
 Plug 'tpope/vim-fugitive'
 Plug 'jtratner/vim-flavored-markdown'
 Plug 'altercation/vim-colors-solarized'
-Plug 'bling/vim-airline'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
 " Python
 Plug 'davidhalter/jedi-vim'
@@ -72,6 +73,12 @@ colorscheme solarized
 set relativenumber
 set number
 let g:airline_powerline_fonts = 1
+
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+" remove annoying hamburger symbol
+let g:airline_symbols.maxlinenr = ''
 set list
 set listchars=trail:•
 augroup markdown
