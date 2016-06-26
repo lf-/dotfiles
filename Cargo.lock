@@ -3,7 +3,7 @@ name = "cargo-info"
 version = "0.3.2"
 dependencies = [
  "clap 2.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "requests 0.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "json"
-version = "0.7.2"
+version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -238,7 +238,7 @@ version = "0.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
