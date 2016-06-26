@@ -4,7 +4,7 @@ version = "0.3.2"
 dependencies = [
  "clap 2.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "requests 0.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "requests 0.0.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -234,7 +234,7 @@ dependencies = [
 
 [[package]]
 name = "requests"
-version = "0.0.16"
+version = "0.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
