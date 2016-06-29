@@ -10,7 +10,7 @@ version = "0.3.2"
 
 [dependencies]
 requests = "0.0.*"
-json = "0.7"
+json = "0.8"
 
 [dependencies.clap]
 version = "2"
