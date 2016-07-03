@@ -1,3 +1,7 @@
+## 0.3.3
+
+No new functionality - dependency updates
+
 ## 0.3.2
 
 No new functionality - dependency updates

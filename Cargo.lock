@@ -1,6 +1,6 @@
 [root]
 name = "cargo-info"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "clap 2.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
