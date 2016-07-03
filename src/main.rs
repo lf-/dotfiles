@@ -57,10 +57,8 @@ impl Report {
         if let Ok(response) = query(name) {
             if self.json {
                 self.report_json(&response);
-            } else {
-                if let Some(krate) = get_crate(&response) {
-                    self.report_crate(&krate);
-                }
+            } else if let Some(krate) = get_crate(&response) {
+                self.report_crate(&krate);
             }
         }
     }
@@ -70,10 +68,8 @@ impl Report {
             if let Ok(json) = response.json() {
                 println!("{:#}", json);
             }
-        } else {
-            if let Some(json) = response.text() {
-                println!("{}", json);
-            }
+        } else if let Some(json) = response.text() {
+            println!("{}", json);
         }
     }
 
