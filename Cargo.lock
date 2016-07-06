@@ -2,14 +2,14 @@
 name = "cargo-info"
 version = "0.3.3"
 dependencies = [
- "clap 2.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.8.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "requests 0.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "ansi_term"
-version = "0.7.4"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -24,10 +24,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.9.1"
+version = "2.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "ansi_term 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ansi_term 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "strsim 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -113,7 +113,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "json"
-version = "0.8.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "itoa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -247,7 +247,7 @@ version = "0.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.8.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.8.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
