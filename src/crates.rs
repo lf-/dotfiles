@@ -1,6 +1,7 @@
 use std::fmt;
 
 use chrono::{DateTime, Local};
+use itertools::Itertools;
 use json::JsonValue;
 
 // #[derive(Debug, Default)]
@@ -89,16 +90,22 @@ impl fmt::Display for TimeStamp {
 }
 
 pub struct Crate {
-    json: JsonValue,
+    krate: JsonValue,
+    versions: JsonValue,
+    keywords: JsonValue,
 }
 
 impl Crate {
-    pub fn new(json: JsonValue) -> Self {
-        Crate { json: json }
+    pub fn new(json: &JsonValue) -> Self {
+        Crate {
+            krate: json["crate"].clone(),
+            versions: json["versions"].clone(),
+            keywords: json["keywords"].clone(),
+        }
     }
 
     pub fn print_repository(&self, verbose: bool) {
-        if let JsonValue::String(ref repository) = self.json["repository"] {
+        if let JsonValue::String(ref repository) = self.krate["repository"] {
             let fmt = if verbose {
                 format!("{:<16}{}", "Repository:", repository)
             } else {
@@ -109,7 +116,7 @@ impl Crate {
     }
 
     pub fn print_documentation(&self, verbose: bool) {
-        if let JsonValue::String(ref documentation) = self.json["documentation"] {
+        if let JsonValue::String(ref documentation) = self.krate["documentation"] {
             let fmt = if verbose {
                 format!("{:<16}{}", "Documentation:", documentation)
             } else {
@@ -120,7 +127,7 @@ impl Crate {
     }
 
     pub fn print_downloads(&self, verbose: bool) {
-        if let JsonValue::Number(downloads) = self.json["downloads"] {
+        if let JsonValue::Number(downloads) = self.krate["downloads"] {
             let fmt = if verbose {
                 format!("{:<16}{}", "Downloads:", downloads)
             } else {
@@ -131,7 +138,7 @@ impl Crate {
     }
 
     pub fn print_homepage(&self, verbose: bool) {
-        if let JsonValue::String(ref homepage) = self.json["homepage"] {
+        if let JsonValue::String(ref homepage) = self.krate["homepage"] {
             let fmt = if verbose {
                 format!("{:<16}{}", "Homepage:", homepage)
             } else {
@@ -140,26 +147,51 @@ impl Crate {
             println!("{}", fmt);
         }
     }
+
+    fn print_version(v: &JsonValue, verbose: bool) {
+
+        let fmt = if verbose {
+            let created_at = TimeStamp::from(&v["created_at"]);
+            format!("{} {} {}", v["num"], created_at, v["downloads"])
+        } else {
+            format!("{}", v["num"])
+        };
+        println!("{}", fmt);
+    }
+
+    pub fn print_last_versions(&self, verbose: bool) {
+        // self.versions.members().take(5).rev().foreach(|v| Crate::print_version(v, verbose));
+        self.versions.members().take(5).foreach(|v| Crate::print_version(v, verbose));
+    }
+
+    pub fn print_keywords(&self, verbose: bool) {
+        let fmt = if verbose {
+            format!("{:#}", self.keywords)
+        } else {
+            format!("{}", self.keywords)
+        };
+        println!("{}", fmt);
+    }
 }
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let empty = "";
 
-        let name = self.json["name"].as_str().unwrap_or(empty);
-        let max_version = self.json["max_version"].as_str().unwrap_or(empty);
-        let downloads = self.json["downloads"].as_i32().unwrap_or(0);
+        let name = self.krate["name"].as_str().unwrap_or(empty);
+        let max_version = self.krate["max_version"].as_str().unwrap_or(empty);
+        let downloads = self.krate["downloads"].as_i32().unwrap_or(0);
 
-        let created_at = TimeStamp::from(&self.json["created_at"]);
-        let updated_at = TimeStamp::from(&self.json["updated_at"]);
+        let created_at = TimeStamp::from(&self.krate["created_at"]);
+        let updated_at = TimeStamp::from(&self.krate["updated_at"]);
 
-        let description = self.json["description"].as_str().unwrap_or(empty);
-        let documentation = self.json["documentation"].as_str().unwrap_or(empty);
-        let homepage = self.json["homepage"].as_str().unwrap_or(empty);
-        let repository = self.json["repository"].as_str().unwrap_or(empty);
-        let license = self.json["license"].as_str().unwrap_or(empty);
+        let description = self.krate["description"].as_str().unwrap_or(empty);
+        let documentation = self.krate["documentation"].as_str().unwrap_or(empty);
+        let homepage = self.krate["homepage"].as_str().unwrap_or(empty);
+        let repository = self.krate["repository"].as_str().unwrap_or(empty);
+        let license = self.krate["license"].as_str().unwrap_or(empty);
 
-        let keywords = self.json["keywords"]
+        let keywords = self.krate["keywords"]
             .members()
             .filter_map(|jv| jv.as_str())
             .collect::<Vec<_>>();

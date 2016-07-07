@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate clap;
 extern crate chrono;
+extern crate itertools;
 extern crate json;
 extern crate requests;
 
@@ -24,6 +25,8 @@ struct Report {
     flags: Vec<Flag>,
     verbose: bool,
     json: bool,
+    versions: bool,
+    keywords: bool,
 }
 
 impl Report {
@@ -51,15 +54,23 @@ impl Report {
             flags: flags,
             verbose: info.is_present("verbose"),
             json: info.is_present("json"),
+            versions: info.is_present("versions"),
+            keywords: info.is_present("keywords"),
         }
     }
 
     pub fn report(&self, name: &str) {
         if let Ok(response) = query(name) {
             if self.json {
-                self.report_json(&response);
+                self.report_json(&response)
             } else if let Some(krate) = get_crate(&response) {
-                self.report_crate(&krate);
+                if self.versions {
+                    self.report_versions(&krate);
+                } else if self.keywords {
+                    self.report_keywords(&krate);
+                } else {
+                    self.report_crate(&krate);
+                }
             }
         }
     }
@@ -85,6 +96,14 @@ impl Report {
             }
         }
     }
+
+    pub fn report_versions(&self, krate: &crates::Crate) {
+        krate.print_last_versions(self.verbose)
+    }
+
+    pub fn report_keywords(&self, krate: &crates::Crate) {
+        krate.print_keywords(self.verbose)
+    }
 }
 
 fn reportv(krate: &crates::Crate, verbose: bool) {
@@ -100,7 +119,7 @@ fn query(krate: &str) -> requests::RequestsResult {
 }
 
 fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
-    response.json().ok().map(|k| crates::Crate::new(k["crate"].clone()))
+    response.json().ok().map(|k| crates::Crate::new(&k))
 }
 
 // use std::fmt;
@@ -148,6 +167,10 @@ fn main() {
                 .short("v")
                 .long("verbose")
                 .help("Report more details"))
+            .arg(Arg::with_name("versions")
+                .short("V")
+                .long("versions")
+                .help("Report version history of the crate"))
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
 
