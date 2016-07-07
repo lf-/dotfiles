@@ -6,10 +6,10 @@ keywords = ["cargo", "info", "subcommand"]
 license = "Apache-2.0/MIT"
 name = "cargo-info"
 repository = "https://gitlab.com/imp/cargo-info.git"
-version = "0.3.3"
+version = "0.3.4"
 
 [dependencies]
-chrono = "0.2.22"
+chrono = "0.2"
 json = "0.8"
 requests = "0.0.*"
 

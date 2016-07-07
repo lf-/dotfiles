@@ -1,3 +1,7 @@
+## 0.3.4
+
+Decode timestamps and report in more human readable form
+
 ## 0.3.3
 
 No new functionality - dependency updates
