@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate clap;
-extern crate requests;
+extern crate chrono;
 extern crate json;
+extern crate requests;
 
 mod crates;
 

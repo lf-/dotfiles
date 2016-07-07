@@ -1,4 +1,6 @@
 use std::fmt;
+
+use chrono::{DateTime, Local};
 use json::JsonValue;
 
 // #[derive(Debug, Default)]
@@ -67,6 +69,25 @@ use json::JsonValue;
 //     pub versions: Vec<Version>,
 // }
 
+struct TimeStamp(Option<DateTime<Local>>);
+
+impl<'a> From<&'a JsonValue> for TimeStamp {
+    fn from(jv: &JsonValue) -> Self {
+        let parse = |s: &str| s.parse::<DateTime<Local>>().ok();
+        TimeStamp(jv.as_str().and_then(parse))
+    }
+}
+
+impl fmt::Display for TimeStamp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if let Some(ts) = self.0 {
+            write!(f, "{}", ts)
+        } else {
+            write!(f, "")
+        }
+    }
+}
+
 pub struct Crate {
     json: JsonValue,
 }
@@ -128,8 +149,9 @@ impl fmt::Display for Crate {
         let name = self.json["name"].as_str().unwrap_or(empty);
         let max_version = self.json["max_version"].as_str().unwrap_or(empty);
         let downloads = self.json["downloads"].as_i32().unwrap_or(0);
-        let created_at = self.json["created_at"].as_str().unwrap_or(empty);
-        let updated_at = self.json["updated_at"].as_str().unwrap_or(empty);
+
+        let created_at = TimeStamp::from(&self.json["created_at"]);
+        let updated_at = TimeStamp::from(&self.json["updated_at"]);
 
         let description = self.json["description"].as_str().unwrap_or(empty);
         let documentation = self.json["documentation"].as_str().unwrap_or(empty);
