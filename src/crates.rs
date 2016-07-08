@@ -160,8 +160,15 @@ impl Crate {
     }
 
     pub fn print_last_versions(&self, verbose: bool) {
-        // self.versions.members().take(5).rev().foreach(|v| Crate::print_version(v, verbose));
-        self.versions.members().take(5).foreach(|v| Crate::print_version(v, verbose));
+        self.versions
+            .members()
+            .take(5)
+            // This collect()::<Vec<_>>.iter() is here only because take()
+            // does not support DoubleEndedIterator for rev(), bummer
+            .collect::<Vec<_>>()
+            .iter()
+            .rev()
+            .foreach(|v| Crate::print_version(v, verbose));
     }
 
     pub fn print_keywords(&self, verbose: bool) {
