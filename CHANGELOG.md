@@ -1,3 +1,7 @@
+## 0.X.Y
+
+Report crate version history with -V/--versions flag
+
 ## 0.3.4
 
 Decode timestamps and report in more human readable form
