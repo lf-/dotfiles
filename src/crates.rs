@@ -82,9 +82,9 @@ impl<'a> From<&'a JsonValue> for TimeStamp {
 impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ts) = self.0 {
-            write!(f, "{}", ts)
+            f.pad(&format!("{}", ts))
         } else {
-            write!(f, "")
+            f.pad("")
         }
     }
 }
@@ -149,17 +149,37 @@ impl Crate {
     }
 
     fn print_version(v: &JsonValue, verbose: bool) {
-
-        let fmt = if verbose {
+        if verbose {
             let created_at = TimeStamp::from(&v["created_at"]);
-            format!("{} {} {}", v["num"], created_at, v["downloads"])
+            let yanked = if v["yanked"] == true {
+                "YANKED"
+            } else {
+                ""
+            };
+            println!("{:<10}{:<28}{:<11}{}",
+                     v["num"],
+                     created_at,
+                     v["downloads"],
+                     yanked)
         } else {
-            format!("{}", v["num"])
+            println!("{:<10}", v["num"])
         };
-        println!("{}", fmt);
+    }
+
+    fn print_version_header(verbose: bool) {
+        if verbose {
+            println!("{:<10}{:<28}{:<11}{}",
+                    "VERSION",
+                    "RELEASE DATE",
+                    "DOWNLOADS",
+                    "YANKED")
+        } else {
+            println!("{:<10}", "VERSION")
+        };
     }
 
     pub fn print_last_versions(&self, verbose: bool) {
+        Crate::print_version_header(verbose);
         self.versions
             .members()
             .take(5)
