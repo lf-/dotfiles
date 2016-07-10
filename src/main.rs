@@ -170,7 +170,7 @@ fn main() {
             .arg(Arg::with_name("versions")
                 .short("V")
                 .long("versions")
-                .help("Report version history of the crate"))
+                .help("Report version history of the crate (5 last versions)"))
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
 
