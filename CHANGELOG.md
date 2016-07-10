@@ -1,4 +1,4 @@
-## 0.X.Y
+## 0.4.0
 
 Report crate version history with -V/--versions flag
 

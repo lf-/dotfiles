@@ -25,7 +25,7 @@ struct Report {
     flags: Vec<Flag>,
     verbose: bool,
     json: bool,
-    versions: bool,
+    versions: usize,
     keywords: bool,
 }
 
@@ -50,11 +50,17 @@ impl Report {
             flags.push(Flag::Default);
         }
 
+        let versions = match info.occurrences_of("versions") {
+            0 => 0, // No flags - nothing to do
+            1 => 5, // Single -V - show 5 last versions
+            _ => usize::max_value(), // All the other cases - show everything
+        };
+
         Report {
             flags: flags,
             verbose: info.is_present("verbose"),
             json: info.is_present("json"),
-            versions: info.is_present("versions"),
+            versions: versions,
             keywords: info.is_present("keywords"),
         }
     }
@@ -64,8 +70,8 @@ impl Report {
             if self.json {
                 self.report_json(&response)
             } else if let Some(krate) = get_crate(&response) {
-                if self.versions {
-                    self.report_versions(&krate);
+                if self.versions > 0 {
+                    self.report_versions(&krate, self.versions);
                 } else if self.keywords {
                     self.report_keywords(&krate);
                 } else {
@@ -97,8 +103,10 @@ impl Report {
         }
     }
 
-    pub fn report_versions(&self, krate: &crates::Crate) {
-        krate.print_last_versions(self.verbose)
+    pub fn report_versions(&self, krate: &crates::Crate, limit: usize) {
+        if limit > 0 {
+            krate.print_last_versions(limit, self.verbose)
+        }
     }
 
     pub fn report_keywords(&self, krate: &crates::Crate) {
@@ -170,7 +178,9 @@ fn main() {
             .arg(Arg::with_name("versions")
                 .short("V")
                 .long("versions")
-                .help("Report version history of the crate (5 last versions)"))
+                .multiple(true)
+                .help("Report version history of the crate (5 last versions), twice for full \
+                       history"))
             .arg_from_usage("<crate>... 'crate to query'"))
         .get_matches();
 

@@ -178,11 +178,11 @@ impl Crate {
         };
     }
 
-    pub fn print_last_versions(&self, verbose: bool) {
+    pub fn print_last_versions(&self, limit: usize, verbose: bool) {
         Crate::print_version_header(verbose);
         self.versions
             .members()
-            .take(5)
+            .take(limit)
             // This collect()::<Vec<_>>.iter() is here only because take()
             // does not support DoubleEndedIterator for rev(), bummer
             .collect::<Vec<_>>()
