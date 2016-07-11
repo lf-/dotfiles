@@ -148,6 +148,7 @@ impl Crate {
         }
     }
 
+    #[allow(unknown_lints)]
     #[allow(bool_comparison)]
     fn print_version(v: &JsonValue, verbose: bool) {
         let created_at = TimeStamp::from(&v["created_at"]);
