@@ -214,20 +214,8 @@ impl Crate {
 
 impl fmt::Display for Crate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let empty = "";
-
-        let name = self.krate["name"].as_str().unwrap_or(empty);
-        let max_version = self.krate["max_version"].as_str().unwrap_or(empty);
-        let downloads = self.krate["downloads"].as_i32().unwrap_or(0);
-
         let created_at = TimeStamp::from(&self.krate["created_at"]);
         let updated_at = TimeStamp::from(&self.krate["updated_at"]);
-
-        let description = self.krate["description"].as_str().unwrap_or(empty);
-        let documentation = self.krate["documentation"].as_str().unwrap_or(empty);
-        let homepage = self.krate["homepage"].as_str().unwrap_or(empty);
-        let repository = self.krate["repository"].as_str().unwrap_or(empty);
-        let license = self.krate["license"].as_str().unwrap_or(empty);
 
         let keywords = self.krate["keywords"]
             .members()
@@ -237,27 +225,27 @@ impl fmt::Display for Crate {
         if f.alternate() {
             write!(f,
                    "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
-                   format_args!("{:<16}{}", "Crate:", name),
-                   format_args!("{:<16}{}", "Version:", max_version),
-                   format_args!("{:<16}{}", "Description:", description),
-                   format_args!("{:<16}{}", "Downloads:", downloads),
-                   format_args!("{:<16}{}", "Homepage:", homepage),
-                   format_args!("{:<16}{}", "Documentation:", documentation),
-                   format_args!("{:<16}{}", "Repository:", repository),
-                   format_args!("{:<16}{}", "License:", license),
+                   format_args!("{:<16}{}", "Crate:", self.krate["name"]),
+                   format_args!("{:<16}{}", "Version:", self.krate["max_version"]),
+                   format_args!("{:<16}{}", "Description:", self.krate["description"]),
+                   format_args!("{:<16}{}", "Downloads:", self.krate["downloads"]),
+                   format_args!("{:<16}{}", "Homepage:", self.krate["homepage"]),
+                   format_args!("{:<16}{}", "Documentation:", self.krate["documentation"]),
+                   format_args!("{:<16}{}", "Repository:", self.krate["repository"]),
+                   format_args!("{:<16}{}", "License:", self.krate["license"]),
                    format_args!("{:<16}{:?}", "Keywords:", keywords),
                    format_args!("{:<16}{}", "Created at:", created_at),
                    format_args!("{:<16}{}", "Updated at:", updated_at))
         } else {
             write!(f,
                    "{}\n{}\n{}\n{}\n{}\n{}\n{}",
-                   format_args!("{:<16}{}", "Crate:", name),
-                   format_args!("{:<16}{}", "Version:", max_version),
-                   format_args!("{:<16}{}", "Description:", description),
-                   format_args!("{:<16}{}", "Downloads:", downloads),
-                   format_args!("{:<16}{}", "Homepage:", homepage),
-                   format_args!("{:<16}{}", "Documentation:", documentation),
-                   format_args!("{:<16}{}", "Repository:", repository))
+                   format_args!("{:<16}{}", "Crate:", self.krate["name"]),
+                   format_args!("{:<16}{}", "Version:", self.krate["max_version"]),
+                   format_args!("{:<16}{}", "Description:", self.krate["description"]),
+                   format_args!("{:<16}{}", "Downloads:", self.krate["downloads"]),
+                   format_args!("{:<16}{}", "Homepage:", self.krate["homepage"]),
+                   format_args!("{:<16}{}", "Documentation:", self.krate["documentation"]),
+                   format_args!("{:<16}{}", "Repository:", self.krate["repository"]))
         }
     }
 }
