@@ -166,9 +166,9 @@ impl Crate {
 
     fn print_version_header(verbose: bool) {
         print!("{:<10}{:<28}{:<11}\n",
-                 "VERSION",
-                 "RELEASE DATE",
-                 "DOWNLOADS");
+               "VERSION",
+               "RELEASE DATE",
+               "DOWNLOADS");
         if verbose {
             // Consider adding some more useful information in verbose mode
             println!("");
