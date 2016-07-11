@@ -10,7 +10,7 @@ version = "0.3.4"
 
 [dependencies]
 chrono = "0.2"
-itertools = "0.4.16"
+itertools = "0.4"
 json = "0.8"
 requests = "0.0.*"
 
