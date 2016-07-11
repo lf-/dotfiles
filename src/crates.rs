@@ -148,13 +148,11 @@ impl Crate {
         }
     }
 
-    #[allow(unknown_lints)]
-    #[allow(bool_comparison)]
     fn print_version(v: &JsonValue, verbose: bool) {
         let created_at = TimeStamp::from(&v["created_at"]);
         print!("{:<10}{:<28}{:<11}", v["num"], created_at, v["downloads"]);
 
-        if v["yanked"] == true {
+        if v["yanked"] == "true" {
             print!("(yanked)");
         }
 
