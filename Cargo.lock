@@ -5,7 +5,7 @@ dependencies = [
  "chrono 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "itertools 0.4.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.8.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "requests 0.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -129,7 +129,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "json"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "itoa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -295,7 +295,7 @@ version = "0.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "json 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "json 0.8.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
