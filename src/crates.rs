@@ -95,10 +95,22 @@ pub struct Crate {
     keywords: JsonValue,
 }
 
+const FIELDS: [&'static str; 5] =
+    ["description", "documentation", "homepage", "repository", "license"];
+
 impl Crate {
     pub fn new(json: &JsonValue) -> Self {
+        let mut krate = json["crate"].clone();
+        // Fix up fields that may be absent
+
+        for field in &FIELDS {
+            if krate[*field].is_null() {
+                krate[*field] = "".into();
+            }
+        }
+
         Crate {
-            krate: json["crate"].clone(),
+            krate: krate,
             versions: json["versions"].clone(),
             keywords: json["keywords"].clone(),
         }
