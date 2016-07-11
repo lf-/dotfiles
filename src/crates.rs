@@ -148,34 +148,34 @@ impl Crate {
         }
     }
 
+    #[allow(bool_comparison)]
     fn print_version(v: &JsonValue, verbose: bool) {
+        let created_at = TimeStamp::from(&v["created_at"]);
+        print!("{:<10}{:<28}{:<11}", v["num"], created_at, v["downloads"]);
+
+        if v["yanked"] == true {
+            print!("(yanked)");
+        }
+
         if verbose {
-            let created_at = TimeStamp::from(&v["created_at"]);
-            let yanked = if v["yanked"] == true {
-                "YANKED"
-            } else {
-                ""
-            };
-            println!("{:<10}{:<28}{:<11}{}",
-                     v["num"],
-                     created_at,
-                     v["downloads"],
-                     yanked)
+            // Consider adding some more useful information in verbose mode
+            println!("");
         } else {
-            println!("{:<10}", v["num"])
-        };
+            println!("");
+        }
     }
 
     fn print_version_header(verbose: bool) {
+        print!("{:<10}{:<28}{:<11}\n",
+                 "VERSION",
+                 "RELEASE DATE",
+                 "DOWNLOADS");
         if verbose {
-            println!("{:<10}{:<28}{:<11}{}",
-                    "VERSION",
-                    "RELEASE DATE",
-                    "DOWNLOADS",
-                    "YANKED")
+            // Consider adding some more useful information in verbose mode
+            println!("");
         } else {
-            println!("{:<10}", "VERSION")
-        };
+            println!("");
+        }
     }
 
     pub fn print_last_versions(&self, limit: usize, verbose: bool) {
@@ -183,12 +183,12 @@ impl Crate {
         self.versions
             .members()
             .take(limit)
-            // This collect()::<Vec<_>>.iter() is here only because take()
-            // does not support DoubleEndedIterator for rev(), bummer
-            .collect::<Vec<_>>()
-            .iter()
-            .rev()
             .foreach(|v| Crate::print_version(v, verbose));
+
+        let length = self.versions.len();
+        if limit < length {
+            println!("\n... use -VV to show all {} versions", length);
+        }
     }
 
     pub fn print_keywords(&self, verbose: bool) {
