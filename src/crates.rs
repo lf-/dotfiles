@@ -1,6 +1,7 @@
 use std::fmt;
 
 use chrono::{DateTime, Local};
+use chrono_humanize::HumanTime;
 use itertools::Itertools;
 use json::JsonValue;
 
@@ -82,7 +83,11 @@ impl<'a> From<&'a JsonValue> for TimeStamp {
 impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ts) = self.0 {
-            f.pad(&format!("{}", ts.naive_local()))
+            if f.alternate() {
+                f.pad(&format!("{}", HumanTime::from(ts)))
+            } else {
+                f.pad(&format!("{}", ts.naive_local()))
+            }
         } else {
             f.pad("")
         }
@@ -238,14 +243,15 @@ impl fmt::Display for Crate {
                    format_args!("{:<16}{}", "Updated at:", updated_at))
         } else {
             write!(f,
-                   "{}\n{}\n{}\n{}\n{}\n{}\n{}",
+                   "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
                    format_args!("{:<16}{}", "Crate:", self.krate["name"]),
                    format_args!("{:<16}{}", "Version:", self.krate["max_version"]),
                    format_args!("{:<16}{}", "Description:", self.krate["description"]),
                    format_args!("{:<16}{}", "Downloads:", self.krate["downloads"]),
                    format_args!("{:<16}{}", "Homepage:", self.krate["homepage"]),
                    format_args!("{:<16}{}", "Documentation:", self.krate["documentation"]),
-                   format_args!("{:<16}{}", "Repository:", self.krate["repository"]))
+                   format_args!("{:<16}{}", "Repository:", self.krate["repository"]),
+                   format_args!("{:<16}{:#}", "Last updated:", updated_at))
         }
     }
 }

@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate clap;
 extern crate chrono;
+extern crate chrono_humanize;
 extern crate itertools;
 extern crate json;
 extern crate requests;
