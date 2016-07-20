@@ -84,7 +84,7 @@ impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ts) = self.0 {
             if f.alternate() {
-                f.pad(&format!("{}", HumanTime::from(ts)))
+                f.pad(&format!("{} ({})", ts.naive_local(), HumanTime::from(ts)))
             } else {
                 f.pad(&format!("{}", ts.naive_local()))
             }
