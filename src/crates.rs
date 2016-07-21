@@ -84,7 +84,7 @@ impl fmt::Display for TimeStamp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ts) = self.0 {
             if f.alternate() {
-                f.pad(&format!("{} ({})", ts.naive_local(), HumanTime::from(ts)))
+                f.pad(&format!("{}", HumanTime::from(ts)))
             } else {
                 f.pad(&format!("{}", ts.naive_local()))
             }
@@ -167,7 +167,7 @@ impl Crate {
 
     fn print_version(v: &JsonValue, verbose: bool) {
         let created_at = TimeStamp::from(&v["created_at"]);
-        print!("{:<10}{:<22}{:<11}", v["num"], created_at, v["downloads"]);
+        print!("{:<11}{:<#16}{:<11}", v["num"], created_at, v["downloads"]);
 
         if v["yanked"] == "true" {
             print!("(yanked)");
@@ -182,10 +182,7 @@ impl Crate {
     }
 
     fn print_version_header(verbose: bool) {
-        print!("{:<10}{:<22}{:<11}\n",
-               "VERSION",
-               "RELEASE DATE",
-               "DOWNLOADS");
+        print!("{:<11}{:<#16}{:<11}\n", "VERSION", "RELEASED", "DOWNLOADS");
         if verbose {
             // Consider adding some more useful information in verbose mode
             println!("");
@@ -239,8 +236,8 @@ impl fmt::Display for Crate {
                    format_args!("{:<16}{}", "Repository:", self.krate["repository"]),
                    format_args!("{:<16}{}", "License:", self.krate["license"]),
                    format_args!("{:<16}{:?}", "Keywords:", keywords),
-                   format_args!("{:<16}{:#}", "Created at:", created_at),
-                   format_args!("{:<16}{:#}", "Updated at:", updated_at))
+                   format_args!("{:<16}{}  ({:#})", "Created at:", created_at, created_at),
+                   format_args!("{:<16}{}  ({:#})", "Updated at:", updated_at, created_at))
         } else {
             write!(f,
                    "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",

@@ -67,6 +67,7 @@ impl Report {
     }
 
     pub fn report(&self, name: &str) {
+        println!("");
         if let Ok(response) = query(name) {
             if self.json {
                 self.report_json(&response)
@@ -80,6 +81,7 @@ impl Report {
                 }
             }
         }
+        println!("");
     }
 
     pub fn report_json(&self, response: &requests::Response) {
