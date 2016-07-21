@@ -239,8 +239,8 @@ impl fmt::Display for Crate {
                    format_args!("{:<16}{}", "Repository:", self.krate["repository"]),
                    format_args!("{:<16}{}", "License:", self.krate["license"]),
                    format_args!("{:<16}{:?}", "Keywords:", keywords),
-                   format_args!("{:<16}{}", "Created at:", created_at),
-                   format_args!("{:<16}{}", "Updated at:", updated_at))
+                   format_args!("{:<16}{:#}", "Created at:", created_at),
+                   format_args!("{:<16}{:#}", "Updated at:", updated_at))
         } else {
             write!(f,
                    "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
