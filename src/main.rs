@@ -67,8 +67,8 @@ impl Report {
     }
 
     pub fn report(&self, name: &str) {
-        println!("");
         if let Ok(response) = query(name) {
+            println!("");
             if self.json {
                 self.report_json(&response)
             } else if let Some(krate) = get_crate(&response) {
@@ -80,8 +80,8 @@ impl Report {
                     self.report_crate(&krate);
                 }
             }
+            println!("");
         }
-        println!("");
     }
 
     pub fn report_json(&self, response: &requests::Response) {
