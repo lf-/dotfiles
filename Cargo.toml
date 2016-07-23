@@ -12,8 +12,8 @@ version = "0.4.3"
 chrono = "0.2"
 chrono-humanize = "0.0.6"
 itertools = "0.4"
-json = "0.9"
-requests = "0.0.19"
+json = "0.10"
+requests = "0.0.22"
 
 [dependencies.clap]
 features = ["unstable"]
