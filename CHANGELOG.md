@@ -1,3 +1,7 @@
+## 0.5.0
+
+Handle network error and give appropriate error description if any
+
 ## 0.4.3
 
 Fix dependency issue
