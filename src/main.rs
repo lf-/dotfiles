@@ -2,7 +2,6 @@
 extern crate clap;
 extern crate chrono;
 extern crate chrono_humanize;
-extern crate itertools;
 extern crate json;
 extern crate requests;
 
@@ -66,37 +65,40 @@ impl Report {
         }
     }
 
-    pub fn report(&self, name: &str) {
-        if let Ok(response) = query(name) {
-            println!("");
-            if self.json {
-                self.report_json(&response)
-            } else if let Some(krate) = get_crate(&response) {
-                if self.versions > 0 {
-                    self.report_versions(&krate, self.versions);
-                } else if self.keywords {
-                    self.report_keywords(&krate);
-                } else {
-                    self.report_crate(&krate);
-                }
+    pub fn report(&self, name: &str) -> Result<String, requests::Error> {
+        let response = try!(query(name));
+        let mut output = String::new();
+
+        if self.json {
+            output = output + &self.report_json(&response);
+        } else if let Some(krate) = get_crate(&response) {
+            if self.versions > 0 {
+                output = output + &self.report_versions(&krate, self.versions);
+            } else if self.keywords {
+                output = output + &self.report_keywords(&krate);
+            } else {
+                output = output + &self.report_crate(&krate);
             }
-            println!("");
-        }
+        };
+        Ok(output)
     }
 
-    pub fn report_json(&self, response: &requests::Response) {
+    pub fn report_json(&self, response: &requests::Response) -> String {
+        let mut output = String::new();
         if self.verbose {
             if let Ok(json) = response.json() {
-                println!("{:#}", json);
+                output = output + &format!("{:#}", json);
             }
         } else if let Some(json) = response.text() {
-            println!("{}", json);
+            output = output + json;
         }
+        output
     }
 
-    pub fn report_crate(&self, krate: &crates::Crate) {
+    pub fn report_crate(&self, krate: &crates::Crate) -> String {
+        let mut output = String::new();
         for flag in &self.flags {
-            match *flag {
+            output = output + &match *flag {
                 Flag::Repository => krate.print_repository(self.verbose),
                 Flag::Documentation => krate.print_documentation(self.verbose),
                 Flag::Downloads => krate.print_downloads(self.verbose),
@@ -104,28 +106,31 @@ impl Report {
                 Flag::Default => reportv(krate, self.verbose),
             }
         }
+        output
     }
 
-    pub fn report_versions(&self, krate: &crates::Crate, limit: usize) {
+    pub fn report_versions(&self, krate: &crates::Crate, limit: usize) -> String {
         if limit > 0 {
             krate.print_last_versions(limit, self.verbose)
+        } else {
+            String::new()
         }
     }
 
-    pub fn report_keywords(&self, krate: &crates::Crate) {
+    pub fn report_keywords(&self, krate: &crates::Crate) -> String {
         krate.print_keywords(self.verbose)
     }
 }
 
-fn reportv(krate: &crates::Crate, verbose: bool) {
+fn reportv(krate: &crates::Crate, verbose: bool) -> String {
     if verbose {
-        println!("{:#}", krate);
+        format!("{:#}", krate)
     } else {
-        println!("{}", krate);
+        format!("{}", krate)
     }
 }
 
-fn query(krate: &str) -> requests::RequestsResult {
+fn query(krate: &str) -> requests::Result {
     requests::get(&format!("http://crates.io/api/v1/crates/{}", krate))
 }
 
@@ -192,7 +197,10 @@ fn main() {
             let rep = Report::new(info);
             for krate in crates {
                 // debug(&krate);
-                rep.report(krate);
+                match rep.report(krate) {
+                    Ok(text) => println!("\n{}\n", text),
+                    Err(err) => println!("\n{}\n", err),
+                };
             }
         }
     }

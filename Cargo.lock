@@ -5,9 +5,8 @@ dependencies = [
  "chrono 0.2.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono-humanize 0.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.9.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "itertools 0.4.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "requests 0.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "requests 0.0.22 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -125,11 +124,6 @@ dependencies = [
  "unicode-bidi 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicode-normalization 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "itertools"
-version = "0.4.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "json"
@@ -292,7 +286,7 @@ dependencies = [
 
 [[package]]
 name = "requests"
-version = "0.0.21"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hyper 0.9.10 (registry+https://github.com/rust-lang/crates.io-index)",

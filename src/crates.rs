@@ -2,7 +2,6 @@ use std::fmt;
 
 use chrono::{DateTime, Local};
 use chrono_humanize::HumanTime;
-use itertools::Itertools;
 use json::JsonValue;
 
 // #[derive(Debug, Default)]
@@ -121,96 +120,111 @@ impl Crate {
         }
     }
 
-    pub fn print_repository(&self, verbose: bool) {
-        if let JsonValue::String(ref repository) = self.krate["repository"] {
-            let fmt = if verbose {
-                format!("{:<16}{}", "Repository:", repository)
-            } else {
-                repository.clone()
-            };
-            println!("{}", fmt);
+    pub fn print_repository(&self, verbose: bool) -> String {
+        if verbose {
+            format!("{:<16}{}", "Repository:", self.krate["repository"])
+        } else {
+            format!("{}", self.krate["repository"])
         }
+        // if let JsonValue::String(ref repository) = self.krate["repository"] {
+        //     if verbose {
+        //         format!("{:<16}{}", "Repository:", repository)
+        //     } else {
+        //         repository.clone()
+        //     }
+        // }
     }
 
-    pub fn print_documentation(&self, verbose: bool) {
-        if let JsonValue::String(ref documentation) = self.krate["documentation"] {
-            let fmt = if verbose {
-                format!("{:<16}{}", "Documentation:", documentation)
-            } else {
-                documentation.clone()
-            };
-            println!("{}", fmt);
+    pub fn print_documentation(&self, verbose: bool) -> String {
+        if verbose {
+            format!("{:<16}{}", "Documentation:", self.krate["documentation"])
+        } else {
+            format!("{}", self.krate["documentation"])
         }
+        // if let JsonValue::String(ref documentation) = self.krate["documentation"] {
+        //     if verbose {
+        //         format!("{:<16}{}", "Documentation:", documentation)
+        //     } else {
+        //         documentation.clone()
+        //     }
+        // }
     }
 
-    pub fn print_downloads(&self, verbose: bool) {
-        if let JsonValue::Number(downloads) = self.krate["downloads"] {
-            let fmt = if verbose {
-                format!("{:<16}{}", "Downloads:", downloads)
-            } else {
-                format!("{}", downloads)
-            };
-            println!("{}", fmt);
+    pub fn print_downloads(&self, verbose: bool) -> String {
+        if verbose {
+            format!("{:<16}{}", "Downloads:", self.krate["downloads"])
+        } else {
+            format!("{}", self.krate["downloads"])
         }
+        // if let JsonValue::Number(downloads) = self.krate["downloads"] {
+        //     if verbose {
+        //         format!("{:<16}{}", "Downloads:", downloads)
+        //     } else {
+        //         format!("{}", downloads)
+        //     }
+        // }
     }
 
-    pub fn print_homepage(&self, verbose: bool) {
-        if let JsonValue::String(ref homepage) = self.krate["homepage"] {
-            let fmt = if verbose {
-                format!("{:<16}{}", "Homepage:", homepage)
-            } else {
-                homepage.clone()
-            };
-            println!("{}", fmt);
+    pub fn print_homepage(&self, verbose: bool) -> String {
+        if verbose {
+            format!("{:<16}{}", "Homepage:", self.krate["homepage"])
+        } else {
+            format!("{}", self.krate["homepage"])
         }
+        // if let JsonValue::String(ref homepage) = self.krate["homepage"] {
+        //     let fmt = if verbose {
+        //         format!("{:<16}{}", "Homepage:", homepage)
+        //     } else {
+        //         homepage.clone()
+        //     };
+        //     println!("{}", fmt);
+        // }
     }
 
-    fn print_version(v: &JsonValue, verbose: bool) {
+    fn print_version(v: &JsonValue, verbose: bool) -> String {
         let created_at = TimeStamp::from(&v["created_at"]);
-        print!("{:<11}{:<#16}{:<11}", v["num"], created_at, v["downloads"]);
+        let mut output = format!("{:<11}{:<#16}{:<11}", v["num"], created_at, v["downloads"]);
 
         if v["yanked"] == "true" {
-            print!("(yanked)");
+            output = output + "(yanked)";
         }
 
         if verbose {
             // Consider adding some more useful information in verbose mode
-            println!("");
+            output + "\n"
         } else {
-            println!("");
+            output + "\n"
         }
     }
 
-    fn print_version_header(verbose: bool) {
-        print!("{:<11}{:<#16}{:<11}\n", "VERSION", "RELEASED", "DOWNLOADS");
+    fn print_version_header(verbose: bool) -> String {
+        let output = format!("{:<11}{:<#16}{:<11}\n", "VERSION", "RELEASED", "DOWNLOADS");
         if verbose {
             // Consider adding some more useful information in verbose mode
-            println!("");
+            output + "\n"
         } else {
-            println!("");
+            output + "\n"
         }
     }
 
-    pub fn print_last_versions(&self, limit: usize, verbose: bool) {
-        Crate::print_version_header(verbose);
-        self.versions
-            .members()
-            .take(limit)
-            .foreach(|v| Crate::print_version(v, verbose));
-
+    pub fn print_last_versions(&self, limit: usize, verbose: bool) -> String {
+        let mut output = Crate::print_version_header(verbose);
+        for version in self.versions.members().take(limit) {
+            output = output + &Crate::print_version(version, verbose);
+        }
         let length = self.versions.len();
         if limit < length {
-            println!("\n... use -VV to show all {} versions", length);
+            output = output + &format!("\n... use -VV to show all {} versions\n", length);
         }
+        output
     }
 
-    pub fn print_keywords(&self, verbose: bool) {
-        let fmt = if verbose {
+    pub fn print_keywords(&self, verbose: bool) -> String {
+        if verbose {
             format!("{:#}", self.keywords)
         } else {
             format!("{}", self.keywords)
-        };
-        println!("{}", fmt);
+        }
     }
 }
 
