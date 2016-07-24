@@ -1,3 +1,11 @@
+## 0.4.3
+
+Fix dependency issue
+
+## 0.4.2
+
+Report timestamp in humanized form
+
 ## 0.4.0
 
 Report crate version history with -V/--versions flag
