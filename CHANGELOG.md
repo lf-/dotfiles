@@ -1,6 +1,7 @@
 ## 0.5.0
 
 Handle network error and give appropriate error description if any
+Pipe output through an external pager
 
 ## 0.4.3
 
