@@ -4,10 +4,12 @@ extern crate chrono;
 extern crate chrono_humanize;
 extern crate json;
 extern crate requests;
+extern crate pager;
 
 mod crates;
 
 use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
+use pager::Pager;
 
 const CARGO: &'static str = "cargo";
 
@@ -146,6 +148,8 @@ fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
 // }
 
 fn main() {
+
+    Pager::new().setup();
 
     let matches = App::new(CARGO)
         .bin_name(CARGO)
