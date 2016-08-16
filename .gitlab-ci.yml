@@ -1,0 +1,27 @@
+image: ubuntu:xenial
+
+before_script:
+  - apt-get update
+  - apt-get -y install sudo curl git file g++ cmake
+  - echo Installing Rust from $CI_BUILD_NAME channel
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $CI_BUILD_NAME
+  - . ~/.cargo/env && rustc -V && cargo -V
+
+stages:
+  - test
+  - deploy
+
+stable:
+  stage: test
+  script:
+    - cargo test --verbose --jobs 1 --release
+
+beta:
+  stage: test
+  script:
+    - cargo test --verbose --jobs 1 --release
+
+nightly:
+  stage: test
+  script:
+    - cargo test --verbose --jobs 1 --release
