@@ -12,7 +12,7 @@ version = "0.4.3"
 chrono = "0.2"
 chrono-humanize = "0.0.6"
 json = "0.10"
-pager = "0.2.2"
+pager = "0.9"
 requests = "0.0.22"
 
 [dependencies.clap]
