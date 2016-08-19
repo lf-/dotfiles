@@ -1,3 +1,7 @@
+## 0.5.1
+
+Fix incorrect 'update at' timestamp
+
 ## 0.5.0
 
 Handle network error and give appropriate error description if any
