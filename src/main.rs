@@ -100,7 +100,8 @@ impl Report {
     pub fn report_crate(&self, krate: &crates::Crate) -> String {
         let mut output = String::new();
         for flag in &self.flags {
-            output = output + &match *flag {
+            output = output +
+                     &match *flag {
                 Flag::Repository => krate.print_repository(self.verbose),
                 Flag::Documentation => krate.print_documentation(self.verbose),
                 Flag::Downloads => krate.print_downloads(self.verbose),
