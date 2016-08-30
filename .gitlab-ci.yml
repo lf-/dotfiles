@@ -6,19 +6,19 @@ stable:
   image: rustdocker/rust:stable
   stage: test
   script:
-    - cargo test --verbose --jobs 1 --release
+    - cargo test --verbose --jobs 1
 
 beta:
   image: rustdocker/rust:beta
   stage: test
   script:
-    - cargo test --verbose --jobs 1 --release
+    - cargo test --verbose --jobs 1
 
 nightly:
   image: rustdocker/rust:nightly
   stage: test
   script:
-    - cargo test --verbose --jobs 1 --release
+    - cargo test --verbose --jobs 1
 
 .pages:
   image: rustdocker/rust:stable
