@@ -10,7 +10,9 @@ Build status
 
 Building on OSX 10.11+
 ```
-export OPENSSL_INCLUDE_DIR=/usr/local/opt/openssl/include
+export OPENSSL_INCLUDE_DIR=`brew --prefix openssl`/include
+export OPENSSL_LIB_DIR=`brew --prefix openssl`/lib
+
 cargo clean
 cargo build
 ```
