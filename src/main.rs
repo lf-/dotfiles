@@ -134,7 +134,7 @@ fn reportv(krate: &crates::Crate, verbose: bool) -> String {
 }
 
 fn query(krate: &str) -> requests::Result {
-    requests::get(&format!("http://crates.io/api/v1/crates/{}", krate))
+    requests::get(&format!("https://crates.io/api/v1/crates/{}", krate))
 }
 
 fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
