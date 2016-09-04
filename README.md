@@ -5,8 +5,8 @@ Build status
 
  branch | status
 :-------|:------:
-  master| [![Build Status](https://travis-ci.org/imp/cargo-info.svg?branch=master)](https://travis-ci.org/imp/cargo-info)
- develop| [![Build Status](https://travis-ci.org/imp/cargo-info.svg?branch=develop)](https://travis-ci.org/imp/cargo-info)
+  master| [![Build Status](https://gitlab.com/imp/cargo-info/badges/master/build.svg)](https://gitlab.com/imp/cargo-info/pipelines?scope=branches)
+ develop| [![Build Status](https://gitlab.com/imp/cargo-info/badges/develop/build.svg)](https://gitlab.com/imp/cargo-info/pipelines?scope=branches)
 
 Building on OSX 10.11+
 ```
