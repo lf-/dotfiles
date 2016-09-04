@@ -1,3 +1,7 @@
+## 0.5.2
+
+Report brief crate version history by default
+
 ## 0.5.1
 
 Fix incorrect 'update at' timestamp
