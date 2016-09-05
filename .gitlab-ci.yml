@@ -1,24 +1,23 @@
+.cargo_test_template: &cargo_test
+  stage: test
+  script:
+    - cargo test --verbose --jobs 1
+
 stages:
   - test
   - deploy
 
-stable:
+stable:cargo:
   image: rustdocker/rust:stable
-  stage: test
-  script:
-    - cargo test --verbose --jobs 1
+  <<: *cargo_test
 
-beta:
+beta:cargo:
   image: rustdocker/rust:beta
-  stage: test
-  script:
-    - cargo test --verbose --jobs 1
+  <<: *cargo_test
 
-nightly:
+nightly:cargo:
   image: rustdocker/rust:nightly
-  stage: test
-  script:
-    - cargo test --verbose --jobs 1
+  <<: *cargo_test
 
 .pages:
   image: rustdocker/rust:stable
