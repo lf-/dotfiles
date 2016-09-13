@@ -1,3 +1,7 @@
+## 0.5.3
+
+Fix displaying yanked versions
+
 ## 0.5.2
 
 Report brief crate version history by default
