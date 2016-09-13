@@ -185,8 +185,8 @@ impl Crate {
         let created_at = TimeStamp::from(&v["created_at"]);
         let mut output = format!("{:<11}{:<#16}{:<11}", v["num"], created_at, v["downloads"]);
 
-        if v["yanked"] == "true" {
-            output = output + "(yanked)";
+        if v["yanked"].as_bool() == Some(true) {
+            output = output + "\t\t(yanked)";
         }
 
         if verbose {
