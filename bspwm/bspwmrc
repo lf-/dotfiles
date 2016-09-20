@@ -1,4 +1,5 @@
 #!/bin/bash
 bspc monitor -d I II III IV
+bspc config focus_follows_pointer true
 panel &
 which compton 2>&1 > /dev/null && compton &
