@@ -4,6 +4,15 @@ rust:
     - stable
     - beta
     - nightly
-os:
-    - osx
-    - linux
+
+matrix:
+    include:
+        - os: osx
+          env: OPENSSL_INCLUDE_DIR="$(brew --prefix openssl)/include" OPENSSL_LIB_DIR="$(brew --prefix openssl)/lib"
+          rust: stable
+        - os: osx
+          env: OPENSSL_INCLUDE_DIR="$(brew --prefix openssl)/include" OPENSSL_LIB_DIR="$(brew --prefix openssl)/lib"
+          rust: beta
+        - os: osx
+          env: OPENSSL_INCLUDE_DIR="$(brew --prefix openssl)/include" OPENSSL_LIB_DIR="$(brew --prefix openssl)/lib"
+          rust: nightly
