@@ -1,3 +1,7 @@
+## 0.5.5
+
+[Internal] Adjust request headers (crates.io wants 'Accept: application/json')
+
 ## 0.5.4
 
 Update to use pager 0.9.3 which allows things like 'PAGER=less -S'

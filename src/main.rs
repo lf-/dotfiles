@@ -10,6 +10,7 @@ mod crates;
 
 use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
 use pager::Pager;
+use requests::{Request, Response};
 
 const CARGO: &'static str = "cargo";
 
@@ -85,7 +86,7 @@ impl Report {
         Ok(output)
     }
 
-    pub fn report_json(&self, response: &requests::Response) -> String {
+    pub fn report_json(&self, response: &Response) -> String {
         let mut output = String::new();
         if self.verbose {
             if let Ok(json) = response.json() {
@@ -134,10 +135,10 @@ fn reportv(krate: &crates::Crate, verbose: bool) -> String {
 }
 
 fn query(krate: &str) -> requests::Result {
-    requests::get(&format!("https://crates.io/api/v1/crates/{}", krate))
+    Request::json().get(&format!("https://crates.io/api/v1/crates/{}", krate))
 }
 
-fn get_crate(response: &requests::Response) -> Option<crates::Crate> {
+fn get_crate(response: &Response) -> Option<crates::Crate> {
     response.json().ok().map(|k| crates::Crate::new(&k))
 }
 
