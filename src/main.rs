@@ -1,14 +1,19 @@
+#![recursion_limit = "1024"]
 #[macro_use]
 extern crate clap;
 extern crate chrono;
 extern crate chrono_humanize;
+#[macro_use]
+extern crate error_chain;
 extern crate json;
 extern crate requests;
 extern crate pager;
 
 mod crates;
+mod errors;
 
 use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
+use errors::*;
 use pager::Pager;
 use requests::{Request, Response};
 
@@ -68,7 +73,7 @@ impl Report {
         }
     }
 
-    pub fn report(&self, name: &str) -> Result<String, requests::Error> {
+    pub fn report(&self, name: &str) -> Result<String> {
         let response = try!(query(name));
         let mut output = String::new();
 
