@@ -9,13 +9,15 @@ extern crate json;
 extern crate requests;
 extern crate pager;
 
+use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
+use pager::Pager;
+use requests::{Request, Response};
+use std::fmt;
+
 mod crates;
 mod errors;
 
-use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
 use errors::*;
-use pager::Pager;
-use requests::{Request, Response};
 
 const CARGO: &'static str = "cargo";
 
@@ -147,12 +149,18 @@ fn get_crate(response: &Response) -> Option<crates::Crate> {
     response.json().ok().map(|k| crates::Crate::new(&k))
 }
 
-// use std::fmt;
 // fn debug<T>(item: &T)
 //     where T: fmt::Debug
 // {
 //     println!("{:#?}", item);
 // }
+
+fn print_report<T>(r: Result<T>) where T: fmt::Display {
+    match r {
+        Ok(text) => println!("\n{}\n", text),
+        Err(err) => println!("\n{}\n", err),
+    }
+}
 
 fn main() {
 
@@ -190,6 +198,15 @@ fn main() {
                 .long("json")
                 .help("Report raw JSON data from crates.io")
                 .conflicts_with_all(&["documentation", "downloads", "homepage", "repository"]))
+            .arg(Arg::with_name("summary")
+                .short("s")
+                .long("summary")
+                .help("Report the crates.io summary information")
+                .conflicts_with_all(&["crate",
+                                      "documentation",
+                                      "downloads",
+                                      "homepage",
+                                      "repository"]))
             .arg(Arg::with_name("verbose")
                 .short("v")
                 .long("verbose")
@@ -208,10 +225,7 @@ fn main() {
             let rep = Report::new(info);
             for krate in crates {
                 // debug(&krate);
-                match rep.report(krate) {
-                    Ok(text) => println!("\n{}\n", text),
-                    Err(err) => println!("\n{}\n", err),
-                };
+                print_report(rep.report(krate));
             }
         }
     }
