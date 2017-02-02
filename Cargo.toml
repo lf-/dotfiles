@@ -11,7 +11,7 @@ version = "0.5.5"
 [dependencies]
 chrono = "0.2"
 chrono-humanize = "0.0.6"
-error-chain = "0.5"
+error-chain = "0.8"
 json = "0.11"
 pager = "0.9"
 requests = "0.0.25"
