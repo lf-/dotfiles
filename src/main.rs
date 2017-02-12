@@ -11,7 +11,7 @@ extern crate pager;
 
 use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
 use pager::Pager;
-use requests::{Request, Response};
+use requests::{Request, Response, ToJson};
 use std::fmt;
 
 mod crates;
