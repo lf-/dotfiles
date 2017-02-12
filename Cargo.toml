@@ -12,7 +12,7 @@ version = "0.5.6"
 
 [badges]
 travis-ci = { repository = "imp/cargo-info" }
-gitab = { repository = "imp/cargo-info" }
+gitlab = { repository = "imp/cargo-info" }
 
 [dependencies]
 chrono = "0.3"
