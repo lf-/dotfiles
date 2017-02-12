@@ -1,3 +1,7 @@
+## 0.5.7 - 2017-02-12
+
+Fix badges
+
 ## 0.5.6 - 2017-02-12
 
 Add crates.io categories and badges
