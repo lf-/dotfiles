@@ -2,6 +2,7 @@
 authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
 categories = ["development-tools::cargo-plugins"]
 description = "Extends cargo to query crates.io registry for crates details"
+documentation = "https://docs.rs/cargo-info"
 homepage = "https://gitlab.com/imp/cargo-info"
 keywords = ["cargo", "info", "subcommand"]
 license = "Apache-2.0/MIT"
