@@ -1,3 +1,8 @@
+## 0.5.6
+
+Add crates.io categories and badges
+Update dependencies
+
 ## 0.5.5
 
 [Internal] Adjust request headers (crates.io wants 'Accept: application/json')
