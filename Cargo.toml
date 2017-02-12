@@ -1,5 +1,6 @@
 [package]
 authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
+categories = ["development-tools::cargo-plugins"]
 description = "Extends cargo to query crates.io registry for crates details"
 homepage = "https://gitlab.com/imp/cargo-info"
 keywords = ["cargo", "info", "subcommand"]
@@ -7,6 +8,10 @@ license = "Apache-2.0/MIT"
 name = "cargo-info"
 repository = "https://gitlab.com/imp/cargo-info.git"
 version = "0.5.5"
+
+[badges]
+travis-ci = { repository = "imp/cargo-info" }
+gitab = { repository = "imp/cargo-info" }
 
 [dependencies]
 chrono = "0.3"
