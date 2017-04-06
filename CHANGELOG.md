@@ -1,3 +1,7 @@
+## 0.5.8 - 2017-04-06
+
+Dependency updates
+
 ## 0.5.7 - 2017-02-12
 
 Fix badges
