@@ -1,3 +1,7 @@
+## 0.5.9 - 2017-04-09
+
+Respin for another dependency update
+
 ## 0.5.8 - 2017-04-06
 
 Dependency updates
