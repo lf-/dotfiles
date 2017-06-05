@@ -198,15 +198,6 @@ fn main() {
                 .long("json")
                 .help("Report raw JSON data from crates.io")
                 .conflicts_with_all(&["documentation", "downloads", "homepage", "repository"]))
-            .arg(Arg::with_name("summary")
-                .short("s")
-                .long("summary")
-                .help("Report the crates.io summary information")
-                .conflicts_with_all(&["crate",
-                                      "documentation",
-                                      "downloads",
-                                      "homepage",
-                                      "repository"]))
             .arg(Arg::with_name("verbose")
                 .short("v")
                 .long("verbose")

@@ -1,3 +1,7 @@
+## 0.5.10 - 2017-06-05
+
+Drop unused -s/--summary option
+
 ## 0.5.9 - 2017-04-09
 
 Respin for another dependency update
