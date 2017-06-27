@@ -45,7 +45,7 @@ set backspace=indent,eol,start
 set laststatus=2
 set undofile
 " You mean I can't use fish and vundle at the same time? Wat?
-set shell=zsh
+set shell=bash
 set backupdir=~/.nvim/backup//
 set directory=~/.nvim/swap//
 set undodir=~/.nvim/undo//
@@ -53,6 +53,7 @@ set undodir=~/.nvim/undo//
 let g:jedi#smart_auto_mappings = 0
 " jedi stop putting magic methods without me asking for it!
 let g:jedi#popup_on_dot = 0
+let g:jedi#popup_select_first = 0
 
 """""""""""""""""""""""""
 " Text UI
@@ -99,7 +100,6 @@ let g:airline_symbols.paste = '∥'
 let g:airline_symbols.spell = 'Ꞩ'
 let g:airline_symbols.notexists = '∄'
 let g:airline_symbols.whitespace = 'Ξ'
-
 " powerline symbols
 let g:airline_left_sep = ''
 let g:airline_left_alt_sep = ''
@@ -110,7 +110,7 @@ let g:airline_symbols.readonly = ''
 let g:airline_symbols.linenr = ''
 
 set list
-set listchars=trail:•
+set listchars=tab:\ \ ,trail:•
 augroup markdown
   au!
   au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
