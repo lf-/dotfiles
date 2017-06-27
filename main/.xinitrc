@@ -42,6 +42,9 @@ setxkbmap -option compose:menu
 xset s 240 60
 xss-lock -l -n dim-screen -- lock_screen &
 
+# kill the touchpad that doesn't work properly anyway
+xinput disable 'SynPS/2 Synaptics TouchPad'
+
 if [[ -e ~/.calibration ]]; then
 	source ~/.calibration
 fi
