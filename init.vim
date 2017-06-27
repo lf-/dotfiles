@@ -29,7 +29,11 @@ filetype plugin indent on
 set modelines=0 " modelines are useless
 set encoding=utf-8
 set history=1000
+
+" deliberately disable smartindent since it somehow got turned on in python
 set autoindent
+set nosmartindent
+
 set showmode
 set showcmd
 set hidden
@@ -45,8 +49,10 @@ set shell=zsh
 set backupdir=~/.nvim/backup//
 set directory=~/.nvim/swap//
 set undodir=~/.nvim/undo//
-" Avoid unintentionally causing suicide with the auto from completion in jedi
+" jedi stop putting `from` without me asking for it
 let g:jedi#smart_auto_mappings = 0
+" jedi stop putting magic methods without me asking for it!
+let g:jedi#popup_on_dot = 0
 
 """""""""""""""""""""""""
 " Text UI
@@ -137,14 +143,7 @@ map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
 
 "" Spacing
 augroup spacing
-  autocmd FileType ruby,eruby,yaml setlocal si sw=2 sts=2 et
-  autocmd FileType ruby,eruby,yaml setlocal path+=lib
-  autocmd FileType ruby,eruby,yaml setlocal colorcolumn=80
-  " ? is part of a word
-  autocmd FileType ruby,eruby,yaml setlocal iskeyword+=?
-  autocmd FileType conf setlocal et!
-
-  autocmd FileType python setlocal si sw=4 sts=4 et
+  autocmd FileType python setlocal sw=4 sts=4 et
 augroup END
 
 set tabstop=4
