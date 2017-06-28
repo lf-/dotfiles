@@ -133,7 +133,11 @@ XF86Launch1
 
 # not a spotlight clone
 super + space
-    lighthouse | sh
+    rofi -show combi
+
+# run wireless login script
+super + grave
+    login.py
 
 # terminal
 super + Return
