@@ -1,3 +1,7 @@
+## 0.5.11 - 2017-07-xx
+
+Pull up dependencies
+
 ## 0.5.10 - 2017-06-05
 
 Drop unused -s/--summary option

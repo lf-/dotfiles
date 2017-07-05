@@ -15,11 +15,11 @@ travis-ci = { repository = "imp/cargo-info" }
 gitlab = { repository = "imp/cargo-info" }
 
 [dependencies]
-chrono = "0.3"
-chrono-humanize = "0.0.8"
+chrono = "0.4"
+chrono-humanize = "0.0.10"
 error-chain = "0.10"
 json = "0.11"
-pager = "0.10"
+pager = "0.11"
 requests = "0.0.30"
 
 [dependencies.clap]
