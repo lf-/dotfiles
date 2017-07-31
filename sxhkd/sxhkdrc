@@ -10,7 +10,7 @@ super + {h,j,k,l}
     bspc node {west,south,north,east} -f
 
 super + {bracketleft,bracketright}
-    bspc node {prev,next} -f
+    bspc node {prev,next}.active -f
 
 super + alt + {h,l}
     bspc desktop {prev,next} -f
