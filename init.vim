@@ -21,6 +21,8 @@ Plug 'nvie/vim-flake8'
 " web
 Plug 'mattn/emmet-vim'
 
+Plug 'ekalinin/Dockerfile.vim'
+
 " All of your Plugs must be added before the following line
 call plug#end()
 filetype plugin indent on
@@ -144,6 +146,7 @@ map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
 "" Spacing
 augroup spacing
   autocmd FileType python setlocal sw=4 sts=4 et
+  autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
 augroup END
 
 set tabstop=4
