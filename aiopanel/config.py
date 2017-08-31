@@ -8,7 +8,8 @@ out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
     '-fSource Sans Pro:size=11',
     '-fFontAwesome:size=11',
-    '-gx20'
+    '-gx20',
+    '-naiopanel',
 ])
 out_fmt = '{{ bspwm }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf017 {{ date }}'
 

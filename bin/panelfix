@@ -1,0 +1,7 @@
+#!/bin/bash
+
+until bar_id=$(xdo id -a aiopanel) ; do
+    sleep 0.01
+done
+
+xdo below -t $(xdo id -n root) $bar_id
