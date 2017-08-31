@@ -36,15 +36,15 @@ super + shift + {h,j,k,l}
 
 # Fullscreen/Focus
 super + f
-    bspc node focused -t fullscreen
+    bspc node focused -t '~fullscreen'
 
 # floAt
 super + a
-    bspc node focused -t floating
+    bspc node focused -t '~floating'
 
 # Stick
 super + s
-    bspc node focused -t sticky
+    bspc node focused -t '~sticky'
 
 # close all the things with S-w
 super + w
@@ -81,18 +81,6 @@ super + alt + Escape
 # control the gaps
 super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
-
-# resize/move windows, activate action
-super + button{1,3}
-    bspc pointer -g {move,resize_corner}
-
-# resize/move windows, pointer move action
-super + !button{1,3}
-    bspc pointer -t %i, %i
-
-# resize/move windows, end action
-super + @button{1,3}
-    bspc pointer -u
 
 # switch windows
 super + alt + button1
