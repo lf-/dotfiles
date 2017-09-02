@@ -1,4 +1,8 @@
-## 0.5.11 - 2017-07-xx
+## 0.5.12 - 2017-09-02
+
+Pull up dependencies
+
+## 0.5.11 - 2017-07-05
 
 Pull up dependencies
 
