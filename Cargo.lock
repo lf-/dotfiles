@@ -7,7 +7,7 @@ dependencies = [
  "clap 2.26.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "pager 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pager 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "requests 0.0.30 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -385,7 +385,7 @@ dependencies = [
 
 [[package]]
 name = "pager"
-version = "0.11.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "errno 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -645,7 +645,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum num_cpus 1.6.2 (registry+https://github.com/rust-lang/crates.io-index)" = "aec53c34f2d0247c5ca5d32cca1478762f301740468ee9ee6dcb7a0dd7a0c584"
 "checksum openssl 0.9.17 (registry+https://github.com/rust-lang/crates.io-index)" = "085aaedcc89a2fac1eb2bc19cd66f29d4ea99fec60f82a5f3a88a6be7dbd90b5"
 "checksum openssl-sys 0.9.17 (registry+https://github.com/rust-lang/crates.io-index)" = "7e3a9845a4c9fdb321931868aae5549e96bb7b979bf9af7de03603d74691b5f3"
-"checksum pager 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a70590f07f1e34b81ca7de63b4c3b4a6690e1f0bbf520c83f5e3d026e3982b2a"
+"checksum pager 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0200dbccd80fbe44a98232ae55457f01fd71effefb4f725b8cbaf116088460c7"
 "checksum percent-encoding 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de154f638187706bde41d9b4738748933d64e6b37bdbffc0b47a97d16a6ae356"
 "checksum pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3a8b4c6b8165cd1a1cd4b9b120978131389f64bdaf456435caa41e630edba903"
 "checksum rand 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)" = "eb250fd207a4729c976794d03db689c9be1d634ab5a1c9da9492a13d8fecbcdf"
