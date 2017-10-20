@@ -1,6 +1,6 @@
 use std::fmt;
 
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 use chrono_humanize::HumanTime;
 use json::JsonValue;
 
@@ -74,7 +74,10 @@ struct TimeStamp(Option<DateTime<Local>>);
 
 impl<'a> From<&'a JsonValue> for TimeStamp {
     fn from(jv: &JsonValue) -> Self {
-        let parse = |s: &str| s.parse::<DateTime<Local>>().ok();
+        let parse_naive = |s: &str| s.parse::<NaiveDateTime>();
+        let naive_to_local = |n: NaiveDateTime| Local.from_utc_datetime(&n);
+        let parse_local = |s: &str| s.parse::<DateTime<Local>>();
+        let parse = |s: &str| parse_local(s).or_else(|_| parse_naive(s).map(naive_to_local)).ok();
         TimeStamp(jv.as_str().and_then(parse))
     }
 }
