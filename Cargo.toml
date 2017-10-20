@@ -16,9 +16,9 @@ gitlab = { repository = "imp/cargo-info" }
 [dependencies]
 chrono = "0.4"
 chrono-humanize = "0.0.10"
-error-chain = "0.10"
+error-chain = "0.11"
 json = "0.11"
-pager = "0.12"
+pager = "0.13"
 requests = "0.0.30"
 
 [dependencies.clap]
