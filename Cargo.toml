@@ -7,7 +7,7 @@ keywords = ["cargo", "info", "subcommand"]
 license = "Apache-2.0/MIT"
 name = "cargo-info"
 repository = "https://gitlab.com/imp/cargo-info.git"
-version = "0.5.12"
+version = "0.5.13"
 
 [badges]
 travis-ci = { repository = "imp/cargo-info" }
