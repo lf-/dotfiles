@@ -7,15 +7,8 @@ adobe-source-han-sans-tw-fonts
 adobe-source-sans-pro-fonts
 bdf-unifont
 cantarell-fonts
-libfontenc
-libxfont
-libxfont2
 noto-fonts
-ttf-courier-prime-ib
 ttf-dejavu
-ttf-heuristica-ib
-ttf-indic-otf
-ttf-iosevka-ibx
 ttf-liberation
 ttf-linux-libertine
 ttf-roboto
@@ -23,7 +16,7 @@ ttf-symbola
 
 xcursor-vanilla-dmz-aa
 
-python-ipython
+ipython
 python-pip
 python-gobject
 python-requests
