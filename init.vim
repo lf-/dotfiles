@@ -48,9 +48,6 @@ set laststatus=2
 set undofile
 " You mean I can't use fish and vundle at the same time? Wat?
 set shell=bash
-set backupdir=~/.nvim/backup//
-set directory=~/.nvim/swap//
-set undodir=~/.nvim/undo//
 " jedi stop putting `from` without me asking for it
 let g:jedi#smart_auto_mappings = 0
 " jedi stop putting magic methods without me asking for it!
