@@ -18,7 +18,8 @@ dotconfigs = [
     'sxhkd',
     'nvim',
     'bspwm',
-    'qemu-box'
+    'qemu-box',
+    'rofi'
 ]
 
 for dc in dotconfigs:
