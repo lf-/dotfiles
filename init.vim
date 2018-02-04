@@ -117,13 +117,6 @@ augroup END
 
 "" Mapping
 nnoremap ; :
-" chord lk to go directly from insert to ex mode
-" also fix the timeout length so I can type polkadots without getting too
-" annoyed
-set timeoutlen=500
-inoremap lk <esc>:
-inoremap kl <esc>:
-inoremap <C-BS> <C-W>
 set pastetoggle=<F2>
 tnoremap <C-w>h <C-\><C-n>:wincmd h<CR>
 tnoremap <C-w>j <C-\><C-n>:wincmd j<CR>
