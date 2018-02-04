@@ -115,9 +115,11 @@ XF86AudioNext
 XF86AudioPrev
     mpc prev
 
-# toggle compton with thinkvantage button
-XF86Launch1
-    killall compton || compton &
+XF86MonBrightnessUp
+    xbacklight -inc 12.5
+
+XF86MonBrightnessDown
+    xbacklight -dec 12.5
 
 # not a spotlight clone
 super + space
