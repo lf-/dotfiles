@@ -11,7 +11,7 @@ out_adapter = aiopanel.SubprocessAdapter([
     '-gx20',
     '-naiopanel',
 ])
-out_fmt = '{{ bspwm }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf017 {{ date }}'
+out_fmt = '{{ bspwm }}%{c}{{ title }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf017 {{ date }}'
 
 log_level = 'DEBUG'
 
@@ -119,6 +119,7 @@ pulse_template = """
 
 widgets = {
     'bspwm': [aiopanel.BspwmWidget(bspwm_template, ctx=bspwm_ctx)],
+    'title': [aiopanel.SubprocessWidget(['/usr/bin/xtitle', '-s'])],
     'pulse': [aiopanel.PulseAudioWidget(pulse_template, ctx=pulse_ctx)],
     'connman': [aiopanel.ConnmanWidget(cm_template)],
     'batt': [aiopanel.UPowerWidget(upower_template, ctx=upower_ctx)],
