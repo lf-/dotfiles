@@ -3,6 +3,7 @@ bspc monitor -d I II III IV
 bspc config focus_follows_pointer true
 bspc config pointer_modifier mod4
 bspc config pointer_action1 move
+bspc config external_rules_command ~/.config/bspwm/external_rules
 aiopanel &
 #panelfix &
 redshift &
