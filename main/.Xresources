@@ -27,5 +27,5 @@ URxvt*scrollstyle:         plain
 !
 ! url matching, scrolling in man and less
 URxvt.perl-ext-common:     default,matcher,vtwheel
-URxvt.url-launcher:        /usr/bin/firefox
+URxvt.url-launcher:        /usr/bin/chromium
 URxvt.matcher.button:      1
