@@ -9,7 +9,6 @@ actions = [
     SymlinkAction('icons', '~/.icons'),
     SymlinkAction('bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
-    SymlinkAction('compton/compton.conf', '~/.config/compton.conf'),
     SymlinkAction('main', '~', dir_mode=True),
 ]
 

@@ -4,6 +4,6 @@ bspc config focus_follows_pointer true
 bspc config pointer_modifier mod4
 bspc config pointer_action1 move
 aiopanel &
-panelfix &
+#panelfix &
 redshift &
-which compton 2>&1 > /dev/null && compton &
+which compton 2>&1 > /dev/null && compton --config /dev/null --backend glx --xrender-sync --xrender-sync-fence &
