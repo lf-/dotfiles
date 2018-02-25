@@ -1,5 +1,9 @@
 #!/bin/sh
 
+mkdir -p $HOME/.local/share/xorg
+exec > $HOME/.local/share/xorg/xinit.log
+exec 2>&1
+
 xrdb_args="-I$HOME/.colors"
 userresources=$HOME/.Xresources
 usermodmap=$HOME/.Xmodmap

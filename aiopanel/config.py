@@ -1,8 +1,10 @@
 import logging
+import sys
 
 import aiopanel
 
-logging.getLogger('aiopanel').addHandler(logging.StreamHandler())
+if sys.stdout.isatty():
+    logging.getLogger('aiopanel').addHandler(logging.StreamHandler())
 
 out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
