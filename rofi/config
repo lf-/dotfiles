@@ -1,1 +1,2 @@
-rofi.combi-modi: window,drun
+rofi.combi-modi: window,drun,ss
+rofi.modi: window,drun,combi,ss:~/.config/rofi/screenshot.sh
