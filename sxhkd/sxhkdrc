@@ -116,10 +116,13 @@ XF86AudioPrev
     mpc prev
 
 XF86MonBrightnessUp
-    xbacklight -inc 12.5
+    xbacklight -inc 5
 
 XF86MonBrightnessDown
-    xbacklight -dec 12.5
+    xbacklight -dec 5
+
+Print
+    systemctl hibernate
 
 # not a spotlight clone
 super + space
