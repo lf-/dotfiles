@@ -1,10 +1,10 @@
-# $Id$
+# $Id: PKGBUILD 314130 2018-01-06 07:47:20Z bisson $
 # Maintainer: Gaetan Bisson <bisson@archlinux.org>
 # Contributor: Aaron Griffin <aaron@archlinux.org>
 # Contributor: judd <jvinet@zeroflux.org>
 
 pkgname=openssh
-pkgver=7.7p1
+pkgver=7.7snap20180330
 pkgrel=1
 pkgdesc='Free version of the SSH connectivity tools'
 url='https://www.openssh.com/portable.html'
@@ -15,7 +15,8 @@ depends=('krb5' 'openssl' 'libedit' 'ldns')
 optdepends=('xorg-xauth: X11 forwarding'
             'x11-ssh-askpass: input passphrase in X')
 validpgpkeys=('59C2118ED206D927E667EBE3D3E5F56B6D920D30')
-source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgver}.tar.gz"{,.asc}
+#source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgver}.tar.gz"{,.asc}
+source=("http://www.mindrot.org/openssh_snap/openssh-SNAP-20180330.tar.gz"
         'openssl-1.1.0.patch'
         'sshdgenkeys.service'
         'sshd@.service'
@@ -23,8 +24,9 @@ source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgve
         'sshd.socket'
         'sshd.conf'
         'sshd.pam')
-sha256sums=('d73be7e684e99efcd024be15a30bffcbe41b012b2f7b3c9084aed621775e6b8f'
-            'SKIP'
+#sha256sums=('a323caeeddfe145baaa0db16e98d784b1fbc7dd436a6bf1f479dfd5cd1d21723'
+#            'SKIP'
+sha256sums=('df30a1f3cd4f7b0b6456b4d120e698f29b279f8e8a9fdb20135f2e12783cbf10'
             'fa91849cc3161916f563bda5413676342e0bcc2705857e9d01b73c70e4904adf'
             '4031577db6416fcbaacf8a26a024ecd3939e5c10fe6a86ee3f0eea5093d533b7'
             '3a0845737207f4eda221c9c9fb64e766ade9684562d8ba4f705f7ae6826886e5'
@@ -36,14 +38,16 @@ sha256sums=('d73be7e684e99efcd024be15a30bffcbe41b012b2f7b3c9084aed621775e6b8f'
 backup=('etc/ssh/ssh_config' 'etc/ssh/sshd_config' 'etc/pam.d/sshd')
 
 prepare() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
+#	cd "${srcdir}/${pkgname}-${pkgver}"
+	cd "${srcdir}/${pkgname}"
 
 	# OpenSSL 1.1.0 patch from http://vega.pgw.jp/~kabe/vsd/patch/openssh-7.4p1-openssl-1.1.0c.patch.html
 	patch -p1 -i ../openssl-1.1.0.patch
 }
 
 build() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
+#	cd "${srcdir}/${pkgname}-${pkgver}"
+	cd "${srcdir}/${pkgname}"
 
 	./configure \
 		--prefix=/usr \
@@ -65,7 +69,8 @@ build() {
 }
 
 check() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
+#	cd "${srcdir}/${pkgname}-${pkgver}"
+	cd "${srcdir}/${pkgname}"
 
 	# Tests require openssh to be already installed system-wide,
 	# also connectivity tests will fail under makechrootpkg since
@@ -77,7 +82,8 @@ check() {
 }
 
 package() {
-	cd "${srcdir}/${pkgname}-${pkgver}"
+#	cd "${srcdir}/${pkgname}-${pkgver}"
+	cd "${srcdir}/${pkgname}"
 
 	make DESTDIR="${pkgdir}" install
 
