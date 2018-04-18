@@ -17,7 +17,7 @@ Install the dotfiles
         # go meta
         ln -s ~+/polkadots ~/.config/polkadots
         # deal with the rest of them
-        polkadots
+        polkadots -2
 
 Set a symlink for the wallpaper variant you want
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

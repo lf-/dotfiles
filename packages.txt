@@ -16,16 +16,25 @@ ttf-symbola
 
 xcursor-vanilla-dmz-aa
 
+xf86-input-evdev
+
+xsel
 ipython
 python-pip
 python-gobject
 python-requests
 git
 openssh
+zsh
+
+upower
+pulseaudio
 
 bspwm
 sxhkd
 rofi
+feh
 xdo
 xorg
+xorg-xinit
 polkit
