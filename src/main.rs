@@ -5,10 +5,10 @@ extern crate chrono_humanize;
 #[macro_use]
 extern crate failure;
 extern crate json;
-extern crate requests;
 extern crate pager;
+extern crate requests;
 
-use clap::{App, SubCommand, Arg, AppSettings, ArgMatches};
+use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use pager::Pager;
 use requests::{Request, Response, ToJson};
 use std::fmt;
@@ -38,7 +38,6 @@ struct Report {
 
 impl Report {
     pub fn new(info: &ArgMatches) -> Self {
-
         let mut flags: Vec<Flag> = vec![];
         if info.is_present("repository") {
             flags.push(Flag::Repository);
@@ -58,8 +57,8 @@ impl Report {
         }
 
         let versions = match info.occurrences_of("versions") {
-            0 => 0, // No flags - nothing to do
-            1 => 5, // Single -V - show 5 last versions
+            0 => 0,                  // No flags - nothing to do
+            1 => 5,                  // Single -V - show 5 last versions
             _ => usize::max_value(), // All the other cases - show everything
         };
 
@@ -105,8 +104,7 @@ impl Report {
     pub fn report_crate(&self, krate: &crates::Crate) -> String {
         let mut output = String::new();
         for flag in &self.flags {
-            output = output +
-                     &match *flag {
+            output = output + &match *flag {
                 Flag::Repository => krate.print_repository(self.verbose),
                 Flag::Documentation => krate.print_documentation(self.verbose),
                 Flag::Downloads => krate.print_downloads(self.verbose),
@@ -152,7 +150,10 @@ fn get_crate(response: &Response) -> Option<crates::Crate> {
 //     println!("{:#?}", item);
 // }
 
-fn print_report<T>(r: Result<T, errors::Error>) where T: fmt::Display {
+fn print_report<T>(r: Result<T, errors::Error>)
+where
+    T: fmt::Display,
+{
     match r {
         Ok(text) => println!("\n{}\n", text),
         Err(err) => println!("\n{}\n", err),
@@ -160,7 +161,6 @@ fn print_report<T>(r: Result<T, errors::Error>) where T: fmt::Display {
 }
 
 fn main() {
-
     Pager::new().setup();
 
     let matches = App::new(CARGO)
