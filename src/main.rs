@@ -3,7 +3,7 @@ extern crate clap;
 extern crate chrono;
 extern crate chrono_humanize;
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 extern crate json;
 extern crate requests;
 extern crate pager;
@@ -15,8 +15,6 @@ use std::fmt;
 
 mod crates;
 mod errors;
-
-use errors::*;
 
 const CARGO: &'static str = "cargo";
 
@@ -74,7 +72,7 @@ impl Report {
         }
     }
 
-    pub fn report(&self, name: &str) -> Result<String> {
+    pub fn report(&self, name: &str) -> Result<String, errors::Error> {
         let response = try!(query(name));
         let mut output = String::new();
 
@@ -154,7 +152,7 @@ fn get_crate(response: &Response) -> Option<crates::Crate> {
 //     println!("{:#?}", item);
 // }
 
-fn print_report<T>(r: Result<T>) where T: fmt::Display {
+fn print_report<T>(r: Result<T, errors::Error>) where T: fmt::Display {
     match r {
         Ok(text) => println!("\n{}\n", text),
         Err(err) => println!("\n{}\n", err),
