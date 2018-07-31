@@ -19,6 +19,14 @@ nightly:cargo:
   image: rustdocker/rust:nightly
   <<: *cargo_test
 
+build:periodic:
+  image: rustdocker/rust:nightly
+  stage: deploy
+  only:
+    - schedules
+  script:
+    - cargo install -f cargo-info
+
 .pages:
   image: rustdocker/rust:stable
   stage: deploy
