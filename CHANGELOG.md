@@ -1,3 +1,7 @@
+## 0.5.14 - 2017-07-31
+
+Pull up dependencies
+
 ## 0.5.13 - 2017-10-20
 
 No need for openssl on macOS
