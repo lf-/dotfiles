@@ -16,7 +16,7 @@ use std::fmt;
 mod crates;
 mod errors;
 
-const CARGO: &'static str = "cargo";
+const CARGO: &str = "cargo";
 
 #[derive(Debug, PartialEq)]
 enum Flag {
@@ -63,10 +63,10 @@ impl Report {
         };
 
         Report {
-            flags: flags,
+            flags,
             verbose: info.is_present("verbose"),
             json: info.is_present("json"),
-            versions: versions,
+            versions,
             keywords: info.is_present("keywords"),
         }
     }
@@ -96,7 +96,7 @@ impl Report {
                 output = output + &format!("{:#}", json);
             }
         } else if let Some(json) = response.text() {
-            output = output + json;
+            output += json;
         }
         output
     }

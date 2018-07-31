@@ -106,7 +106,7 @@ pub struct Crate {
     keywords: JsonValue,
 }
 
-const FIELDS: [&'static str; 5] = [
+const FIELDS: [&str; 5] = [
     "description",
     "documentation",
     "homepage",
@@ -126,7 +126,7 @@ impl Crate {
         }
 
         Crate {
-            krate: krate,
+            krate,
             versions: json["versions"].clone(),
             keywords: json["keywords"].clone(),
         }
@@ -198,25 +198,24 @@ impl Crate {
         let mut output = format!("{:<11}{:<#16}{:<11}", v["num"], created_at, v["downloads"]);
 
         if v["yanked"].as_bool() == Some(true) {
-            output = output + "\t\t(yanked)";
+            output += "\t\t(yanked)";
         }
 
         if verbose {
             // Consider adding some more useful information in verbose mode
-            output + "\n"
-        } else {
-            output + "\n"
         }
+
+        output + "\n"
     }
 
     fn print_version_header(verbose: bool) -> String {
         let output = format!("{:<11}{:<#16}{:<11}\n", "VERSION", "RELEASED", "DOWNLOADS");
+
         if verbose {
             // Consider adding some more useful information in verbose mode
-            output + "\n"
-        } else {
-            output + "\n"
         }
+
+        output + "\n"
     }
 
     pub fn print_last_versions(&self, limit: usize, verbose: bool) -> String {
@@ -269,7 +268,7 @@ impl fmt::Display for Crate {
         } else {
             let mut versions = String::new();
             for line in self.print_last_versions(5, false).lines() {
-                versions = versions + "\n";
+                versions += "\n";
                 if !line.is_empty() {
                     versions = versions + "  " + line;
                 }
