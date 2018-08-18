@@ -1,7 +1,7 @@
 filetype off                  " required
 
 " Use Plug as package manager
-call plug#begin('~/.nvim/plugged')
+call plug#begin('~/.config/nvim/plugged')
 
 " Plug 'ervandew/supertab'
 Plug 'tomtom/tcomment_vim'
