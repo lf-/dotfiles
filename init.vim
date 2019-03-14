@@ -123,6 +123,9 @@ tnoremap <C-w>j <C-\><C-n>:wincmd j<CR>
 tnoremap <C-w>k <C-\><C-n>:wincmd k<CR>
 tnoremap <C-w>l <C-\><C-n>:wincmd l<CR>
 
+" XXX: move vim gibberish into function with comments
+nnoremap g= mpgqap'p
+
 "" Leader commands
 let mapleader=","
 noremap <M-n> <esc>:tabn<cr>
