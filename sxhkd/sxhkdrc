@@ -10,7 +10,7 @@ super + {h,j,k,l}
     bspc node {west,south,north,east} -f
 
 super + {bracketleft,bracketright}
-    bspc node {prev,next}.active -f
+    bspc node {prev,next}.local -f
 
 super + alt + {h,l}
     bspc desktop {prev,next} -f
@@ -120,6 +120,9 @@ XF86MonBrightnessUp
 
 XF86MonBrightnessDown
     xbacklight -dec 5
+
+XF86Search
+    xbacklight -set 0.07
 
 Print
     systemctl hibernate
