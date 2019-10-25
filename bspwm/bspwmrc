@@ -7,4 +7,4 @@ bspc config external_rules_command ~/.config/bspwm/external_rules
 aiopanel &
 #panelfix &
 redshift &
-which compton 2>&1 > /dev/null && compton --config /dev/null --backend glx --xrender-sync --xrender-sync-fence &
+which compton 2>&1 > /dev/null && compton --config /dev/null --backend glx --xrender-sync-fence --vsync &
