@@ -7,3 +7,6 @@
 [submodule "prezto"]
 	path = prezto
 	url = https://github.com/lf-/prezto
+[submodule "alacritty-theme"]
+	path = alacritty-theme
+	url = https://github.com/eendroroy/alacritty-theme
