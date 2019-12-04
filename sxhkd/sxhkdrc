@@ -82,18 +82,6 @@ super + alt + Escape
 super + {minus,equal}
     bspc config -d focused window_gap $((`bspc config -d focused window_gap` {+,-} 2 ))
 
-# switch windows
-super + alt + button1
-    bspc pointer -g focus
-
-# ""
-super + alt + !button1
-    bspc pointer -t %i, %i
-
-# ""
-super + alt + @button1
-    bspc pointer -u
-
 #
 # other hotkeys
 #
