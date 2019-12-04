@@ -3,9 +3,6 @@ import sys
 
 import aiopanel
 
-if sys.stdout.isatty():
-    logging.getLogger('aiopanel').addHandler(logging.StreamHandler())
-
 out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
     '-fSource Sans Pro:size=11',
