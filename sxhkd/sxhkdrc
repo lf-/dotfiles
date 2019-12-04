@@ -119,6 +119,14 @@ Print
 super + space
     rofi -show combi
 
+# emoji picker
+super + period
+    rofimoji
+
+# greek letter picker
+super + comma
+    rofimoji --emoji-file ~/.dotfiles/greek-letters/greek-letters.txt
+
 # run wireless login script
 super + grave
     login.py

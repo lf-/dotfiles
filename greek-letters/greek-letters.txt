@@ -1,0 +1,83 @@
+Ͱ greek capital letter heta
+ͱ greek small letter heta
+Ͳ greek capital letter archaic sampi
+ͳ greek small letter archaic sampi
+Ͷ greek capital letter pamphylian digamma
+ͷ greek small letter pamphylian digamma
+Ϳ greek capital letter yot
+Α greek capital letter alpha
+Β greek capital letter beta
+Γ greek capital letter gamma
+Δ greek capital letter delta
+Ε greek capital letter epsilon
+Ζ greek capital letter zeta
+Η greek capital letter eta
+Θ greek capital letter theta
+Ι greek capital letter iota
+Κ greek capital letter kappa
+Λ greek capital letter lamda
+Μ greek capital letter mu
+Ν greek capital letter nu
+Ξ greek capital letter xi
+Ο greek capital letter omicron
+Π greek capital letter pi
+Ρ greek capital letter rho
+Σ greek capital letter sigma
+Τ greek capital letter tau
+Υ greek capital letter upsilon
+Φ greek capital letter phi
+Χ greek capital letter chi
+Ψ greek capital letter psi
+Ω greek capital letter omega
+α greek small letter alpha
+β greek small letter beta
+γ greek small letter gamma
+δ greek small letter delta
+ε greek small letter epsilon
+ζ greek small letter zeta
+η greek small letter eta
+θ greek small letter theta
+ι greek small letter iota
+κ greek small letter kappa
+λ greek small letter lamda
+μ greek small letter mu
+ν greek small letter nu
+ξ greek small letter xi
+ο greek small letter omicron
+π greek small letter pi
+ρ greek small letter rho
+ς greek small letter final sigma
+σ greek small letter sigma
+τ greek small letter tau
+υ greek small letter upsilon
+φ greek small letter phi
+χ greek small letter chi
+ψ greek small letter psi
+ω greek small letter omega
+Ϙ greek letter archaic koppa
+ϙ greek small letter archaic koppa
+Ϛ greek letter stigma
+ϛ greek small letter stigma
+Ϝ greek letter digamma
+ϝ greek small letter digamma
+Ϟ greek letter koppa
+ϟ greek small letter koppa
+Ϡ greek letter sampi
+ϡ greek small letter sampi
+ϳ greek letter yot
+Ϸ greek capital letter sho
+ϸ greek small letter sho
+Ϻ greek capital letter san
+ϻ greek small letter san
+ᴦ greek letter small capital gamma
+ᴧ greek letter small capital lamda
+ᴨ greek letter small capital pi
+ᴩ greek letter small capital rho
+ᴪ greek letter small capital psi
+ᵦ greek subscript small letter beta
+ᵧ greek subscript small letter gamma
+ᵨ greek subscript small letter rho
+ᵩ greek subscript small letter phi
+ᵪ greek subscript small letter chi
+℩ turned greek small letter iota
+ꭥ greek letter small capital omega
