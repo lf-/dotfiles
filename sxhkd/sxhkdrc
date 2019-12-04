@@ -133,7 +133,7 @@ super + grave
 
 # terminal
 super + Return
-    urxvt
+    alacritty
 
 # reload sxhkd configs
 super + Escape

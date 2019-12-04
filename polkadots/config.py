@@ -20,6 +20,7 @@ dotconfigs = [
     'bspwm',
     'qemu-box',
     'rofi',
+    'alacritty',
 ]
 
 for dc in dotconfigs:
