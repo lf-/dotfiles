@@ -86,6 +86,9 @@ upower_template = """
             {{- ' ({h}:{m:02d})'.format(h=time_s // 3600,
                                         m=(time_s // 60) % 60) }}
         {%- endif %}
+        {%- if device.EnergyRate %}
+            {{- ' [{:0.1f}W]'.format(device.EnergyRate) }}
+        {%- endif %}
         {{- ' | ' }}
     {%- endif %}
 {%- endif -%}
