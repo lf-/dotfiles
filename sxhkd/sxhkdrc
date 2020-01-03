@@ -46,6 +46,14 @@ super + a
 super + s
     bspc node focused -t '~sticky'
 
+# Zide (obviously)
+super + z
+    bspc node focused -g hidden
+
+# unhide all on this workspace
+super + shift + z
+    bspc node $(bspc query -N -d focused -n .hidden | head -n1) -g hidden=off
+
 # close all the things with S-w
 super + w
     bspc node focused -c
@@ -121,11 +129,11 @@ super + space
 
 # emoji picker
 super + period
-    rofimoji
+    rofimoji -c
 
 # greek letter picker
 super + comma
-    rofimoji --emoji-file ~/.dotfiles/greek-letters/greek-letters.txt
+    rofimoji -c --emoji-file ~/.dotfiles/greek-letters/greek-letters.txt
 
 # run wireless login script
 super + grave
