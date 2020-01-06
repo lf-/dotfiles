@@ -6,5 +6,6 @@ bspc config pointer_action1 move
 bspc config external_rules_command ~/.config/bspwm/external_rules
 aiopanel &
 #panelfix &
+poke-upower 5000 &
 redshift &
 which compton 2>&1 > /dev/null && compton --config /dev/null --backend glx --xrender-sync-fence --vsync &
