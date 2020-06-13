@@ -1,4 +1,5 @@
 {
 		"rust-client.disableRustup": true,
+		"python.jediEnabled": false,
 		"coc.preferences.formatOnSaveFiletypes": ["rust"]
 }
