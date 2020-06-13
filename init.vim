@@ -17,7 +17,6 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " Python
-Plug 'davidhalter/jedi-vim'
 Plug 'nvie/vim-flake8'
 
 " web
