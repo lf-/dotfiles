@@ -12,6 +12,12 @@ Plug 'jtratner/vim-flavored-markdown'
 Plug 'altercation/vim-colors-solarized'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'ctrlpvim/ctrlp.vim'
+
+Plug 'LnL7/vim-nix'
+Plug 'alx741/yesod.vim'
+
+Plug 'gcmt/taboo.vim'
 
 " completion
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -97,6 +103,10 @@ set background=dark
 colorscheme solarized
 set relativenumber
 set number
+
+" disable built in yesod maps
+let g:yesod_disable_maps = 1
+
 let g:airline_powerline_fonts = 1
 
 if !exists('g:airline_symbols')
@@ -137,19 +147,15 @@ augroup END
 "" Mapping
 nnoremap ; :
 set pastetoggle=<F2>
-tnoremap <C-w>h <C-\><C-n>:wincmd h<CR>
-tnoremap <C-w>j <C-\><C-n>:wincmd j<CR>
-tnoremap <C-w>k <C-\><C-n>:wincmd k<CR>
-tnoremap <C-w>l <C-\><C-n>:wincmd l<CR>
 
-" XXX: move vim gibberish into function with comments
+" reflow a paragraph
 nnoremap g= mpgqap'p
 
 "" Leader commands
 let mapleader=","
 noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
-map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
+map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
 
 """""""""""""""""""""""""
 " Editing
@@ -159,9 +165,17 @@ map <Leader>bi <esc>:source ~/.nvim/vimrc<cr>:PlugInstall<cr>
 augroup spacing
   autocmd FileType python setlocal sw=4 sts=4 et
   autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
+  autocmd FileType cabal setlocal sw=4 sts=4 ts=4 et ai
 augroup END
 
 set tabstop=4
+
+""""""""""""""""""""""""""""""""""""""
+" Highlight
+""""""""""""""""""""""""""""""""""""""
+" make rust-analyzer ChainingHints a different colour than the rest of the
+" code
+highlight CocHintSign ctermfg=10
 
 """"""""""""""""""""""""""""""""""""""
 " COMPLETION
