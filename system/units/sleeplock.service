@@ -1,9 +1,0 @@
-[Unit]
-Description=A hook for loginctl lock-sessions whenever the system goes to sleep
-Before=sleep.target
-
-[Service]
-ExecStart=/usr/bin/loginctl lock-sessions
-
-[Install]
-WantedBy=sleep.target
