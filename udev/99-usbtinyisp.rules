@@ -1,0 +1,4 @@
+ATTR{idVendor}=="1781", ATTR{idProduct}=="0c9f", MODE="660", GROUP="uucp"
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="2ff4", MODE="660", GROUP="uucp"
+ATTR{idVendor}=="16d0", ATTR{idProduct}=="0753", MODE="660", GROUP="uucp"
+ATTR{idVendor}=="2a03", ATTR{idProduct}=="0043", MODE="660", GROUP="uucp"
