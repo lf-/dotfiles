@@ -3,32 +3,30 @@ filetype off                  " required
 " Use Plug as package manager
 call plug#begin('~/.config/nvim/plugged')
 
-" Plug 'ervandew/supertab'
+" Editing
 Plug 'tomtom/tcomment_vim'
 Plug 'tpope/vim-surround'
-Plug 'tpope/vim-markdown'
+Plug 'godlygeek/tabular'
+
+Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-fugitive'
-Plug 'jtratner/vim-flavored-markdown'
-Plug 'altercation/vim-colors-solarized'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
+Plug 'tpope/vim-eunuch'
 Plug 'ctrlpvim/ctrlp.vim'
-
-Plug 'LnL7/vim-nix'
-Plug 'alx741/yesod.vim'
-
-Plug 'gcmt/taboo.vim'
 
 " completion
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
-" Python
-Plug 'nvie/vim-flake8'
+" UI
+Plug 'gcmt/taboo.vim'
+Plug 'altercation/vim-colors-solarized'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
-" web
-Plug 'mattn/emmet-vim'
-
+" File types
+Plug 'LnL7/vim-nix'
+Plug 'alx741/yesod.vim'
 Plug 'ekalinin/Dockerfile.vim'
+Plug 'plasticboy/vim-markdown'
 
 " All of your Plugs must be added before the following line
 call plug#end()
@@ -70,14 +68,30 @@ set ruler
 set backspace=indent,eol,start
 set laststatus=2
 set undofile
-" You mean I can't use fish and vundle at the same time? Wat?
+
+" this was needed for fish but is now probs just a perf improvement
 set shell=bash
+
+" use chromium on all platforms to open all urls
+" this is lazy as hell but I just wnat it to work
+" https://github.com/vim/vim/issues/4738
+let g:netrw_nogx = 1
+
+if has('unix')
+  function! OpenURLUnderCursor()
+    let s:uri = matchstr(getline('.'), '[a-z]*:\/\/[^ >,;()]*')
+    let s:uri = shellescape(s:uri, 1)
+    if s:uri != ''
+      silent exec "!chromium '".s:uri."'"
+      :redraw!
+    endif
+  endfunction
+  nnoremap gx :call OpenURLUnderCursor()<CR>
+endif
+
+" inside the internal terminal, stuff calling VISUAL should open in a new vim
+" tab in the existing session
 let $VISUAL = 'nvimsplit'
-" jedi stop putting `from` without me asking for it
-let g:jedi#smart_auto_mappings = 0
-" jedi stop putting magic methods without me asking for it!
-let g:jedi#popup_on_dot = 0
-let g:jedi#popup_select_first = 0
 
 """""""""""""""""""""""""
 " Text UI
@@ -107,6 +121,13 @@ set number
 " disable built in yesod maps
 let g:yesod_disable_maps = 1
 
+" ignore dist-newstyle and friends in ctrlp
+let g:ctrlp_custom_ignore = '\v[\/]dist-.*$'
+
+" disable folding in vim markdown
+let g:vim_markdown_folding_disabled = 1
+
+" our fonts support powerline symbols
 let g:airline_powerline_fonts = 1
 
 if !exists('g:airline_symbols')
@@ -139,10 +160,10 @@ let g:airline_symbols.linenr = ''
 
 set list
 set listchars=tab:\ \ ,trail:•
-augroup markdown
-  au!
-  au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
-augroup END
+" augroup markdown
+"   au!
+"    au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
+" augroup END
 
 "" Mapping
 nnoremap ; :
@@ -161,11 +182,31 @@ map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
 " Editing
 """""""""""""""""""""""""
 
+augroup termfix
+  " scrolloff causes annoying flashing in terminals
+  autocmd TermOpen * setlocal scrolloff=0
+augroup END
+
+augroup highlightingfix
+  " shakespearean templates ≈ their respective languages, and I'd rather have
+  " shitty highlighting than no highlighting
+  au BufRead,BufNewFile *.julius setlocal filetype=javascript
+  au BufRead,BufNewFile *.cassius setlocal filetype=css
+  au BufRead,BufNewFile *.hamlet setlocal filetype=html
+augroup END
+
+" blah
+set ts=4 sts=4 sw=4 et ai
+
 "" Spacing
 augroup spacing
   autocmd FileType python setlocal sw=4 sts=4 et
   autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
   autocmd FileType cabal setlocal sw=4 sts=4 ts=4 et ai
+  autocmd FileType haskell setlocal sw=4 sts=4 ts=4 et ai
+  autocmd FileType yesod setlocal sw=4 sts=4 ts=4 et ai
+  autocmd FileType vim setlocal sw=2 sts=2 ts=2 et ai
+  autocmd FileType json setlocal sw=2 sts=2 ts=2 et ai
 augroup END
 
 set tabstop=4
@@ -176,6 +217,17 @@ set tabstop=4
 " make rust-analyzer ChainingHints a different colour than the rest of the
 " code
 highlight CocHintSign ctermfg=10
+
+" By default, highlight windows were using the Pmenu highlight that inverted
+" the colours in them. It was not good.
+highlight CocFloating ctermbg=238 ctermfg=0
+
+function! s:syntax_query() abort
+  for id in synstack(line("."), col("."))
+    echo synIDattr(id, "name")
+  endfor
+endfunction
+command! SyntaxQuery call s:syntax_query()
 
 """"""""""""""""""""""""""""""""""""""
 " COMPLETION
@@ -228,6 +280,7 @@ autocmd CursorHold * silent call CocActionAsync('highlight')
 
 " Remap for rename current word
 nmap <leader>rn <Plug>(coc-rename)
+nnoremap <leader>rs :CocRestart<cr>
 
 " Remap for format selected region
 xmap <leader>f  <Plug>(coc-format-selected)

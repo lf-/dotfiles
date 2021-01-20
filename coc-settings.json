@@ -10,6 +10,27 @@
       "filetypes": [
         "nix"
       ]
+    },
+    "haskell": {
+      "command": "hls-nix",
+      "args": ["--lsp"],
+      "rootPatterns": ["*.cabal", "stack.yaml", "cabal.project", "package.yaml", "hie.yaml"],
+      "filetypes": ["haskell", "lhaskell"],
+      "settings": {
+        "languageServerHaskell": {
+          "formattingProvider": "stylish-haskell"
+        }
+      }
+    },
+    "ccls": {
+      "command": "ccls",
+      "filetypes": ["c", "cpp", "h", "hpp", "objc", "objcpp"],
+      "rootPatterns": [".ccls", "compile_commands.json"],
+      "initializationOptions": {
+        "cache": {
+          "directory": "/tmp/ccls"
+        }
+      }
     }
   }
 }
