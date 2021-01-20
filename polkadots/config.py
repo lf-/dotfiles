@@ -3,8 +3,6 @@ dotconfig = lambda n: (n, (Path('~/.config') / n))
 
 actions = [
     SymlinkAction('colors', '~/.colors'),
-    SymlinkAction('qt4/Trolltech.conf', '~/.config/Trolltech.conf'),
-    SymlinkAction('gtk3', '~/.config/gtk-3.0'),
     SymlinkAction('prezto', '~/.zprezto'),
     SymlinkAction('icons', '~/.icons'),
     SymlinkAction('bin', '~/bin'),
