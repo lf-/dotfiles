@@ -87,7 +87,7 @@ window:
   #
   # note(lf-): it appears that bspwm doesn't care about these at all so might
   #            as well not draw them?
-  decorations: none
+  decorations: full
 
   # Startup Mode (changes require restart)
   #
@@ -125,7 +125,8 @@ font:
     #   - (macOS) Menlo
     #   - (Linux) monospace
     #   - (Windows) Consolas
-    family: Source Code Pro
+    #family: Source Code Pro
+    family: Iosevka Term
 
     # The `style` can be specified to pick a specific face.
     #style: Regular
@@ -153,7 +154,7 @@ font:
     #style: Italic
 
   # Point size
-  size: 7.0
+  size: 11.0
 
   # Offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
