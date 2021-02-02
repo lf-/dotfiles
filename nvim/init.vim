@@ -82,7 +82,7 @@ if has('unix')
     let s:uri = matchstr(getline('.'), '[a-z]*:\/\/[^ >,;()]*')
     let s:uri = shellescape(s:uri, 1)
     if s:uri != ''
-      silent exec "!chromium '".s:uri."'"
+      silent exec "!xdg-open '".s:uri."'"
       :redraw!
     endif
   endfunction
@@ -115,7 +115,7 @@ set nolazyredraw
 syntax enable
 set background=dark
 colorscheme solarized
-set relativenumber
+set cursorline
 set number
 
 " disable built in yesod maps
