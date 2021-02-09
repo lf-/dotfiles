@@ -65,6 +65,17 @@ function! color_helper#rgb_color_to_hex(rgb_color)
 endfunction
 
 "
+" Adds the given RGBA to the given hex color returning a new hex color
+"
+function! color_helper#combine(hexc, r, g, b, a)
+  let l:colors = color_helper#hex_color_to_rgb(a:hexc)
+  let l:r = min([float2nr(l:colors[0] * (1.0 - a:a) + a:r * a:a), 255])
+  let l:g = min([float2nr(l:colors[1] * (1.0 - a:a) + a:g * a:a), 255])
+  let l:b = min([float2nr(l:colors[2] * (1.0 - a:a) + a:b * a:a), 255])
+  return color_helper#rgb_color_to_hex([l:r, l:g, l:b])
+endfunction
+
+"
 " Returns a ligtened color using the given color and the percent to lighten it
 " by.
 "
