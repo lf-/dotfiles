@@ -45,7 +45,7 @@ function! indent_guides#enable()
   " loop through each indent level and define a highlight pattern
   " will automagically figure out whether to use tabs or spaces
   for l:level in range(s:start_level, s:indent_levels)
-    let l:group = 'IndentGuides' . ((l:level % 2 == 0) ? 'Even' : 'Odd')
+    let l:group = 'IndentGuides' . (l:level % len(s:colors))
     let l:column_start = (l:level - 1) * s:indent_size + 1
 
     " define the higlight patterns and add to matches list
@@ -96,22 +96,14 @@ function! indent_guides#highlight_colors()
     if has('gui_running') || has('nvim')
       call indent_guides#gui_highlight_colors()
     else
-      call indent_guides#basic_highlight_colors()
+      echo "non nvim/gui_running is not supported"
+      "call indent_guides#basic_highlight_colors()
     endif
   endif
 endfunction
 
-"
-" Defines some basic indent highlight colors that work for Terminal Vim and
-" gVim when colors can't be automatically calculated.
-"
-function! indent_guides#basic_highlight_colors()
-  let l:cterm_colors = (&g:background == 'dark') ? ['darkgrey', 'black'] : ['lightgrey', 'white']
-  let l:gui_colors   = (&g:background == 'dark') ? ['grey15', 'grey30']  : ['grey70', 'grey85']
-
-  exe 'hi IndentGuidesEven guibg=' . l:gui_colors[0] . ' guifg=' . l:gui_colors[1] . ' ctermbg=' . l:cterm_colors[0] . ' ctermfg=' . l:cterm_colors[1]
-  exe 'hi IndentGuidesOdd  guibg=' . l:gui_colors[1] . ' guifg=' . l:gui_colors[0] . ' ctermbg=' . l:cterm_colors[1] . ' ctermfg=' . l:cterm_colors[0]
-endfunction
+" default term colors are try ur best i am not trying
+let s:termcolors = [0, 8, 0, 8]
 
 "
 " Automagically calculates and defines the indent highlight colors for gui
@@ -119,6 +111,11 @@ endfunction
 "
 function! indent_guides#gui_highlight_colors()
   let l:hi_normal_guibg = ''
+  let l:ctermfg = ' ctermfg=' . ((&g:background == 'dark') ? 'white' : 'black')
+
+  if s:hi_normal =~ s:color_termfg_pat
+    let l:ctermfg = ' ctermfg=' . matchstr(s:hi_normal, s:color_termfg_pat)
+  endif
 
   " capture the backgroud color from the normal highlight
   if s:hi_normal =~ s:color_hex_bg_pat
@@ -132,42 +129,31 @@ function! indent_guides#gui_highlight_colors()
 
   else
     " background color could not be detected, default to basic colors
-    call indent_guides#basic_highlight_colors()
+    echo "non nvim/gui_running is not supported"
+    "call indent_guides#basic_highlight_colors()
   endif
 
   if l:hi_normal_guibg =~ s:color_hex_pat
-    " calculate the highlight background colors
-    let l:hi_odd_bg  = indent_guides#lighten_or_darken_color(l:hi_normal_guibg)
-    let l:hi_even_bg = indent_guides#lighten_or_darken_color(l:hi_odd_bg)
+    for l:i in range(len(s:colors))
+      let l:col = s:colors[i]
+      let l:tcol = s:termcolors[i]
+      let l:new_bg = color_helper#combine(l:hi_normal_guibg, l:col[0], l:col[1], l:col[2], s:alpha)
 
-    " define the new highlights
-    exe 'hi IndentGuidesOdd  guibg=' . l:hi_odd_bg . ' guifg=' . l:hi_even_bg
-    exe 'hi IndentGuidesEven guibg=' . l:hi_even_bg . ' guifg=' . l:hi_odd_bg
+      exe 'hi IndentGuides' . l:i . ' guibg=' . l:new_bg . ' guifg=' . l:hi_normal_guibg . ' ctermbg=' . l:tcol . l:ctermfg
+    endfor
   end
 endfunction
 
-"
-" Takes a color and darkens or lightens it depending on whether a dark or light
-" colorscheme is being used.
-"
-function! indent_guides#lighten_or_darken_color(color)
-  let l:new_color = ''
-
-  if (&g:background == 'dark')
-    let l:new_color = color_helper#hex_color_lighten(a:color, s:change_percent)
-  else
-    let l:new_color = color_helper#hex_color_darken (a:color, s:change_percent)
-  endif
-
-  return l:new_color
-endfunction
+let s:max_colors = 8
 
 "
 " Define default highlights.
 "
 function! indent_guides#define_default_highlights()
-  hi default clear IndentGuidesOdd
-  hi default clear IndentGuidesEven
+  " XXX: this is hardcoded to max 8 colors. bleh
+  for l:i in range(s:max_colors)
+    exe 'hi default clear IndentGuides' . l:i
+  endfor
 endfunction
 
 "
@@ -200,7 +186,12 @@ function! indent_guides#init_script_vars()
   let s:color_hex_pat     = g:indent_guides_color_hex_pattern
   let s:color_hex_bg_pat  = g:indent_guides_color_hex_guibg_pattern
   let s:color_name_bg_pat = g:indent_guides_color_name_guibg_pattern
+  let s:color_termfg_pat  = g:indent_guides_color_termfg
   let s:start_level       = g:indent_guides_start_level
+
+  " precompute these things applying them to the background colour
+  let s:colors = g:indent_guides_colors
+  let s:alpha = g:indent_guides_alpha
 
   " str2float not available in vim versions <= 7.1
   if has('float')

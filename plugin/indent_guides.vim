@@ -48,6 +48,13 @@ let g:indent_guides_autocmds_enabled         = 0
 let g:indent_guides_color_hex_pattern        = '#[0-9A-Fa-f]\{6\}'
 let g:indent_guides_color_hex_guibg_pattern  = 'guibg=\zs' . g:indent_guides_color_hex_pattern . '\ze'
 let g:indent_guides_color_name_guibg_pattern = "guibg='\\?\\zs[0-9A-Za-z ]\\+\\ze'\\?"
+let g:indent_guides_color_termfg             = "ctermfg=\\zs\\d\\+\\ze"
+if !exists('g:indent_guides_colors')
+  let g:indent_guides_colors = [[255, 255, 64], [127, 255, 127], [255, 127, 255], [79, 236, 236]]
+endif
+if !exists('g:indent_guides_alpha')
+  let g:indent_guides_alpha = 0.17
+endif
 
 " Configurable global variables
 call s:InitVariable('g:indent_guides_indent_levels', 30)
