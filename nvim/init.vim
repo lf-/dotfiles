@@ -18,9 +18,16 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 " UI
 Plug 'gcmt/taboo.vim'
-Plug 'altercation/vim-colors-solarized'
+Plug 'romainl/flattened'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+
+" rainbow indents
+if isdirectory(expand("$HOME/dev/vim-indent-guides"))
+  set runtimepath+=$HOME/dev/vim-indent-guides
+else
+  Plug 'lf-/vim-indent-guides'
+endif
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -32,8 +39,7 @@ Plug 'plasticboy/vim-markdown'
 call plug#end()
 filetype plugin indent on
 
-" Settings for sanity
-set modelines=0 " modelines are useless
+set modelines=0
 set encoding=utf-8
 set history=1000
 
@@ -112,11 +118,12 @@ set smartcase
 set nolazyredraw
 
 "" Visual stuff
-syntax enable
-set background=dark
-colorscheme solarized
 set cursorline
 set number
+
+let g:neovide_cursor_animation_length=0.02
+let g:neovide_cursor_trail_length=0
+set guifont=Iosevka:h18
 
 " disable built in yesod maps
 let g:yesod_disable_maps = 1
@@ -177,6 +184,7 @@ let mapleader=","
 noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
+nnoremap <Leader>t <esc>:vsp term://zsh<cr>
 
 """""""""""""""""""""""""
 " Editing
@@ -214,14 +222,25 @@ set tabstop=4
 """"""""""""""""""""""""""""""""""""""
 " Highlight
 """"""""""""""""""""""""""""""""""""""
+syntax enable
+set background=dark
+colorscheme flattened_dark
+
+highlight Normal guisp=fg
+
 " make rust-analyzer ChainingHints a different colour than the rest of the
 " code
-highlight CocHintSign ctermfg=10
+highlight CocHintSign ctermfg=10 guifg=#586e75
 
 " By default, highlight windows were using the Pmenu highlight that inverted
 " the colours in them. It was not good.
 highlight CocFloating ctermbg=238 ctermfg=0
 
+" By default the search highlight is very obvious and kinda ugly. we make it
+" quieter
+highlight Search cterm=reverse ctermfg=10 guifg=Black guibg=Yellow
+
+" Get the highlight groups under the cursor
 function! s:syntax_query() abort
   for id in synstack(line("."), col("."))
     echo synIDattr(id, "name")
@@ -229,9 +248,16 @@ function! s:syntax_query() abort
 endfunction
 command! SyntaxQuery call s:syntax_query()
 
+if $TERM == 'alacritty'
+  set termguicolors
+endif
+
 """"""""""""""""""""""""""""""""""""""
 " COMPLETION
 """"""""""""""""""""""""""""""""""""""
+
+let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-python', 'coc-json']
+
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
 inoremap <silent><expr> <TAB>
@@ -342,3 +368,6 @@ nnoremap <silent> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
+
+" remove highlights with space+h
+nnoremap <silent> <space>h  :<C-u>nohlsearch<CR>
