@@ -4,3 +4,5 @@ nixpkgs
 NixOS
 REPL
 s
+plugin
+README
