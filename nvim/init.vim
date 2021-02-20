@@ -123,6 +123,12 @@ set number
 
 let g:neovide_cursor_animation_length=0.02
 let g:neovide_cursor_trail_length=0
+
+" coc windows have blur on top of them sometimes, workaround
+" https://github.com/Kethku/neovide/issues/432
+let g:neovide_window_floating_blur = 0
+let g:neovide_window_floating_opacity = 0.8
+
 set guifont=Iosevka:h18
 
 " disable built in yesod maps
@@ -248,7 +254,7 @@ function! s:syntax_query() abort
 endfunction
 command! SyntaxQuery call s:syntax_query()
 
-if $TERM == 'alacritty'
+if $TERM == 'alacritty' || $COLORTERM == 'truecolor'
   set termguicolors
 endif
 
