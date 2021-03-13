@@ -1,5 +1,0 @@
-#!/bin/sh
-
-arg1="$1"
-shift
-nvr --remote-tab-wait-silent $arg1 -- "$@"

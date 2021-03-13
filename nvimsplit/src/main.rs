@@ -94,9 +94,9 @@ fn main() -> Result<()> {
     let recv = sess.start_event_loop_channel();
     let mut nvim = Neovim::new(sess);
 
-    let abspath = PathBuf::from(&args.filename)
-        .canonicalize()
-        .wrap_err("canonicalize path")?;
+    let abspath = PathBuf::from(&args.filename);
+    let abspath = abspath.canonicalize().unwrap_or(abspath);
+
     let abspath_s = abspath
         .to_str()
         .ok_or_else(|| eyre!("non-utf8 target path"))?;
