@@ -70,3 +70,4 @@ include "%H/.dotfiles/xcompose/dotXCompose"
 <Multi_key> <backslash> <e> <p> <s> <i> <l> <o> <n> : "ε" # epsilon
 <Multi_key> <backslash> <d> <e> <l> <t> <a> : "δ" # delta
 <Multi_key> <asciitilde> <greater> : "⤳"
+<Multi_key> <s> <p> : "✨"
