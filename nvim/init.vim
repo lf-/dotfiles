@@ -137,6 +137,8 @@ let g:yesod_disable_maps = 1
 " ignore dist-newstyle and friends in ctrlp
 let g:ctrlp_custom_ignore = '\v[\/]dist-.*$'
 
+set wildignore+=*/target/*
+
 " disable folding in vim markdown
 let g:vim_markdown_folding_disabled = 1
 
@@ -244,7 +246,7 @@ highlight CocFloating ctermbg=238 ctermfg=0
 
 " By default the search highlight is very obvious and kinda ugly. we make it
 " quieter
-highlight Search cterm=reverse ctermfg=10 guifg=Black guibg=Yellow
+highlight Search cterm=reverse ctermfg=10 guifg=Black guibg=fg
 
 " Get the highlight groups under the cursor
 function! s:syntax_query() abort
