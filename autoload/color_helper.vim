@@ -1,5 +1,6 @@
 " Author:   Nate Kane <nathanaelkane AT gmail DOT com>
 " Homepage: http://github.com/nathanaelkane/vim-indent-guides
+let g:indent_guides_color_hex_pattern        = '#[0-9A-Fa-f]\{6\}'
 
 "
 " Return hex string equivalent to given decimal string or number.
