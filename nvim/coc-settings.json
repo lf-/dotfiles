@@ -1,5 +1,13 @@
 {
   "python.jediEnabled": false,
+  "hover.floatMaxWidth": 90,
+  "hover.floatMaxHeight": 20,
+  "signature.maxWindowHeight": 15,
+  "list.maxPreviewHeight": 25,
+  "rust-analyzer.server.extraEnv": {
+    //"RA_LOG": "info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn"
+  },
+  "rust-analyzer.updates.channel": "nightly",
   "coc.preferences.formatOnSaveFiletypes": [
     "rust"
   ],
@@ -18,16 +26,6 @@
       "settings": {
         "languageServerHaskell": {
           "formattingProvider": "stylish-haskell"
-        }
-      }
-    },
-    "ccls": {
-      "command": "ccls",
-      "filetypes": ["c", "cpp", "h", "hpp", "objc", "objcpp"],
-      "rootPatterns": [".ccls", "compile_commands.json"],
-      "initializationOptions": {
-        "cache": {
-          "directory": "/tmp/ccls"
         }
       }
     }

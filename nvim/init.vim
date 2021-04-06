@@ -6,6 +6,7 @@ call plug#begin('~/.config/nvim/plugged')
 " Editing
 Plug 'tomtom/tcomment_vim'
 Plug 'tpope/vim-surround'
+Plug 'wellle/targets.vim'
 Plug 'godlygeek/tabular'
 
 Plug 'tpope/vim-dispatch'
@@ -21,6 +22,7 @@ Plug 'gcmt/taboo.vim'
 Plug 'romainl/flattened'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'wesQ3/vim-windowswap'
 
 " rainbow indents
 if isdirectory(expand("$HOME/dev/vim-indent-guides"))
