@@ -41,6 +41,10 @@ Plug 'plasticboy/vim-markdown'
 call plug#end()
 filetype plugin indent on
 
+if $COC_DEBUG == '1'
+  let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register')]
+endif
+
 set modelines=0
 set encoding=utf-8
 set history=1000
