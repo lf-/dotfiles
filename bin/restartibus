@@ -1,0 +1,5 @@
+#!/bin/sh
+pkill ibus-daemon
+echo 'killed it'
+exec ibus-daemon -drx --panel=/usr/lib/kimpanel-ibus-panel
+
