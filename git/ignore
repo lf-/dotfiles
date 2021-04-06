@@ -1,0 +1,5 @@
+compile_commands.json
+__pycache__
+.cache
+.gdb_history
+a.vim

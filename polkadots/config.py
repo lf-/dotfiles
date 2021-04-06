@@ -50,6 +50,7 @@ dotconfigs = [
     'qemu-box',
     'rofi',
     'alacritty',
+    'git'
 ]
 
 alacritty_config = 'alacritty-laptop.yml' \

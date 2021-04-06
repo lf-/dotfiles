@@ -1,0 +1,18 @@
+[alias]
+	s = status
+	d = diff --staged
+	rs = restore --staged
+	git = !git
+[user]
+	name = Jade
+	email = software@lfcode.ca
+[pull]
+	ff = only
+[merge]
+	conflictStyle = diff3
+[init]
+	defaultBranch = main
+[rerere]
+	enabled = true
+[cola]
+	spellcheck = false
