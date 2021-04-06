@@ -39,6 +39,7 @@ actions = [
     SymlinkAction('bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
     SymlinkAction('main', '~', dir_mode=True),
+    SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 ]
 
 dotconfigs = [
@@ -50,7 +51,8 @@ dotconfigs = [
     'qemu-box',
     'rofi',
     'alacritty',
-    'git'
+    'git',
+    'gh',
 ]
 
 alacritty_config = 'alacritty-laptop.yml' \

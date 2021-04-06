@@ -1,0 +1,142 @@
+{
+    "telemetry.enableTelemetry": false,
+    "workbench.colorTheme": "One Monokai",
+    "editor.fontFamily": "Iosevka",
+    "editor.fontSize": 16,
+    "mono-debug.exceptionOptions": {
+        "System.Exception": "unhandled",
+        "System.SystemException": "unhandled",
+        "System.ArithmeticException": "unhandled",
+        "System.ArrayTypeMismatchException": "unhandled",
+        "System.DivideByZeroException": "unhandled",
+        "System.IndexOutOfRangeException": "unhandled",
+        "System.InvalidCastException": "unhandled",
+        "System.NullReferenceException": "unhandled",
+        "System.OutOfMemoryException": "unhandled",
+        "System.OverflowException": "unhandled",
+        "System.StackOverflowException": "unhandled",
+        "System.TypeInitializationException": "unhandled"
+    },
+    "omnisharp.useGlobalMono": "always",
+    "omnisharp.monoPath": "/opt/mono/bin/mono",
+    "[rust]": {
+        "editor.formatOnSave": true
+    },
+    "[verilog]": {
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.fontLigatures": "'liga' on, 'calt' off, 'VRLG' on",
+    },
+    "[systemverilog]": {
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.fontLigatures": "'liga' on, 'calt' off, 'VRLG' on",
+    },
+    "[dot]": {
+        "editor.insertSpaces": false,
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+    },
+    "[latex]": {
+        "editor.wordBasedSuggestions": false,
+    },
+    "editor.fontLigatures": true,
+    "files.eol": "\n",
+    "latex-workshop.message.update.show": false,
+    "editor.renderWhitespace": "trailing",
+    "latex-workshop.view.pdf.viewer": "tab",
+    "editor.minimap.enabled": false,
+    "debug.allowBreakpointsEverywhere": true,
+    "liveshare.connectionMode": "relay",
+    "liveshare.publishWorkspaceInfo": true,
+    "editor.rulers": [
+        80
+    ],
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+	// An array with color (hex, rgba, rgb) strings which are used as colors, can be any length.
+	"indentRainbow.colors": [
+		"rgba(255,255,64,0.17)",
+		"rgba(127,255,127,0.17)",
+		"rgba(255,127,255,0.17)",
+		"rgba(79,236,236,0.17)"
+    ],
+    "indentRainbow.excludedLanguages": [
+        "plaintext",
+        "markdown"
+    ],
+    "indentRainbow.colorOnWhiteSpaceOnly": true,
+    "auto-comment-blocks.singleLineBlockOnEnter": true,
+    "auto-comment-blocks.slashStyleBlocks": [
+        "rust"
+    ],
+    "vim.leader": ",",
+    "vim.normalModeKeyBindings": [
+        {
+            "before": ["K"],
+            "commands": [
+                "editor.action.showHover",
+            ],
+        },
+        {
+            "before": ["g", "r"],
+            "commands": [
+                "editor.action.goToReferences",
+            ],
+        },
+        {
+            "before": ["g", "D"],
+            "commands": [
+                "editor.action.goToImplementation",
+            ],
+        },
+        {
+            "before": ["g", "y"],
+            "commands": [
+                "editor.action.goToTypeDefinition",
+            ],
+        },
+        {
+            "before": ["<space>", "s"],
+            "commands": [
+                "workbench.action.showAllSymbols",
+            ],
+        },
+        {
+            "before": [";"],
+            "after": [":"],
+        },
+        {
+            "before": ["<leader>", "r", "n"],
+            "commands": [
+                "editor.action.rename",
+            ],
+        },
+        {
+            "before": ["<leader>", "a", "c"],
+            "commands": [
+                "editor.action.quickFix",
+            ],
+        }
+    ],
+    "vim.insertModeKeyBindings": [
+        {
+            "before": ["<C-j>"],
+            "commands": [
+                "jumpToNextSnippetPlaceholder"
+            ]
+        }
+    ],
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "terminal.integrated.fontWeight": "400",
+
+    "rust-analyzer.updates.channel": "nightly",
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "window.zoomLevel": 1,
+    // "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer"
+}
