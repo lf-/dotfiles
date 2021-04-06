@@ -24,13 +24,6 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'wesQ3/vim-windowswap'
 
-" rainbow indents
-if isdirectory(expand("$HOME/dev/vim-indent-guides"))
-  set runtimepath+=$HOME/dev/vim-indent-guides
-else
-  Plug 'lf-/vim-indent-guides'
-endif
-
 " File types
 Plug 'LnL7/vim-nix'
 Plug 'alx741/yesod.vim'
