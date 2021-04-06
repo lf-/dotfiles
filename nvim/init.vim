@@ -140,11 +140,6 @@ set guifont=Iosevka:h18
 " disable built in yesod maps
 let g:yesod_disable_maps = 1
 
-" ignore dist-newstyle and friends in ctrlp
-let g:ctrlp_custom_ignore = '\v[\/]dist-.*$'
-
-set wildignore+=*/target/*
-
 " disable folding in vim markdown
 let g:vim_markdown_folding_disabled = 1
 
@@ -186,9 +181,17 @@ set listchars=tab:\ \ ,trail:•
 "    au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
 " augroup END
 
-"" Mapping
+""""""""""""""""""""""""""""""""""""""
+" Mappings
+""""""""""""""""""""""""""""""""""""""
+
+let g:windowswap_map_keys = 0
+
 nnoremap ; :
-set pastetoggle=<F2>
+
+nnoremap <C-w>y <Cmd>call WindowSwap#MarkWindowSwap()<cr>
+nnoremap <C-w>d <Cmd>call DeleteWindow()<cr>
+nnoremap <C-w>p <Cmd>call WindowSwap#DoWindowSwap()<cr>
 
 " reflow a paragraph
 nnoremap g= mpgqap'p
@@ -199,6 +202,22 @@ noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
 nnoremap <Leader>t <esc>:vsp term://zsh<cr>
+
+function! DeleteWindow()
+  call WindowSwap#MarkWindowSwap()
+  hide
+endfunction
+
+"""""""" CtrlP
+" ignore dist-newstyle and friends in ctrlp
+let g:ctrlp_custom_ignore = {
+  \ 'dir': '\v[\/]dist-.*$',
+  \ 'file': '\v\.o$',
+\ }
+
+set wildignore+=*/target/*
+
+nnoremap <Leader><C-p> <esc>:CtrlPCurFile<cr>
 
 """""""""""""""""""""""""
 " Editing
@@ -236,6 +255,12 @@ set tabstop=4
 """"""""""""""""""""""""""""""""""""""
 " Highlight
 """"""""""""""""""""""""""""""""""""""
+
+
+if $TERM == 'alacritty' || $COLORTERM == 'truecolor'
+  set termguicolors
+endif
+
 syntax enable
 set background=dark
 colorscheme flattened_dark
@@ -250,6 +275,12 @@ highlight CocHintSign ctermfg=10 guifg=#586e75
 " the colours in them. It was not good.
 highlight CocFloating ctermbg=238 ctermfg=0
 
+" Make the highlight of inactive code and such much much less obtrusive
+if has('gui_running') || &termguicolors
+  let s:normal_bg = toupper(synIDattr(synIDtrans(hlID("Normal")), 'bg#'))
+  exe 'highlight CocHintHighlight guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.40)
+endif
+
 " By default the search highlight is very obvious and kinda ugly. we make it
 " quieter
 highlight Search cterm=reverse ctermfg=10 guifg=Black guibg=fg
@@ -261,10 +292,6 @@ function! s:syntax_query() abort
   endfor
 endfunction
 command! SyntaxQuery call s:syntax_query()
-
-if $TERM == 'alacritty' || $COLORTERM == 'truecolor'
-  set termguicolors
-endif
 
 """"""""""""""""""""""""""""""""""""""
 " COMPLETION
@@ -301,7 +328,7 @@ nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " Remap keys for gotos
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gD <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
 
 " Use K to show documentation in preview window
@@ -385,3 +412,4 @@ nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
 
 " remove highlights with space+h
 nnoremap <silent> <space>h  :<C-u>nohlsearch<CR>
+
