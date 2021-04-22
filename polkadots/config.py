@@ -33,11 +33,14 @@ def get_is_laptop():
 dotconfig = lambda n: (n, (Path('~/.config') / n))
 
 actions = [
+    MkdirAction('~/.config'),
     SymlinkAction('colors', '~/.colors'),
     SymlinkAction('prezto', '~/.zprezto'),
     SymlinkAction('icons', '~/.icons'),
     SymlinkAction('bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
+    MkdirAction('~/.config/fontconfig/conf.d'),
+    SymlinkAction('fontconfig/conf.d', '~/.config/fontconfig/conf.d', dir_mode=True),
     SymlinkAction('main', '~', dir_mode=True),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 ]
