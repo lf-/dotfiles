@@ -114,6 +114,18 @@
             ],
         },
         {
+            "before": ["]", "g"],
+            "commands": [
+                "editor.action.marker.next",
+            ],
+        },
+        {
+            "before": ["[", "g"],
+            "commands": [
+                "editor.action.marker.prev",
+            ],
+        },
+        {
             "before": ["<leader>", "a", "c"],
             "commands": [
                 "editor.action.quickFix",
@@ -133,10 +145,25 @@
     },
     "terminal.integrated.fontWeight": "400",
 
+    "rust-analyzer.diagnostics.disabled": [
+        //"incorrect-ident-case"
+    ],
     "rust-analyzer.updates.channel": "nightly",
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "window.zoomLevel": 1,
     // "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer"
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.code-search": true,
+        "**/target": true
+    },
+    "workbench.editorAssociations": [
+        {
+            "viewType": "jupyter.notebook.ipynb",
+            "filenamePattern": "*.ipynb"
+        }
+    ]
 }
