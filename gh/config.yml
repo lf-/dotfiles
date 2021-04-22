@@ -10,3 +10,4 @@ pager:
 aliases:
     co: pr checkout
     repoSearch: 'api -X GET search/repositories -f q=''$1'' --template ''{{range .items}}{{ .full_name | color "white" }}: {{ .description }}{{"\n"}}{{ end }}'''
+    fork: repo fork --remote-name lf-
