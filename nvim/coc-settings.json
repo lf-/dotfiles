@@ -4,6 +4,9 @@
   "hover.floatMaxHeight": 20,
   "signature.maxWindowHeight": 15,
   "list.maxPreviewHeight": 25,
+  "rust-analyzer.diagnostics.disabled": [
+    "incorrect-ident-case",
+  ],
   "rust-analyzer.server.extraEnv": {
     //"RA_LOG": "info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn"
   },
