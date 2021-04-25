@@ -1,0 +1,34 @@
+# Maintainer: kraxarn <me@kraxarn.com>
+
+pkgname=spotify-qt-git
+pkgver=v3.5.r441.gfb9b9541
+pkgrel=1
+pkgdesc="Lightweight Spotify client using Qt"
+arch=(x86_64)
+url="https://github.com/kraxarn/spotify-qt"
+license=("GPL3")
+conflicts=(spotify-qt)
+depends=(qt5-base qt5-svg hicolor-icon-theme)
+makedepends=(git cmake gcc make)
+optdepends=(
+	"librespot: Recommended playback client"
+	"spotifyd: Recommended playback client"
+)
+source=("git+${url}")
+sha256sums=("SKIP")
+
+build() {
+	cd "spotify-qt"
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr .
+	make $MAKEFLAGS
+}
+
+pkgver() {
+  cd "spotify-qt"
+  git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+package() {
+	cd "spotify-qt"
+	make DESTDIR="$pkgdir" install
+}
