@@ -7,6 +7,9 @@
   "rust-analyzer.diagnostics.disabled": [
     "incorrect-ident-case",
   ],
+  "list.normalMappings": {
+    "h": "action:split",
+  },
   "rust-analyzer.server.extraEnv": {
     //"RA_LOG": "info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn"
   },
