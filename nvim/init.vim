@@ -23,6 +23,8 @@ Plug 'romainl/flattened'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'wesQ3/vim-windowswap'
+Plug 'AndrewRadev/undoquit.vim'
+Plug 'MattesGroeger/vim-bookmarks'
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -173,6 +175,8 @@ set listchars=tab:\ \ ,trail:•
 "   au!
 "    au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
 " augroup END
+
+let g:bookmark_save_per_working_dir = 1
 
 """"""""""""""""""""""""""""""""""""""
 " Mappings
