@@ -152,7 +152,6 @@
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "window.zoomLevel": 1,
     // "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer"
     "search.exclude": {
         "**/node_modules": true,
@@ -165,5 +164,6 @@
             "viewType": "jupyter.notebook.ipynb",
             "filenamePattern": "*.ipynb"
         }
-    ]
+    ],
+    "editor.wordWrap": "on",
 }
