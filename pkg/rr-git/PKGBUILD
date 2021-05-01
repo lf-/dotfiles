@@ -2,36 +2,36 @@
 # Maintainer: dequis <dx@dxzone.com.ar>
 # Previous maintainer: Joel Teichroeb <joel@teichroeb.net>
 
-pkgname=rr
-pkgver=5.4.0
-pkgrel=6
+pkgname=rr-git
+pkgver=5.4.0.r155.g878f7569
+pkgrel=1
 pkgdesc='Record and Replay framework: lightweight recording and deterministic debugging'
 arch=(i686 x86_64)
 url='http://rr-project.org/'
 license=('custom')
 depends=('gdb' 'capnproto')
 makedepends=('git' 'cmake' 'gdb' 'ninja')
+conflicts=('rr')
 options=(!strip)
 
 source=(
-	$pkgname-$pkgver.tar.gz::https://github.com/rr-debugger/${pkgname}/archive/${pkgver}.tar.gz
-	rr-2726.diff::https://patch-diff.githubusercontent.com/raw/rr-debugger/rr/pull/2726.diff
+	"${pkgname}::git+https://github.com/rr-debugger/rr"
+    "zen_workaround.service"
 )
-sha1sums=('b4716dd10b01ae4b8d35ae08f4f67fc46f0693d9'
-          '80abae19e4486df97e922dcc7a906b96a1e00bc3')
+sha256sums=('SKIP'
+            '0ecbb03794d55fdd1759bed5bcc1d5ba490ca02cd7906eb22438596eb38942d7')
 
 prepare() {
-	cd $pkgname-$pkgver
-	patch -Np1 -i $srcdir/rr-2726.diff
+	cd "${pkgname}"
 	mkdir -p build
 }
 
 build() {
-	cd $pkgname-$pkgver/build
+	cd "${pkgname}/build"
 	cmake \
 		-GNinja \
 		-Ddisable32bit=true \
-		-DCMAKE_BUILD_TYPE=plain \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
 		-DBUILD_TESTS=OFF \
 		-DWILL_RUN_TESTS=OFF \
@@ -42,12 +42,16 @@ build() {
 	cmake --build .	 -- -v
 }
 
+pkgver() {
+    cd "${pkgname}"
+    git describe --long --tags | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
 package() {
-	cd $pkgname-$pkgver/build
+	cd "${pkgname}"/build
 	DESTDIR="${pkgdir}" cmake --build . -- -v install
-	if check_option 'debug' n; then
-		find "${pkgdir}/usr/bin" -type f -executable -exec strip $STRIP_BINARIES {} + || :
-	fi
 	cd ..
 	install -D LICENSE "${pkgdir}/usr/share/licenses/rr/LICENSE"
+    install -Dm644 ../zen_workaround.service "${pkgdir}/usr/lib/systemd/system/zen_workaround.service"
+    install -Dm755 scripts/zen_workaround.py "${pkgdir}/usr/share/zen_workaround/zen_workaround.py"
 }
