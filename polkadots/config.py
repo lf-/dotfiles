@@ -39,11 +39,18 @@ actions = [
     SymlinkAction('icons', '~/.icons'),
     SymlinkAction('bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
+
     MkdirAction('~/.config/fontconfig/conf.d'),
     SymlinkAction('fontconfig/conf.d', '~/.config/fontconfig/conf.d', dir_mode=True),
+
     SymlinkAction('main', '~', dir_mode=True),
+
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
+
+    MkdirAction('~/.ipython/profile_default'),
+    SymlinkAction('ipython/ipython_config.py', '~/.ipython/profile_default/ipython_config.py'),
+    SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
 ]
 
 dotconfigs = [
