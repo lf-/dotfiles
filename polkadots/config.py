@@ -9,7 +9,7 @@ def get_is_laptop():
     # XXX: this is mildly cursed
     try:
         randr_output = subprocess.check_output('xrandr').decode()
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         logging.warning('xrandr was not available or failed. defaulting to '
                         'desktop alacritty config')
         randr_output = ''
@@ -42,6 +42,7 @@ actions = [
     MkdirAction('~/.config/fontconfig/conf.d'),
     SymlinkAction('fontconfig/conf.d', '~/.config/fontconfig/conf.d', dir_mode=True),
     SymlinkAction('main', '~', dir_mode=True),
+    MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 ]
 
