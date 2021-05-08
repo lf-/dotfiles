@@ -102,6 +102,7 @@ version = "0.1.0"
 dependencies = [
  "dirs",
  "lazy_static",
+ "owo-colors",
  "regex",
  "rusqlite",
  "tui",
@@ -140,6 +141,12 @@ name = "numtoa"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8f8bdf33df195859076e54ab11ee78a1b208382d3a26ec40d142ffc1ecc49ef"
+
+[[package]]
+name = "owo-colors"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2fe43bf372b08cc9ccee5144715db59c79ab00168bbe4cf0d274dc0d5f64d7f"
 
 [[package]]
 name = "pkg-config"

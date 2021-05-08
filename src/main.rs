@@ -5,6 +5,7 @@ use std::{
 };
 
 use lazy_static::lazy_static;
+use owo_colors::OwoColorize;
 
 use rusqlite::params;
 use rusqlite::Transaction;
@@ -54,6 +55,9 @@ fn connect(p: &Path) -> rusqlite::Connection {
     )
     .unwrap();
 
+    conn.execute("create index if not exists whomst on messages (whomst)", [])
+        .unwrap();
+
     add_regexp_function(&conn).unwrap();
 
     conn
@@ -94,6 +98,7 @@ impl Session {
                     params![record.date, record.whomst, record.level, record.message],
                 )
                 .unwrap();
+            println!("{}", record.format());
         }
 
         trans.commit().unwrap();
@@ -114,6 +119,16 @@ impl LogRecord {
             level: matches.get(3)?.as_str().to_string(),
             message: matches.get(4)?.as_str().to_string(),
         })
+    }
+
+    fn format(&self) -> String {
+        format!(
+            "{} {} {}: {}",
+            self.date.white(),
+            self.whomst.white(),
+            self.level.green(),
+            self.message
+        )
     }
 }
 
@@ -137,6 +152,14 @@ fn main() {
         if v == 0 {
             println!("done");
             break;
+        }
+
+        loop {
+            let buf = f.fill_buf().unwrap();
+            if (buf[0] as char).is_ascii_uppercase() {
+                break;
+            }
+            f.read_line(&mut s).unwrap();
         }
 
         let rec = LogRecord::parse(&s);
