@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eo pipefail
+# raises a window to the foreground by child pid
+
+if [[ "$1" =~ '^[0-9]+$' ]] ; then
+    echo "$1: not a pid" >&2
+    exit 1
+fi
+
+pid=$1
+
+ppid() {
+    echo "ppid $1" >&2
+    ps -p $1 -o ppid= | xargs
+}
+
+haswindow() {
+    xdotool search --pid $1
+}
+
+while [[ $pid != 1 ]]; do
+    if haswindow $pid; then
+        exec xdo activate -p $pid
+    fi
+    pid=$(ppid $pid)
+done
