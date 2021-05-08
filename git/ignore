@@ -7,3 +7,4 @@ a.vim
 *.cml
 *.cmi
 *.o
+.vim-bookmarks
