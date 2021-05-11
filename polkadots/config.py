@@ -49,6 +49,7 @@ actions = [
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
     SymlinkAction('docs-svc/docs.service', '~/.config/systemd/user/docs.service'),
+    SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
 
     MkdirAction('~/.ipython/profile_default'),
     SymlinkAction('ipython/ipython_config.py', '~/.ipython/profile_default/ipython_config.py'),
