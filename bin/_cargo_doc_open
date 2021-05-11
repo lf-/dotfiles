@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# a "browser" that symlinks a directory into the docs root and invokes the
+# actual browser
+
+import os
+import textwrap
+import sys
+from pathlib import Path
+
+LINK_DIR = Path.home() / '.docs/d'
+LINK_DIR.mkdir(parents=True, exist_ok=True)
+
+def url_for(lname: str) -> str:
+    return 'http://localhost:10000/d/' + lname
+
+p_abs = Path(sys.argv[1])
+assert p_abs.is_absolute()
+
+for parent in p_abs.parents:
+    if parent.name == 'doc' and parent.parent.name == 'target':
+        prefix = parent
+        break
+else:
+    raise ValueError('should have seen the target/doc prefix but did not')
+
+p = prefix.parent.parent
+
+# p is relative and may have ..s in it that we would like to kill
+link_name = LINK_DIR / p.name
+i = -1
+
+def make_link_path(ln: Path, num: int) -> Path:
+    if num != -1:
+        return ln.with_name(ln.name + '__' + str(num))
+    else:
+        return ln
+
+while (lp := make_link_path(link_name, i)).exists() and os.readlink(lp) != str(prefix):
+    print(f'{lp} exists but was not ours')
+    i += 1
+
+with open(prefix / 'index.html', 'w') as index:
+    index.write(textwrap.dedent("""
+    <html>
+        <head>
+            <title>Redirect...</title>
+            <meta http-equiv="refresh" content="0;{name}">
+        </head>
+        <body>
+        </body>
+    </html>
+    """.format(name=p_abs.relative_to(p_abs.parent.parent))))
+
+try:
+    os.symlink(prefix, lp)
+except FileExistsError:
+    # don't care if the file exists here, if it does, the link is already there
+    # with the right target
+    pass
+
+browser = os.environ.get('BROWSER', 'firefox')
+
+print(url_for(lp.name))
+
+os.execl(browser, browser, url_for(lp.name))
