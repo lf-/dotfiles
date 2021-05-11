@@ -166,4 +166,6 @@
         }
     ],
     "editor.wordWrap": "on",
+    "editor.autoClosingQuotes": "never",
+    "editor.autoClosingBrackets": "never",
 }
