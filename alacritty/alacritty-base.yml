@@ -504,7 +504,7 @@ key_bindings:
   - { key: F8,       mods: Super,   chars: "\x1b[19;3~"                      }
   - { key: F9,       mods: Super,   chars: "\x1b[20;3~"                      }
   - { key: F10,      mods: Super,   chars: "\x1b[21;3~"                      }
-  - { key: F11,      mods: Super,   chars: "\x1b[23;3~"                      }
+  - { key: F11,      mods: Super,   action: ToggleFullscreen                 }
   - { key: F12,      mods: Super,   chars: "\x1b[24;3~"                      }
   - { key: NumpadEnter,             chars: "\n"                              }
 
