@@ -1,0 +1,16 @@
+[Unit]
+Description=Hosts developer documentation at localhost:10000
+# it is really shit that we can't set these to be relative and so i have
+# homedir paths hardcoded :(
+AssertPathExists=/home/jade/.dotfiles/docs-svc
+AssertPathExists=/home/jade/.docs
+
+[Service]
+Type=forking
+ExecStartPre=/usr/bin/mkdir -p /tmp/jade/nginx;
+ExecStart=/usr/bin/nginx -p .dotfiles/docs-svc -c nginx.conf
+WorkingDirectory=~
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

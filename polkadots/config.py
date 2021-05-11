@@ -48,6 +48,8 @@ actions = [
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
+    SymlinkAction('docs-svc/docs.service', '~/.config/systemd/user/docs.service'),
+
     MkdirAction('~/.ipython/profile_default'),
     SymlinkAction('ipython/ipython_config.py', '~/.ipython/profile_default/ipython_config.py'),
     SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
