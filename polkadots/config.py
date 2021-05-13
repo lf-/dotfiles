@@ -36,7 +36,6 @@ actions = [
     MkdirAction('~/.config'),
     SymlinkAction('colors', '~/.colors'),
     SymlinkAction('prezto', '~/.zprezto'),
-    SymlinkAction('icons', '~/.icons'),
     SymlinkAction('bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
 
