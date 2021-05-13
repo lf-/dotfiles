@@ -51,6 +51,7 @@ actions = [
     SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
 
     MkdirAction('~/.ipython/profile_default'),
+    MkdirAction('~/.docs'),
     SymlinkAction('ipython/ipython_config.py', '~/.ipython/profile_default/ipython_config.py'),
     SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
 ]
