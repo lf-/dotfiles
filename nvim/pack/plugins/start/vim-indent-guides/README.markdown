@@ -1,4 +1,11 @@
+## Local modifications
+
+This indent-guides has been hacked, not in the most compatible way, to provide
+rainbow indents. It probably doesn't work acceptably without
+`set termguicolors`. No warranty, etc. Enjoy 💜
+
 # Indent Guides
+
 Indent Guides is a plugin for visually displaying indent levels in Vim.
 
 <img src="http://i.imgur.com/ONgoj.png" width="448" height="448" alt="" />
