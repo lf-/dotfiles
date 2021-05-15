@@ -20,11 +20,13 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 " UI
 Plug 'gcmt/taboo.vim'
 Plug 'romainl/flattened'
+Plug 'NLKNguyen/papercolor-theme'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'wesQ3/vim-windowswap'
 Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
+Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -253,6 +255,19 @@ set tabstop=4
 " Highlight
 """"""""""""""""""""""""""""""""""""""
 
+lua <<EOF
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+  -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
+  highlight = {
+    enable = true,              -- false will disable the whole extension
+  },
+  indent = {
+    enable = true,
+    disable = { "rust" },  -- list of language that will be disabled
+  },
+}
+EOF
 
 if $TERM == 'alacritty' || $COLORTERM == 'truecolor'
   set termguicolors
@@ -268,14 +283,13 @@ highlight Normal guisp=fg
 " code
 highlight CocHintSign ctermfg=10 guifg=#586e75
 
-" By default, highlight windows were using the Pmenu highlight that inverted
-" the colours in them. It was not good.
-highlight CocFloating ctermbg=238 ctermfg=0
-
 " Make the highlight of inactive code and such much much less obtrusive
 if has('gui_running') || &termguicolors
   let s:normal_bg = toupper(synIDattr(synIDtrans(hlID("Normal")), 'bg#'))
   exe 'highlight CocHintHighlight guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.40)
+
+  " also make the floating window background have contrast with the normal background
+  exe 'highlight CocFloating guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.30)
 endif
 
 " By default the search highlight is very obvious and kinda ugly. we make it
@@ -294,7 +308,7 @@ command! SyntaxQuery call s:syntax_query()
 " COMPLETION
 """"""""""""""""""""""""""""""""""""""
 
-let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-python', 'coc-json']
+let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-json', 'coc-pyright']
 
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
@@ -406,7 +420,10 @@ nnoremap <silent> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list
 nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
+nmap <silent> <space>l  <Plug>(coc-codelens-action)
 
 " remove highlights with space+h
 nnoremap <silent> <space>h  :<C-u>nohlsearch<CR>
+
+nnoremap <silent> <space>b  <Cmd>CtrlPBuffer<CR>
 
