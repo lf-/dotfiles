@@ -1,0 +1,5 @@
+#!/bin/sh
+# this is a hack wrapper for pyright to grab the python from $PATH. this is
+# terrible.
+echo "$@" >> /tmp/fuckme
+python "$@"
