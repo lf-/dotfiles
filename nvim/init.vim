@@ -263,8 +263,9 @@ require'nvim-treesitter.configs'.setup {
     enable = true,              -- false will disable the whole extension
   },
   indent = {
-    enable = true,
-    disable = { "rust" },  -- list of language that will be disabled
+    enable = false, -- it's not good enough. worse than default in python,
+                    -- rust, cpp
+    disable = { "rust", "cpp" },
   },
 }
 EOF
