@@ -1,8 +1,17 @@
+[advice]
+	detachedHead = false
 [alias]
 	s = status
 	d = diff --staged
 	rs = restore --staged
 	git = !git
+[core]
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	features = side-by-side line-numbers decorations
 [user]
 	name = Jade
 	email = software@lfcode.ca
