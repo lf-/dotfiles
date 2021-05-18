@@ -1,0 +1,4 @@
+DEPLOY_HOST=abyss
+DEPLOY_DIR=/usr/share/nginx/html/docs
+
+EXTRA_OPTS="--exclude=/d --exclude=/trawler --safe-links ${HOME}/.dotfiles/docs-svc/.style"

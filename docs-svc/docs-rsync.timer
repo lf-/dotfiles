@@ -1,0 +1,5 @@
+[Timer]
+OnCalendar=daily
+
+[Install]
+WantedBy=default.target

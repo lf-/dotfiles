@@ -47,7 +47,8 @@ actions = [
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
-    SymlinkAction('docs-svc/docs.service', '~/.config/systemd/user/docs.service'),
+    SymlinkAction('docs-svc/*.service', '~/.config/systemd/user'),
+    SymlinkAction('docs-svc/*.timer', '~/.config/systemd/user'),
     SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
 
     MkdirAction('~/.ipython/profile_default'),
