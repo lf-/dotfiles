@@ -37,11 +37,12 @@
   },
   "prettier.tabWidth": 4,
   "codeLens.enable": true,
-  "python.pythonPath": "~/bin/_pyright_python",
+  "python.pythonPath": "/home/jade/bin/_pyright_python",
   "coc.preferences.rootPatterns": [
     ".python-root",
     ".git",
     ".hg",
     ".projections.json",
   ],
+  "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
 }
