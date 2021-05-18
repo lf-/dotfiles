@@ -1,0 +1,8 @@
+[Unit]
+Description=rsync dev docs onto abyss
+
+[Service]
+Type=simple
+ExecStart=%h/.dotfiles/docs-svc/deploy.sh
+WorkingDirectory=%h/.dotfiles/docs-svc
+

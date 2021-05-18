@@ -1,0 +1,53 @@
+body {
+    font-family: "sans-serif";
+    font-size: 1.2em;
+}
+
+.container {
+    margin: auto;
+    max-width: 70ch;
+}
+
+code {
+    font-size: 1.2rem;
+}
+
+table {
+    border-spacing: 0;
+    border-style: hidden;
+    border-collapse: collapse;
+}
+
+tr td {
+    padding: 0.5em;
+}
+
+tr td,
+thead th {
+    border-left: 2px solid #864e90;
+}
+
+body {
+    background-color: #540362;
+    color: #ddd;
+}
+
+a {
+    color: #f778e3;
+    text-decoration: none;
+}
+
+.date {
+    text-align: justify;
+    text-justify: inter-word;
+    text-align-last: justify;
+}
+
+tr:nth-child(even) {
+    background-color: #69077b;
+}
+
+tr:nth-child(odd) {
+    background-color: #4c0359;
+}
+
