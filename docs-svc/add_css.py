@@ -33,23 +33,39 @@ ul li {
 }
 """
 
+
+def has_content_type(soup: BeautifulSoup) -> bool:
+    metas = soup.head.find_all("meta")
+    return any(
+        (k.lower() == "http-equiv" and v.lower() == "content-type")
+        or k.lower() == "charset"
+        for k, v in metas[0].attrs.items()
+    )
+
+
 def apply(f: Path) -> str:
-    with f.open('r') as fh:
+    with f.open("r") as fh:
         fc = fh.read()
-    soup = BeautifulSoup(fc, features='lxml')
-    if norm := soup.select_one('head > #normalizeCss'):
+    soup = BeautifulSoup(fc, features="lxml")
+    if norm := soup.select_one("head > #normalizeCss"):
         norm.string = CSS
     else:
-        tag = soup.new_tag('style')
-        tag.attrs['id'] = 'normalizeCss'
+        tag = soup.new_tag("style")
+        tag.attrs["id"] = "normalizeCss"
         tag.string = CSS
         soup.head.append(tag)
+
+    if not has_content_type(soup):
+        tag = soup.new_tag("meta")
+        tag.attrs["charset"] = "utf-8"
+        soup.head.insert(0, tag)
     return str(soup)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     for fpath in sys.argv[1:]:
-        print('Process', fpath)
+        print("Process", fpath)
         souped = apply(Path(fpath))
-        with open(fpath, 'w') as fh:
+        with open(fpath, "w") as fh:
             fh.write(souped)
-        print('Done', fpath)
+        print("Done", fpath)

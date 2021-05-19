@@ -1,7 +1,7 @@
 # Maintainer: kraxarn <me@kraxarn.com>
 
 pkgname=spotify-qt-git
-pkgver=v3.5.r441.gfb9b9541
+pkgver=v3.6.r151.g678c408d
 pkgrel=1
 pkgdesc="Lightweight Spotify client using Qt"
 arch=(x86_64)
