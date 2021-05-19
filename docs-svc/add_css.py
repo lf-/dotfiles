@@ -37,9 +37,12 @@ ul li {
 def has_content_type(soup: BeautifulSoup) -> bool:
     metas = soup.head.find_all("meta")
     return any(
-        (k.lower() == "http-equiv" and v.lower() == "content-type")
-        or k.lower() == "charset"
-        for k, v in metas[0].attrs.items()
+        any(
+            (k.lower() == "http-equiv" and v.lower() == "content-type")
+            or k.lower() == "charset"
+            for k, v in meta.attrs.items()
+        )
+        for meta in metas
     )
 
 
