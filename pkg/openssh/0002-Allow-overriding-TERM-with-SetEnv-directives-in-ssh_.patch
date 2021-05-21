@@ -1,0 +1,101 @@
+From 2f705ae88ef788e18e0479de3bf7c1904fc8dc7a Mon Sep 17 00:00:00 2001
+From: lf- <lf-@users.noreply.github.com>
+Date: Tue, 19 Jan 2021 19:01:11 -0800
+Subject: [PATCH] Allow overriding TERM with SetEnv directives in ssh_config
+
+This removes the necessity to change profile files that are potentially
+immutable or unsupported while using terminals that are not in the remote
+server's termcap.
+---
+ mux.c        |  2 +-
+ readconf.c   | 16 ++++++++++++++++
+ readconf.h   |  2 ++
+ ssh.c        |  2 +-
+ ssh_config.5 |  7 +++++++
+ 5 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/mux.c b/mux.c
+index d0f066a7..6d852872 100644
+--- a/mux.c
++++ b/mux.c
+@@ -1896,7 +1896,7 @@ mux_client_request_session(int fd)
+ 	if (stdin_null_flag && stdfd_devnull(1, 0, 0) == -1)
+ 		fatal_f("stdfd_devnull failed");
+ 
+-	if ((term = getenv("TERM")) == NULL)
++	if ((term = get_term(&options)) == NULL)
+ 		term = "";
+ 	echar = 0xffffffff;
+ 	if (options.escape_char != SSH_ESCAPECHAR_NONE)
+diff --git a/readconf.c b/readconf.c
+index 37f92e25..0817a26e 100644
+--- a/readconf.c
++++ b/readconf.c
+@@ -508,6 +508,22 @@ default_ssh_port(void)
+ 	return port;
+ }
+ 
++/*
++ * Gets the value of the TERM environment variable as set in the options,
++ * defaulting to using that of the calling environment.
++ */
++const char *
++get_term(const Options *options) {
++    const char *term = NULL;
++    for (int idx = 0; idx < options->num_setenv; idx++) {
++        if (!strncmp("TERM=", options->setenv[idx], 5)) {
++            // skip the =
++            term = options->setenv[idx] + 5;
++        }
++    }
++    return term ? term : getenv("TERM");
++}
++
+ /*
+  * Execute a command in a shell.
+  * Return its exit status or -1 on abnormal exit.
+diff --git a/readconf.h b/readconf.h
+index 85ea2e11..b19d5390 100644
+--- a/readconf.h
++++ b/readconf.h
+@@ -226,4 +226,6 @@ void	 add_remote_forward(Options *, const struct Forward *);
+ void	 add_identity_file(Options *, const char *, const char *, int);
+ void	 add_certificate_file(Options *, const char *, int);
+ 
++const char *get_term(const Options *options);
++
+ #endif				/* READCONF_H */
+diff --git a/ssh.c b/ssh.c
+index 06598c7e..d84b5d60 100644
+--- a/ssh.c
++++ b/ssh.c
+@@ -2000,7 +2000,7 @@ ssh_session2_setup(struct ssh *ssh, int id, int success, void *arg)
+ 	ssh_packet_set_interactive(ssh, interactive,
+ 	    options.ip_qos_interactive, options.ip_qos_bulk);
+ 
+-	client_session2_setup(ssh, id, tty_flag, subsystem_flag, getenv("TERM"),
++	client_session2_setup(ssh, id, tty_flag, subsystem_flag, get_term(&options),
+ 	    NULL, fileno(stdin), command, environ);
+ }
+ 
+diff --git a/ssh_config.5 b/ssh_config.5
+index 8c70962b..d48f8dbc 100644
+--- a/ssh_config.5
++++ b/ssh_config.5
+@@ -1559,6 +1559,13 @@ Note that the
+ .Ev TERM
+ environment variable is always sent whenever a
+ pseudo-terminal is requested as it is required by the protocol.
++The value of
++.Ev TERM
++sent to the server can be overridden using the
++.Cm SetEnv
++directive, replacing the value found in the environment of
++.Xr ssh 1
++with the value specified.
+ Refer to
+ .Cm AcceptEnv
+ in
+-- 
+2.30.1
+
