@@ -24,14 +24,16 @@ source=("https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/${pkgname}-${pkgve
         'sshd.service'
         'sshd.conf'
         'sshd.pam'
-        'glibc-2.31.patch')
-sha256sums=('c3e6e4da1621762c850d03b47eed1e48dff4cc9608ddeb547202a234df8ed7ae'
+        'glibc-2.31.patch'
+        '0002-Allow-overriding-TERM-with-SetEnv-directives-in-ssh_.patch')
+sha256sums=('5a01d22e407eb1c05ba8a8f7c654d388a13e9f226e4ed33bd38748dafa1d2b24'
             'SKIP'
             '4031577db6416fcbaacf8a26a024ecd3939e5c10fe6a86ee3f0eea5093d533b7'
             'e40f8b7c8e5e2ecf3084b3511a6c36d5b5c9f9e61f2bb13e3726c71dc7d4fbc7'
             '4effac1186cc62617f44385415103021f72f674f8b8e26447fc1139c670090f6'
             '64576021515c0a98b0aaf0a0ae02e0f5ebe8ee525b1e647ab68f369f81ecd846'
-            '25b4a4d9e2d9d3289ef30636a30e85fa1c71dd930d5efd712cca1a01a5019f93')
+            '25b4a4d9e2d9d3289ef30636a30e85fa1c71dd930d5efd712cca1a01a5019f93'
+            'SKIP')
 
 backup=('etc/ssh/ssh_config' 'etc/ssh/sshd_config' 'etc/pam.d/sshd')
 
@@ -41,6 +43,8 @@ prepare() {
 	cd "${srcdir}/${pkgname}-${pkgver}"
 
 	patch -p1 -i ../glibc-2.31.patch
+
+    patch -p1 -i ../0002-Allow-overriding-TERM-with-SetEnv-directives-in-ssh_.patch
 
 	autoreconf
 }
