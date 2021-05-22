@@ -11,7 +11,7 @@
 	diffFilter = delta --color-only
 
 [delta]
-	features = side-by-side line-numbers decorations
+	features = line-numbers decorations
 [user]
 	name = Jade
 	email = software@lfcode.ca
