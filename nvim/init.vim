@@ -201,6 +201,8 @@ noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
 nnoremap <Leader>t <esc>:vsp term://zsh<cr>
+nnoremap <Leader>vr <Cmd>:sp ~/.config/nvim/init.vim<cr>
+nnoremap <Leader>op <Cmd>:sp output:///rust-analyzer<cr>
 
 function! DeleteWindow()
   call WindowSwap#MarkWindowSwap()
