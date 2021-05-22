@@ -47,6 +47,8 @@ actions = [
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
+    MkdirAction('~/.config/systemd/user'),
+    MkdirAction('~/.cargo'),
     SymlinkAction('docs-svc/*.service', '~/.config/systemd/user'),
     SymlinkAction('docs-svc/*.timer', '~/.config/systemd/user'),
     SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
@@ -55,6 +57,8 @@ actions = [
     MkdirAction('~/.docs'),
     SymlinkAction('ipython/ipython_config.py', '~/.ipython/profile_default/ipython_config.py'),
     SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
+
+    MkdirAction('~/.config/alacritty'),
 ]
 
 dotconfigs = [
@@ -65,7 +69,6 @@ dotconfigs = [
     'bspwm',
     'qemu-box',
     'rofi',
-    'alacritty',
     'git',
     'gh',
 ]
@@ -77,9 +80,10 @@ alacritty_config = 'alacritty-laptop.yml' \
 for dc in dotconfigs:
     actions.append(SymlinkAction(*dotconfig(dc)))
 
-alacritty = Path('~/.config/alacritty')
+alacritty = Path('~/.dotfiles/alacritty')
+dc_alacritty = Path('~/.config/alacritty')
 actions.append(CatAction(
-    alacritty / 'alacritty.yml',
+    dc_alacritty / 'alacritty.yml',
     alacritty / 'alacritty-base.yml',
     alacritty / alacritty_config
 ))
