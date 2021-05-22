@@ -6,4 +6,4 @@
 	url = https://github.com/eendroroy/alacritty-theme
 [submodule "xcompose"]
 	path = xcompose
-	url = git@github.com:kragen/xcompose
+	url = https://github.com/kragen/xcompose
