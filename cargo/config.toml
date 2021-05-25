@@ -1,2 +1,2 @@
-[cargo-doc]
+[doc]
 browser = "_cargo_doc_open"

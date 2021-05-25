@@ -87,3 +87,15 @@ actions.append(CatAction(
     alacritty / 'alacritty-base.yml',
     alacritty / alacritty_config
 ))
+
+firebox = Path('~/.mozilla/firefox').expanduser()
+PROFILE_RE = re.compile(R"^\w+\.default(-release)?$")
+if firebox.is_dir():
+    for dir in firebox.iterdir():
+        if PROFILE_RE.match(dir.name):
+            actions.append(SymlinkAction(
+                'mozzarella-firebox',
+                dir,
+                dir_mode=True
+            ))
+
