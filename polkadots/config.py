@@ -42,6 +42,8 @@ actions = [
     MkdirAction('~/.config/fontconfig/conf.d'),
     SymlinkAction('fontconfig/conf.d', '~/.config/fontconfig/conf.d', dir_mode=True),
 
+    SymlinkAction('kde-color-schemes', '~/.local/share/color-schemes'),
+
     SymlinkAction('main', '~', dir_mode=True),
 
     MkdirAction('~/.config/Code/User'),
