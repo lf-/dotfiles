@@ -51,3 +51,22 @@ def bswap16(v):
 def bswap32(v):
     return (bswap16(v & 0xffff) << 16) | bswap16((v & 0xffff_0000) >> 16)
 
+def bina(i):
+    fmt = lambda n: format(n, '08b')
+    groups = []
+    groups.append(fmt(i & 0xff))
+    i = i >> 8
+    while i != 0:
+        groups.append(fmt(i & 0xff))
+        i = i >> 8
+    return '0b' + '_'.join(groups[::-1])
+
+def hexa(i):
+    fmt = lambda n: format(n, '04x')
+    groups = []
+    groups.append(fmt(i & 0xffff))
+    i = i >> 16
+    while i != 0:
+        groups.append(fmt(i & 0xffff))
+        i = i >> 16
+    return '0x' + '_'.join(groups[::-1])
