@@ -31,6 +31,40 @@ a:visited {
 ul li {
     margin: 0.2em 0;
 }
+
+@media(prefers-color-scheme: dark) {
+    html {
+        background-color: #181818 !important;
+    }
+    html,
+    body,
+    input,
+    textarea,
+    select,
+    button {
+        background-color: #181818;
+    }
+    html,
+    body,
+    input,
+    textarea,
+    select,
+    button {
+        border-color: #736b5e;
+        color: #e8e6e3;
+    }
+
+    a {
+        color: #2196F3;
+    }
+    a:visited {
+        color: rgb(159, 78, 226);
+    }
+
+    table {
+        border-color: #545b5e;
+    }
+}
 """
 
 
