@@ -6,36 +6,75 @@ import sys
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+import bs4
 
 CSS = """
+:root {
+    --page-bg: #eaeaea;
+    --subtle-highlight: #e2e2e2;
+    --link-visited: #761fbe;
+    --link: #117e6f;
+}
+
 body {
     /* local (automatic) addition: make the gnu docs have usable css */
     max-width: 70ch;
     margin: auto;
+    padding: 7px;
+    overflow-x: auto;
+
+    background-color: var(--page-bg);
 }
+
+p {
+    hyphens: auto;
+}
+
+div.example {
+    /* default is 3.2em which is shit on mobile and generally just too much */
+    margin-left: 1em !important;
+}
+
+code {
+    word-wrap: break-word;
+}
+
+pre, .table-wrapper {
+    overflow-x: auto;
+}
+
 html {
     font-size: 1.2em;
 }
 
 code, pre {
     font-size: 1.0rem;
+    background-color: var(--subtle-highlight);
+    border-radius: 0.3em;
 }
 
 a {
+    word-wrap: break-word;
     text-decoration: none;
-    color: #117e6f;
+    color: var(--link);
 }
+
 a:visited {
-    color: #761fbe;
+    color: var(--link-visited);
 }
+
 ul li {
     margin: 0.2em 0;
 }
 
 @media(prefers-color-scheme: dark) {
-    html {
-        background-color: #181818 !important;
+    :root {
+        --page-bg: #181818;
+        --subtle-highlight: #242424;
+        --link-visited: rgb(159, 78, 226);
+        --link: #2196f3;
     }
+
     html,
     body,
     input,
@@ -54,13 +93,6 @@ ul li {
         color: #e8e6e3;
     }
 
-    a {
-        color: #2196F3;
-    }
-    a:visited {
-        color: rgb(159, 78, 226);
-    }
-
     table {
         border-color: #545b5e;
     }
@@ -68,8 +100,7 @@ ul li {
 """
 
 
-def has_content_type(soup: BeautifulSoup) -> bool:
-    metas = soup.head.find_all("meta")
+def has_content_type(metas) -> bool:
     return any(
         any(
             (k.lower() == "http-equiv" and v.lower() == "content-type")
@@ -80,10 +111,23 @@ def has_content_type(soup: BeautifulSoup) -> bool:
     )
 
 
+def has_meta_viewport(metas) -> bool:
+    return any(m.attrs.get("name") == "viewport" for m in metas)
+
+
 def apply(f: Path) -> str:
     with f.open("r") as fh:
         fc = fh.read()
     soup = BeautifulSoup(fc, features="lxml")
+
+    # yes i know i'm deleting the license notice, which is *reproduced in the
+    # text*
+    # it was causing mozzarella firebox to reparse the page for no reason by
+    # being really long
+    for child in soup.html.children:
+        if isinstance(child, bs4.Comment):
+            child.extract()
+
     if norm := soup.select_one("head > #normalizeCss"):
         norm.string = CSS
     else:
@@ -92,10 +136,28 @@ def apply(f: Path) -> str:
         tag.string = CSS
         soup.head.append(tag)
 
-    if not has_content_type(soup):
+    metas = soup.head.find_all("meta")
+    if not has_content_type(metas):
         tag = soup.new_tag("meta")
         tag.attrs["charset"] = "utf-8"
         soup.head.insert(0, tag)
+
+    if not has_meta_viewport(metas):
+        tag = soup.new_tag("meta")
+        tag.attrs["name"] = "viewport"
+        tag.attrs["content"] = "width=device-width, initial-scale=1"
+        soup.head.insert(-1, tag)
+
+    # if any direct descendent tables aren't wrapped, wrap them in a container
+    # to stop overflows
+    for tbl in soup.body.find_all('table'):
+        tbl: bs4.PageElement
+        if 'table-wrapper' in tbl.parent.get('class', []):
+            continue
+        wrapper = soup.new_tag('div')
+        wrapper.attrs['class'] = 'table-wrapper'
+        tbl.wrap(wrapper)
+
     return str(soup)
 
 
