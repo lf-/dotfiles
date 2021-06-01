@@ -5,6 +5,9 @@
 	d = diff --staged
 	rs = restore --staged
 	git = !git
+	pukk = pull
+	r = restore
+
 [core]
 	pager = delta
 [interactive]
@@ -25,3 +28,8 @@
 	enabled = true
 [cola]
 	spellcheck = false
+
+[url "git@github.com:"]
+    pushInsteadOf = git://github.com/
+    pushInsteadOf = https://github.com/
+
