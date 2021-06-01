@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [[ -n "$PWAYGWOUMD_DIR" ]]; then
+    rm -rf "$PWAYGWOUMD_DIR"
+fi

@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# A local rust playground~like thing
+
+import tempfile
+import os
+import subprocess
+from pathlib import Path
+from datetime import datetime, timedelta
+
+import dbus
+
+DELETE_TIME = timedelta(days=7)
+
+
+def get_delete_time() -> str:
+    """gets the time a day from now"""
+    t = datetime.now() + DELETE_TIME
+    return t.strftime("%Y-%m-%d %H:%M:%S")
+
+
+bus = dbus.SessionBus()
+sd = bus.get_object("org.freedesktop.systemd1", "/org/freedesktop/systemd1")
+man = dbus.Interface(sd, "org.freedesktop.systemd1.Manager")
+
+
+def make_delete_timer(unit_name: str, tempdir: Path) -> str:
+    DESC = "Delete playground directory"
+
+    deltime = get_delete_time()
+
+    man.StartTransientUnit(
+        f"{unit_name}.timer",
+        "fail",
+        [
+            ("Description", DESC),
+            ("TimersCalendar", [("OnCalendar", deltime)]),
+            ("RemainAfterElapse", False),
+        ],
+        [
+            (
+                f"{unit_name}.service",
+                [
+                    ("Description", DESC),
+                    ('Type', 'simple'),
+                    ("ExecStart", [("rm", ["rm", "-rf", str(tempdir)], False)]),
+                ],
+            )
+        ],
+    )
+
+    return deltime
+
+
+PWAYGWOUMD = Path("~/.dotfiles/pwaygwoumd").expanduser()
+
+
+def get_editor() -> str:
+    ed = os.environ.get("VISUAL") or os.environ.get("EDITOR")
+    if not ed:
+        raise ValueError("no EDITOR or VISUAL")
+    return ed
+
+
+def main():
+    editor = get_editor()
+    tmpdir = Path(tempfile.mkdtemp(prefix="play-"))
+
+    unit_name = f"delete-{tmpdir.name}"
+
+    os.chdir(tmpdir)
+    subprocess.run(["cargo", "init", "--vcs=none", str(tmpdir)]).check_returncode()
+
+    os.environ["PATH"] += f":{PWAYGWOUMD}/bin"
+    os.environ.update({"PWAYGWOUMD_DIR": str(tmpdir), "PWAYGWOUMD_UNITSTEM": unit_name})
+    subprocess.run([editor, "src/main.rs"])
+
+    if tmpdir.exists():
+        delete_time = make_delete_timer(unit_name, tmpdir)
+        print(
+            f"{tmpdir} will be wiped at {delete_time}, run \n    systemctl --user stop {unit_name}.{{timer,service}}\nto cancel"
+        )
+
+
+if __name__ == "__main__":
+    main()
