@@ -226,6 +226,8 @@ nnoremap <Leader><C-p> <esc>:CtrlPCurFile<cr>
 
 augroup termfix
   " scrolloff causes annoying flashing in terminals
+  " NOTE: if you are looking for the scrolloff bug, it's this. scrolloff is
+  " *window local*
   autocmd TermOpen * setlocal scrolloff=0
 augroup END
 
