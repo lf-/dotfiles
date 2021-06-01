@@ -199,7 +199,7 @@ nnoremap g= mpgqap'p
 let mapleader=","
 noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
-map <Leader>bi <esc>:source ~/.config/nvim/init.vim<cr>:PlugInstall<cr>
+map <Leader>iv <esc>:source ~/.config/nvim/init.vim<cr>
 nnoremap <Leader>t <esc>:vsp term://zsh<cr>
 nnoremap <Leader>vr <Cmd>:sp ~/.config/nvim/init.vim<cr>
 nnoremap <Leader>op <Cmd>:sp output:///rust-analyzer<cr>
@@ -342,8 +342,15 @@ nmap <silent> ]g <Plug>(coc-diagnostic-next)
 " Remap keys for gotos
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gY <Plug>(coc-declaration)
 nmap <silent> gD <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+" open the given thing in a split
+nmap <silent> <leader>gd <Cmd>call CocActionAsync('jumpDefinition', 'sp')<cr>
+nmap <silent> <leader>gy <Cmd>call CocActionAsync('jumpTypeDefinition', 'sp')<cr>
+nmap <silent> <leader>gY <Cmd>call CocActionAsync('jumpDeclaration', 'sp')<cr>
+nmap <silent> <leader>gD <Cmd>call CocActionAsync('jumpImplementation', 'sp')<cr>
+nmap <silent> <leader>gr <Cmd>call CocActionAsync('jumpReferences', 'sp')<cr>
 
 " Use K to show documentation in preview window
 nnoremap <silent> K :call <SID>show_documentation()<CR>
