@@ -4,6 +4,7 @@
 	s = status
 	d = diff --staged
 	rs = restore --staged
+    ap = add -pu
 	git = !git
 	pukk = pull
 	r = restore
