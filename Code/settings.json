@@ -152,7 +152,7 @@
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    // "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer"
+    // "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,
@@ -168,4 +168,7 @@
     "editor.wordWrap": "on",
     "editor.autoClosingQuotes": "never",
     "editor.autoClosingBrackets": "never",
+    "rust-analyzer.server.extraEnv": {
+        "RA_LOG": "info,salsa=info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn"
+    },
 }
