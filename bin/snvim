@@ -1,0 +1,56 @@
+#!/usr/bin/python
+# switch nvim
+from pathlib import Path
+import os
+import json
+import argparse
+import subprocess
+from typing import Optional
+
+SWAPDIR = Path("~/.local/share/nvim/swap").expanduser()
+
+
+def swapfile_path(p: Path) -> Path:
+    p = p.resolve(strict=True)
+    return SWAPDIR / str(p.with_name(p.name + ".swp")).replace("/", "%")
+
+
+def get_pid_for_file(p: Path) -> Optional[int]:
+    swap_path = swapfile_path(p)
+    if not swap_path.exists():
+        return None
+    rv = subprocess.run(["vim-swapfile-header", str(swap_path)], capture_output=True)
+    rv.check_returncode()
+    data = json.loads(rv.stdout)
+    return data["pid"]
+
+
+def has_running_instance(pid: int) -> bool:
+    return (Path("/proc") / str(pid)).exists()
+
+
+def main():
+    ap = argparse.ArgumentParser(
+        "snvim", description="switches to a nvim if present or opens a new one here"
+    )
+
+    ap.add_argument("fname", help="file name")
+    args = ap.parse_args()
+
+    fname = args.fname
+    pid = get_pid_for_file(Path(fname))
+    if pid and has_running_instance(pid):
+        print("raising", pid)
+        os.execlp("raisepid", 'raisepid', str(pid))
+    else:
+        print("exec nvim")
+        visual = os.environ["VISUAL"]
+        if visual == 'nvimsplit':
+            # hack: nvimsplit should be run in detach mode
+            os.execlp(visual, visual, '-d', fname)
+        else:
+            os.execlp(visual, visual, fname)
+
+
+if __name__ == "__main__":
+    main()

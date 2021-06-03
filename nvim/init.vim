@@ -201,8 +201,12 @@ noremap <M-n> <esc>:tabn<cr>
 noremap <M-p> <esc>:tabp<cr>
 map <Leader>iv <esc>:source ~/.config/nvim/init.vim<cr>
 nnoremap <Leader>t <esc>:vsp term://zsh<cr>
-nnoremap <Leader>vr <Cmd>:sp ~/.config/nvim/init.vim<cr>
+nnoremap <Leader>oiv <Cmd>:call OpenVimrc()<cr>
 nnoremap <Leader>op <Cmd>:sp output:///rust-analyzer<cr>
+
+function! OpenVimrc()
+  ! snvim ~/.config/nvim/init.vim
+endfunction
 
 function! DeleteWindow()
   call WindowSwap#MarkWindowSwap()
@@ -251,6 +255,11 @@ augroup spacing
   autocmd FileType yesod setlocal sw=4 sts=4 ts=4 et ai
   autocmd FileType vim setlocal sw=2 sts=2 ts=2 et ai
   autocmd FileType json setlocal sw=2 sts=2 ts=2 et ai
+augroup END
+
+set title
+augroup titling
+  autocmd BufEnter * let &titlestring = 'nvim: ' . fnamemodify(getcwd(), ':t') . ' - ' . expand('%:t')
 augroup END
 
 set tabstop=4
