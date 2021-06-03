@@ -18,11 +18,11 @@ struct Args {
     #[clap(long, short = 'd')]
     detach: bool,
 
-    /// open in a :tabedit; default
+    /// open in a :tabedit
     #[clap(long, short = 't', conflicts_with_all = &["split", "vsplit"])]
     tab: bool,
 
-    /// open in a :split
+    /// open in a :split; default
     #[clap(long, short = 's')]
     split: bool,
 
@@ -56,7 +56,7 @@ impl Mode {
             (true, _, _) => Mode::Tab,
             (_, true, _) => Mode::VSplit,
             (_, _, true) => Mode::Split,
-            (_, _, _) => Mode::Tab,
+            (_, _, _) => Mode::Split,
         }
     }
 
