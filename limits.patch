@@ -1,0 +1,46 @@
+From 4f6f160473a9eba13876f079ea23f6cfe3263854 Mon Sep 17 00:00:00 2001
+From: Jade <software@lfcode.ca>
+Date: Sat, 12 Jun 2021 01:54:17 -0700
+Subject: [PATCH] Fix missing includes of <limits>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Example compile error from gcc-11.1.0 on archlinux:
+/home/jade/builds/brlcad/src/brlcad/src/libged/brep/brep.cpp: In function ‘int _brep_cmd_plate_mode(void*, int, const char*
+*)’:
+/home/jade/builds/brlcad/src/brlcad/src/libged/brep/brep.cpp:810:48: error: ‘numeric_limits’ is not a member of ‘std’
+  810 |     ss << std::fixed << std::setprecision(std::numeric_limits<double>::max_digits10) << pthicknessmm;
+      |                                                ^~~~~~~~~~~~~~
+---
+ src/libbg/earcut.hpp     | 1 +
+ src/libged/brep/brep.cpp | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/libbg/earcut.hpp b/src/libbg/earcut.hpp
+index 19c9d11430..9d78d679ff 100644
+--- a/src/libbg/earcut.hpp
++++ b/src/libbg/earcut.hpp
+@@ -24,6 +24,7 @@
+ #include <algorithm>
+ #include <cassert>
+ #include <cmath>
++#include <limits>
+ #include <memory>
+ #include <vector>
+ 
+diff --git a/src/libged/brep/brep.cpp b/src/libged/brep/brep.cpp
+index 4f0ec5c0e6..7b71a5a6aa 100644
+--- a/src/libged/brep/brep.cpp
++++ b/src/libged/brep/brep.cpp
+@@ -32,6 +32,7 @@
+ #include <fstream>
+ #include <iomanip>
+ #include <iostream>
++#include <limits>
+ #include <list>
+ #include <map>
+ #include <queue>
+-- 
+2.32.0
+

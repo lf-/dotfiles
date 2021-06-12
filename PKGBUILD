@@ -1,38 +1,49 @@
-pkgname=brlcad
-pkgver=7.32.2
-pkgrel=0
+pkgname=brlcad-git
+pkgver=rel.7.24.0.r21774.gf91ea585c1
+pkgrel=1
 pkgdesc='An extensive 3D solid modeling system.'
 url='https://brlcad.org'
 license=('LGPL' 'BSD' 'custom:BDL')
 arch=('i686' 'x86_64')
 depends=('libgl' 'libxft' 'libxi')
 makedepends=('cmake' 'ninja')
+conflicts=('brlcad')
 install="${pkgname}.install"
 source=(
     'build.patch'
-    "https://github.com/BRL-CAD/${pkgname}/archive/refs/tags/rel-${pkgver//./-}.tar.gz")
+    'limits.patch'
+    'git+https://github.com/BRL-CAD/brlcad')
 sha256sums=(
-    'SKIP'
-    'd025b51bf85e944fc599bce6615b82b01b1f7932adbb6d139b4b2a0056922534')
+    'c32da1414f7e3a3489bfd7023c521cb8d0abd35421a0157f62634c824604a320'
+    '32159ad23830fce85724806937cf5dd7c0d58d9c4d09deeeeb70d1673b4dc205'
+    'SKIP')
 
 
 _build_config='Release'
 _pkgprefix="/opt/${pkgname}"
 
+pkgver() {
+    cd "brlcad"
+    git describe --long | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
 prepare() {
     patch \
         --quiet \
         --strip=0 \
-        "--directory=${srcdir}/${pkgname}-rel-${pkgver//./-}" \
+        "--directory=${srcdir}/brlcad" \
         "--input=${srcdir}/build.patch"
+    patch \
+        -p1 \
+        "--directory=${srcdir}/brlcad" \
+        "--input=${srcdir}/limits.patch"
 }
 
 
 build() {
     cmake \
         -G Ninja \
-        -S "${srcdir}/${pkgname}-rel-${pkgver//./-}" \
+        -S "${srcdir}/brlcad" \
         -B "${srcdir}/build" \
         -Wno-dev \
         "-DCMAKE_INSTALL_PREFIX=${_pkgprefix}" \
