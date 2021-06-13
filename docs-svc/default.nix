@@ -135,6 +135,7 @@ rec {
   allDocs = pkgs.stdenv.mkDerivation {
     name = "all-gnu-docs";
     phases = [ "buildPhase" ];
+
     buildCommand = ''
       mkdir -p $out
       for inp in $buildInputs ; do
@@ -145,12 +146,14 @@ rec {
 
       parallel -j $NIX_BUILD_CORES python3 ${./add_css.py} ::: $out/*.html
     '';
+
     nativeBuildInputs = [
       pkgs.python3Packages.beautifulsoup4
       pkgs.python3Packages.lxml
       pkgs.python3
       pkgs.parallel
     ];
+
     buildInputs = [
       gcc
       ed
