@@ -76,3 +76,6 @@ ln -s ~+/wallpaper_orig.png ~+/wallpaper.png
 ln -s ~+/wallpaper_4-3.png ~+/wallpaper.png
 ```
 
+### Guides
+
+* [tpm/ssh](https://jade.fyi/blog/tpm-ssh/)
