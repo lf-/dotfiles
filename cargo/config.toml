@@ -1,2 +1,5 @@
 [doc]
 browser = "_cargo_doc_open"
+
+[alias]
+br = "build --release"
