@@ -64,7 +64,7 @@ build() {
 
     echo \
         "export PATH=\"\$PATH:${_pkgprefix}/bin\"" \
-        >"${srcdir}/build/${pkgname}.sh"
+        >"${srcdir}/build/brlcad.sh"
 }
 
 
@@ -84,5 +84,5 @@ package() {
         -D \
         --mode=u=rw,go=r \
         "--target-directory=${pkgdir}/etc/profile.d" \
-        "${srcdir}/build/${pkgname}.sh"
+        "${srcdir}/build/brlcad.sh"
 }
