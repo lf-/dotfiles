@@ -4,10 +4,11 @@
 	s = status
 	d = diff --staged
 	rs = restore --staged
-    ap = add -pu
+	ap = add -pu
 	git = !git
 	pukk = pull
 	r = restore
+	tlog = log --graph --oneline --all
 
 [core]
 	pager = delta
@@ -30,7 +31,11 @@
 [cola]
 	spellcheck = false
 
+# git clone -j4 by default
+[submodule]
+	fetchJobs = 4
+
 [url "git@github.com:"]
-    pushInsteadOf = git://github.com/
-    pushInsteadOf = https://github.com/
+	pushInsteadOf = git://github.com/
+	pushInsteadOf = https://github.com/
 
