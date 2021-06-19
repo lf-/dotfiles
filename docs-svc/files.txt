@@ -1,0 +1,4 @@
+d/rust-analyzer
+gnu
+gnudocs.tar.gz
+man

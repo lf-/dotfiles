@@ -14,6 +14,11 @@ fi
 
 source .deploy_config
 
-tar -C "${HOME}/.docs" -czvf "${HOME}/.docs/gnudocs.tar.gz" gnu/
+# tar -C "${HOME}/.docs" -czvf "${HOME}/.docs/gnudocs.tar.gz" gnu/
 # trailing slash: copy contents of directory into destination
-rsync --verbose --human-readable --recursive --links --times --new-compress --delete-delay ${EXTRA_OPTS} "${HOME}/.docs/" "${DEPLOY_HOST}:${DEPLOY_DIR}"
+DEFAULT_OPTS="--protect-args --verbose --human-readable --recursive --times \
+    --new-compress"
+rsync ${DEFAULT_OPTS} ${EXTRA_OPTS_MAIN} "${HOME}/.docs/" \
+    "${DEPLOY_HOST}:${DEPLOY_DIR}"
+rsync ${DEFAULT_OPTS} ${HOME}/.dotfiles/docs-svc/.style \
+    "${DEPLOY_HOST}:${DEPLOY_DIR}"
