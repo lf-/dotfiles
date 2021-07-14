@@ -1,0 +1,18 @@
+#!/bin/bash
+# Writes a gif from the given input mp4, with some blanking at the very end
+
+input="$1"
+output="${input%.*}.gif"
+
+ffmpeg -loglevel warning -i "$input" \
+        -vf "fps=15,scale=w='min(1000, iw)':h=-1:flags=lanczos" -c:v pam \
+        -f image2pipe - \
+    | magick \
+        -delay 1x15 \
+        - \
+        -set option:dims '%wx%h!' \
+        -delay 170 \
+        '(' 'xc:#000000' -resize '%[dims]' ')' \
+        -loop 0 \
+        -layers optimize \
+        "$output"
