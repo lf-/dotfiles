@@ -1,0 +1,7 @@
+{
+    "name": "Custom Chrome Devtools Theme",
+    "version": "1.0.0",
+    "description": "A customized theme for Chrome Devtools.",
+    "devtools_page": "devtools.html",
+    "manifest_version": 2
+}
