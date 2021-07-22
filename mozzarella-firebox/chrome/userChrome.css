@@ -2,6 +2,11 @@
 
 #tabbrowser-tabs .tabbrowser-tab .tab-close-button {display:none!important}
 
+/* this shits broken, in this selector that makes the tab-bar bigger which
+ * needs this rule applied to it:
+ * #tabbrowser-arrowscrollbox::part(scrollbutton-up), #tabbrowser-arrowscrollbox::part(scrollbutton-down)
+ * but it is not possible to fix because they are using some shadow root thing
+ */
 .tab-background {
     border-radius: initial !important;
     margin-block: initial !important;
