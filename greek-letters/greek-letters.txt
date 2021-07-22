@@ -81,3 +81,6 @@
 ᵪ greek subscript small letter chi
 ℩ turned greek small letter iota
 ꭥ greek letter small capital omega
+⊥ logic up tack/bottom/falsum/false
+⊤ logic down tack/tee/top/true/verum
+□ proof qed
