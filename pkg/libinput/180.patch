@@ -1,0 +1,57 @@
+From 5dae7aac3850f37088eaf71e07472d0b8e70922f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Henr=C3=A9=20Botha?= <henrebotha@gmail.com>
+Date: Mon, 18 Feb 2019 15:04:53 +0000
+Subject: [PATCH] Reduce button scroll timeout to 38ms
+
+When using button scrolling, a hardcoded delay of 200 milliseconds between
+button down and scroll events being emitted makes fast scrolling gestures feel
+clunky and sometimes fail entirely. This feature comes from
+xf86-input-mouse, was copied into xf86-input-evdev and reimplemented in
+libinput.
+
+This was, as far as can be determined, to allow right clicks without
+triggering scrolling. libinput now also has distance triggers (2bbf4a0117624)
+and sends button events if no movement has happened for long clicks,
+regardless of the delay.
+
+The 200ms delay is thus not really necessary anymore, let's drop it to 38ms
+which is just above the 3-event threshold for 8/10/12ms intervals which is
+most devices.
+
+Fixes #237
+
+Signed-off-by: Peter Hutterer <peter.hutterer@who-t.net>
+---
+ src/evdev.c   | 2 +-
+ test/litest.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/evdev.c b/src/evdev.c
+index 11e750e8..d54fd467 100644
+--- a/src/evdev.c
++++ b/src/evdev.c
+@@ -50,7 +50,7 @@
+ #endif
+ 
+ #define DEFAULT_WHEEL_CLICK_ANGLE 15
+-#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(200)
++#define DEFAULT_BUTTON_SCROLL_TIMEOUT ms2us(38)
+ 
+ enum evdev_device_udev_tags {
+         EVDEV_UDEV_TAG_INPUT		= bit(0),
+diff --git a/test/litest.c b/test/litest.c
+index 046c7f10..8ac49258 100644
+--- a/test/litest.c
++++ b/test/litest.c
+@@ -3570,7 +3570,7 @@ litest_timeout_softbuttons(void)
+ void
+ litest_timeout_buttonscroll(void)
+ {
+-	msleep(300);
++	msleep(45);
+ }
+ 
+ void
+-- 
+GitLab
+
