@@ -156,7 +156,10 @@ fn main() {
 
         loop {
             let buf = f.fill_buf().unwrap();
-            if (buf[0] as char).is_ascii_uppercase() {
+            // this crime stolen from idevicesyslog source; it's obviously basically lazily parsing
+            // the line
+            if buf.get(3) == Some(&b' ') && buf.get(6) == Some(&b' ') && buf.get(15) == Some(&b' ')
+            {
                 break;
             }
             f.read_line(&mut s).unwrap();
