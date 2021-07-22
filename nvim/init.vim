@@ -9,6 +9,8 @@ Plug 'tpope/vim-surround'
 Plug 'wellle/targets.vim'
 Plug 'godlygeek/tabular'
 
+Plug 'jbyuki/instant.nvim'
+
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-eunuch'
@@ -28,15 +30,21 @@ Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
+" github link for the selected text
+Plug 'knsh14/vim-github-link'
+
 " File types
 Plug 'LnL7/vim-nix'
 Plug 'alx741/yesod.vim'
 Plug 'ekalinin/Dockerfile.vim'
 Plug 'plasticboy/vim-markdown'
+Plug 'qnighy/lalrpop.vim'
 
 " All of your Plugs must be added before the following line
 call plug#end()
 filetype plugin indent on
+
+let g:instant_username = 'jade'
 
 if $COC_DEBUG == '1'
   let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register')]
@@ -140,6 +148,10 @@ let g:yesod_disable_maps = 1
 " disable folding in vim markdown
 let g:vim_markdown_folding_disabled = 1
 
+" attempt a perf improvement? see
+" https://github.com/vim-airline/vim-airline/issues/1026
+let g:airline_highlighting_cache = 1
+
 " our fonts support powerline symbols
 let g:airline_powerline_fonts = 1
 
@@ -203,6 +215,7 @@ map <Leader>iv <esc>:source ~/.config/nvim/init.vim<cr>
 nnoremap <Leader>t <esc>:vsp term://zsh<cr>
 nnoremap <Leader>oiv <Cmd>:call OpenVimrc()<cr>
 nnoremap <Leader>op <Cmd>:sp output:///rust-analyzer<cr>
+nnoremap <Leader>oh <Cmd>:sp output:///languageserver.haskell<cr>
 
 function! OpenVimrc()
   ! snvim ~/.config/nvim/init.vim
@@ -233,6 +246,22 @@ augroup termfix
   " NOTE: if you are looking for the scrolloff bug, it's this. scrolloff is
   " *window local*
   autocmd TermOpen * setlocal scrolloff=0
+
+  " check file modification on exiting terminal
+  autocmd TermLeave * checktime
+augroup END
+
+function! SetFormatOptions()
+  if &ft =~ 'gitcommit'
+    return
+  endif
+  setlocal formatoptions=roqnlj
+endfunction
+
+" The default is to set formatoptions to automatically wrap comments
+augroup formatoptions
+  autocmd!
+  autocmd FileType * call SetFormatOptions()
 augroup END
 
 augroup highlightingfix
@@ -273,7 +302,9 @@ require'nvim-treesitter.configs'.setup {
   ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
   -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
   highlight = {
-    enable = true,              -- false will disable the whole extension
+    enable = true,
+    disable = { "python" }, -- breaks if handled by anything but the delicate
+                            -- touch of a lesbian
   },
   indent = {
     enable = false, -- it's not good enough. worse than default in python,
@@ -296,6 +327,9 @@ highlight Normal guisp=fg
 " make rust-analyzer ChainingHints a different colour than the rest of the
 " code
 highlight CocHintSign ctermfg=10 guifg=#586e75
+
+" likewise on code lenses
+highlight! link CocCodeLens CocHintSign
 
 " Make the highlight of inactive code and such much much less obtrusive
 if has('gui_running') || &termguicolors

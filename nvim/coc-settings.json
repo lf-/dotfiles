@@ -46,4 +46,9 @@
     ".projections.json",
   ],
   "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
+  "rust-analyzer.experimental.procAttrMacros": true,
+  "rust-analyzer.cargo.unsetTest": [
+    "ed25519-dalek",
+    "core",
+  ],
 }
