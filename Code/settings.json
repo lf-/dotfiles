@@ -158,12 +158,9 @@
         "**/*.code-search": true,
         "**/target": true
     },
-    "workbench.editorAssociations": [
-        {
-            "viewType": "jupyter.notebook.ipynb",
-            "filenamePattern": "*.ipynb"
-        }
-    ],
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter.notebook.ipynb"
+    },
     "editor.wordWrap": "on",
     "editor.autoClosingQuotes": "never",
     "editor.autoClosingBrackets": "never",
@@ -171,5 +168,7 @@
         "RA_LOG": "info,salsa=info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,ide=debug"
     },
     "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
+    "window.zoomLevel": 1,
+    "security.workspace.trust.untrustedFiles": "open",
     // "rust-analyzer.trace.server": "verbose"
 }
