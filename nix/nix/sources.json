@@ -1,26 +1,38 @@
 {
-    "niv": {
+    "nixops": {
         "branch": "master",
-        "description": "Easy dependency management for Nix projects",
-        "homepage": "https://github.com/nmattia/niv",
-        "owner": "nmattia",
-        "repo": "niv",
-        "rev": "af958e8057f345ee1aca714c1247ef3ba1c15f5e",
-        "sha256": "1qjavxabbrsh73yck5dcq8jggvh3r2jkbr6b5nlz5d9yrqm9255n",
+        "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
+        "homepage": "https://nixos.org/nixops",
+        "owner": "nixos",
+        "repo": "nixops",
+        "rev": "45256745cef246dabe1ae8a7d109988f190cd7ef",
+        "sha256": "0ni1v8ppg5cf35gq7nzd50kajxzp5zkbzhf022in0fgbjcprlzr2",
         "type": "tarball",
-        "url": "https://github.com/nmattia/niv/archive/af958e8057f345ee1aca714c1247ef3ba1c15f5e.tar.gz",
+        "url": "https://github.com/nixos/nixops/archive/45256745cef246dabe1ae8a7d109988f190cd7ef.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixops-digitalocean": {
+        "branch": "no-kitchen-sink",
+        "description": "NixOps Digitalocean plugin [maintainer=@Kiwi] ",
+        "homepage": "",
+        "owner": "Kiwi",
+        "repo": "nixops-digitalocean",
+        "rev": "8fe2f274d9b14c6e90c02645d20e12f7f911e0e5",
+        "sha256": "1l0wfq4wj6wcc8dpxa424zh1x8acmbw1k3wnb27a87ghfbanpbic",
+        "type": "tarball",
+        "url": "https://github.com/Kiwi/nixops-digitalocean/archive/8fe2f274d9b14c6e90c02645d20e12f7f911e0e5.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs": {
-        "branch": "nixos-20.09",
+        "branch": "nixos-unstable",
         "description": "Nix Packages collection",
         "homepage": "",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "60b18a066e8ce5dd21ebff5324345d3586a67ad9",
-        "sha256": "1cr7r16vb4nxifykhak8awspdpr775kafrl7p6asgwicsng7giya",
+        "rev": "16105403bdd843540cbef9c63fc0f16c1c6eaa70",
+        "sha256": "0sl6hsxlh14kcs38jcra908nvi5hd8p8hlim3lbra55lz0kd9rcl",
         "type": "tarball",
-        "url": "https://github.com/nixos/nixpkgs/archive/60b18a066e8ce5dd21ebff5324345d3586a67ad9.tar.gz",
+        "url": "https://github.com/nixos/nixpkgs/archive/16105403bdd843540cbef9c63fc0f16c1c6eaa70.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "polkadots": {
@@ -29,10 +41,10 @@
         "homepage": "",
         "owner": "lf-",
         "repo": "polkadots",
-        "rev": "1a98c8430302d7b941ce7f0a3fb4fe797fa15b53",
-        "sha256": "0akv8m98ih7m7d6hpilpakm6rjbfz84gdirl5kk1r4swzkhag0i9",
+        "rev": "cbda8e517807b296f772d93e5045fd7d406e6fad",
+        "sha256": "1m55bmpzf1w6yifgfj6aq5w0v88hjd7sh64azkkc0dj2gbyy1gd5",
         "type": "tarball",
-        "url": "https://github.com/lf-/polkadots/archive/1a98c8430302d7b941ce7f0a3fb4fe797fa15b53.tar.gz",
+        "url": "https://github.com/lf-/polkadots/archive/cbda8e517807b296f772d93e5045fd7d406e6fad.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }

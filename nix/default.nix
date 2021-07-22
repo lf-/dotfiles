@@ -4,9 +4,11 @@
 
 { config, pkgs, ... }:
 let sources = import ./nix/sources.nix;
-in {
+in
+{
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       /etc/nixos/hardware-configuration.nix
     ];
 
@@ -24,12 +26,12 @@ in {
   nix.nixPath = [ "nixos-config=/home/jade/.dotfiles/nix" "nixpkgs=${sources.nixpkgs}" ];
 
   nixpkgs.overlays = [
-    (import ./polkadots.nix { inherit (sources) polkadots; })
-    (import ./patches.nix { })
+    (import ./overlays/polkadots.nix { inherit (sources) polkadots; })
+    (import ./overlays/patches.nix { })
   ];
 
   security.sudo.extraRules = pkgs.lib.mkAfter [
-    { groups = [ "wheel" ]; commands = [ { command = "ALL"; options = [ "NOPASSWD" ]; } ]; }
+    { groups = [ "wheel" ]; commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }]; }
   ];
 
   users.users.jade = {
@@ -37,13 +39,9 @@ in {
     extraGroups = [ "wheel" ];
   };
 
-  environment.systemPackages = let
-    base = with pkgs; [
-      neovim
-      git
-      polkadots
-      nodejs
-    ];
+  environment.systemPackages =
+    let
+      inherit (import ./packages.nix { inherit pkgs; }) base;
     in
     builtins.concatLists [ base ];
 
@@ -66,5 +64,3 @@ in {
   system.stateVersion = "20.09"; # Did you read the comment?
 
 }
-
-
