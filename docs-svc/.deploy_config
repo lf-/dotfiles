@@ -1,5 +1,4 @@
 DEPLOY_HOST=abyss
 DEPLOY_DIR=/usr/share/nginx/html/docs
 
- #${HOME}/.dotfiles/docs-svc/.style
 EXTRA_OPTS_MAIN="--filter=protect,_.style --files-from=./files.txt --links --copy-unsafe-links --delete-delay"
