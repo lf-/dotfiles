@@ -8,3 +8,4 @@ a.vim
 *.cmi
 *.o
 .vim-bookmarks
+tags

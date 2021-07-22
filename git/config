@@ -22,6 +22,10 @@
 	email = software@lfcode.ca
 [pull]
 	ff = only
+
+[push]
+	default = current
+
 [merge]
 	conflictStyle = diff3
 [init]
@@ -30,6 +34,10 @@
 	enabled = true
 [cola]
 	spellcheck = false
+
+# rebase --autosquash by default
+[rebase]
+	autoSquash = true
 
 # git clone -j4 by default
 [submodule]
