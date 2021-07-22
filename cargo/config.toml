@@ -3,3 +3,5 @@ browser = "_cargo_doc_open"
 
 [alias]
 br = "build --release"
+do = "doc --workspace --document-private-items --open"
+d = "doc --workspace --document-private-items"
