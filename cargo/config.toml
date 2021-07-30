@@ -1,6 +1,11 @@
 [doc]
 browser = "_cargo_doc_open"
 
+[target.x86_64-unknown-linux-gnu]
+# gcc's driver has crap support for -fuse-ld
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=/home/jade/dev/mold/mold"]
+
 [alias]
 br = "build --release"
 do = "doc --workspace --document-private-items --open"

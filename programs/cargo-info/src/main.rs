@@ -4,19 +4,18 @@ extern crate chrono;
 extern crate chrono_humanize;
 #[macro_use]
 extern crate failure;
-extern crate json;
 extern crate pager;
-extern crate requests;
 
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use pager::Pager;
-use requests::{Request, Response, ToJson};
+use reqwest::blocking::{ClientBuilder, Response};
 use std::fmt;
 
-mod crates;
-mod errors;
+use crate::crates::CratesResp;
 
-const CARGO: &str = "cargo";
+mod crates;
+
+const CARGO: &str = "cargo-info";
 
 #[derive(Debug, PartialEq)]
 enum Flag {
@@ -71,13 +70,13 @@ impl Report {
         }
     }
 
-    pub fn report(&self, name: &str) -> Result<String, errors::Error> {
-        let response = try!(query(name));
+    pub fn report(&self, name: &str) -> reqwest::Result<String> {
+        let response = query(name)?;
         let mut output = String::new();
 
         if self.json {
-            output = output + &self.report_json(&response);
-        } else if let Some(krate) = get_crate(&response) {
+            output = output + &self.report_json(response);
+        } else if let Some(krate) = Some(response.json::<CratesResp>().unwrap()) {
             if self.versions > 0 {
                 output = output + &self.report_versions(&krate, self.versions);
             } else if self.keywords {
@@ -89,33 +88,30 @@ impl Report {
         Ok(output)
     }
 
-    pub fn report_json(&self, response: &Response) -> String {
+    pub fn report_json(&self, response: Response) -> String {
         let mut output = String::new();
-        if self.verbose {
-            if let Ok(json) = response.json() {
-                output = output + &format!("{:#}", json);
-            }
-        } else if let Some(json) = response.text() {
-            output += json;
+        if let Ok(json) = response.text() {
+            output += &json;
         }
         output
     }
 
-    pub fn report_crate(&self, krate: &crates::Crate) -> String {
+    pub fn report_crate(&self, krate: &crates::CratesResp) -> String {
         let mut output = String::new();
         for flag in &self.flags {
-            output = output + &match *flag {
-                Flag::Repository => krate.print_repository(self.verbose),
-                Flag::Documentation => krate.print_documentation(self.verbose),
-                Flag::Downloads => krate.print_downloads(self.verbose),
-                Flag::Homepage => krate.print_homepage(self.verbose),
-                Flag::Default => reportv(krate, self.verbose),
-            }
+            output = output
+                + &match *flag {
+                    Flag::Repository => krate.print_repository(self.verbose),
+                    Flag::Documentation => krate.print_documentation(self.verbose),
+                    Flag::Downloads => krate.print_downloads(self.verbose),
+                    Flag::Homepage => krate.print_homepage(self.verbose),
+                    Flag::Default => reportv(krate, self.verbose),
+                }
         }
         output
     }
 
-    pub fn report_versions(&self, krate: &crates::Crate, limit: usize) -> String {
+    pub fn report_versions(&self, krate: &crates::CratesResp, limit: usize) -> String {
         if limit > 0 {
             krate.print_last_versions(limit, self.verbose)
         } else {
@@ -123,12 +119,12 @@ impl Report {
         }
     }
 
-    pub fn report_keywords(&self, krate: &crates::Crate) -> String {
+    pub fn report_keywords(&self, krate: &crates::CratesResp) -> String {
         krate.print_keywords(self.verbose)
     }
 }
 
-fn reportv(krate: &crates::Crate, verbose: bool) -> String {
+fn reportv(krate: &crates::CratesResp, verbose: bool) -> String {
     if verbose {
         format!("{:#}", krate)
     } else {
@@ -136,12 +132,13 @@ fn reportv(krate: &crates::Crate, verbose: bool) -> String {
     }
 }
 
-fn query(krate: &str) -> requests::Result {
-    Request::json().get(&format!("https://crates.io/api/v1/crates/{}", krate))
-}
+static UA: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
-fn get_crate(response: &Response) -> Option<crates::Crate> {
-    response.json().ok().map(|k| crates::Crate::new(&k))
+fn query(krate: &str) -> reqwest::Result<Response> {
+    let client = ClientBuilder::new().user_agent(UA).build()?;
+    client
+        .get(&format!("https://crates.io/api/v1/crates/{}", krate))
+        .send()
 }
 
 // fn debug<T>(item: &T)
@@ -150,7 +147,7 @@ fn get_crate(response: &Response) -> Option<crates::Crate> {
 //     println!("{:#?}", item);
 // }
 
-fn print_report<T>(r: Result<T, errors::Error>)
+fn print_report<T>(r: reqwest::Result<T>)
 where
     T: fmt::Display,
 {
@@ -165,7 +162,6 @@ fn main() {
 
     let matches = App::new(CARGO)
         .bin_name(CARGO)
-        .author(crate_authors!())
         .version(crate_version!())
         .about("Query crates.io registry for crates details")
         .setting(AppSettings::GlobalVersion)

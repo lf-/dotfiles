@@ -1,29 +1,23 @@
 [package]
-authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
 categories = ["development-tools::cargo-plugins"]
 description = "Extends cargo to query crates.io registry for crates details"
 documentation = "https://docs.rs/cargo-info"
 keywords = ["cargo", "info", "subcommand"]
+edition = "2018"
 license = "Apache-2.0/MIT"
 name = "cargo-info"
-repository = "https://gitlab.com/imp/cargo-info.git"
+repository = "https://github.com/lf-/dotfiles"
 version = "0.5.14"
-
-[badges]
-travis-ci = { repository = "imp/cargo-info" }
-gitlab = { repository = "imp/cargo-info" }
 
 [dependencies]
 chrono = "0.4"
-chrono-humanize = "0.0.11"
+chrono-humanize = "0.2"
 failure = "0.1"
-json = "0.11"
-pager = "0.14"
-requests = "0.0.30"
-
-[dependencies.clap]
-features = ["unstable"]
-version = "2.0"
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.66"
+pager = "0.16"
+clap = "2"
+reqwest = { version = "0.11", features = ["blocking", "json"] }
 
 [features]
 default = []
