@@ -9,7 +9,7 @@ pager:
 # Aliases allow you to create nicknames for gh commands
 aliases:
     co: pr checkout
-    repoSearch: 'api -X GET search/repositories -f q=''$1'' --template ''{{range .items}}{{ .full_name | color "white" }}: {{ .description }}{{"\n"}}{{ end }}'''
+    search: 'api -X GET search/repositories -f q=''$1'' --template ''{{range .items}}{{ .full_name | color "white" }}: {{ .description }}{{"\n"}}{{ end }}'''
     # token may not have privs. try
     # gh auth refresh -h github.com -s delete_repo
     repoDelete: 'api -X DELETE repos/$1'
