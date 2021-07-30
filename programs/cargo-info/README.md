@@ -1,9 +1,10 @@
 # cargo-info
+
 Query crates.io for crates details
 
-Build status
+Forked by me and modernized (2021-07-30). I don't care about contributing this
+back, it's been half rewritten, and some features carelessly ripped out, and it
+is not really kind to give that back... It's my software now.
 
- branch | status
-:-------|:------:
-  master| [![Build Status](https://gitlab.com/imp/cargo-info/badges/master/build.svg)](https://gitlab.com/imp/cargo-info/pipelines?scope=branches)
- develop| [![Build Status](https://gitlab.com/imp/cargo-info/badges/develop/build.svg)](https://gitlab.com/imp/cargo-info/pipelines?scope=branches)
+Original author/repo: https://gitlab.com/imp/cargo-info
+
