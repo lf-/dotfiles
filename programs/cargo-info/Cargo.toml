@@ -1,0 +1,29 @@
+[package]
+authors = ["Cyril Plisko <cyril.plisko@mountall.com>"]
+categories = ["development-tools::cargo-plugins"]
+description = "Extends cargo to query crates.io registry for crates details"
+documentation = "https://docs.rs/cargo-info"
+keywords = ["cargo", "info", "subcommand"]
+license = "Apache-2.0/MIT"
+name = "cargo-info"
+repository = "https://gitlab.com/imp/cargo-info.git"
+version = "0.5.14"
+
+[badges]
+travis-ci = { repository = "imp/cargo-info" }
+gitlab = { repository = "imp/cargo-info" }
+
+[dependencies]
+chrono = "0.4"
+chrono-humanize = "0.0.11"
+failure = "0.1"
+json = "0.11"
+pager = "0.14"
+requests = "0.0.30"
+
+[dependencies.clap]
+features = ["unstable"]
+version = "2.0"
+
+[features]
+default = []
