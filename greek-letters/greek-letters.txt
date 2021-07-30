@@ -84,3 +84,5 @@
 ⊥ logic up tack/bottom/falsum/false
 ⊤ logic down tack/tee/top/true/verum
 □ proof qed
+∨ logic or disjunction
+∧ logic and conjunction
