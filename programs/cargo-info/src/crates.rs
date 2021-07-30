@@ -2,6 +2,7 @@ use std::fmt;
 
 use chrono::{DateTime, Utc};
 use chrono_humanize::Humanize;
+use owo_colors::OwoColorize;
 use serde::Deserialize;
 
 // #[derive(Debug, Default)]
@@ -95,7 +96,7 @@ impl CratesResp {
                     (&repo).to_string()
                 }
             })
-            .unwrap_or_else(Default::default)
+            .unwrap_or_default()
     }
 
     pub fn print_documentation(&self, verbose: bool) -> String {
@@ -109,7 +110,7 @@ impl CratesResp {
                     doc.to_string()
                 }
             })
-            .unwrap_or_else(Default::default)
+            .unwrap_or_default()
     }
 
     pub fn print_downloads(&self, verbose: bool) -> String {
@@ -131,7 +132,7 @@ impl CratesResp {
                     (&hp).to_string()
                 }
             })
-            .unwrap_or_else(Default::default)
+            .unwrap_or_default()
     }
 
     fn print_version(v: &Version, verbose: bool) -> String {
@@ -182,7 +183,7 @@ impl CratesResp {
                     format!("{:?}", kw)
                 }
             })
-            .unwrap_or_else(Default::default)
+            .unwrap_or_default()
     }
 }
 
@@ -210,34 +211,33 @@ impl fmt::Display for CratesResp {
 
         let empty = String::new();
 
+        macro_rules! field {
+            ($fname:expr, $val:expr) => {
+                format_args!("{:<16}{}", $fname.bold(), $val)
+            };
+        }
+
         write!(
             f,
             "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
-            format_args!("{:<16}{}", "Crate:", self.krate.name),
-            format_args!("{:<16}{}", "Version:", self.krate.max_version),
-            format_args!(
-                "{:<16}{}",
+            field!("Crate:", self.krate.name),
+            field!("Version:", self.krate.max_version),
+            field!(
                 "Description:",
                 self.krate.description.as_ref().unwrap_or(&empty)
             ),
-            format_args!("{:<16}{}", "Downloads:", self.krate.downloads),
-            format_args!(
-                "{:<16}{}",
-                "Homepage:",
-                self.krate.homepage.as_ref().unwrap_or(&empty)
-            ),
-            format_args!(
-                "{:<16}{}",
+            field!("Downloads:", self.krate.downloads),
+            field!("Homepage:", self.krate.homepage.as_ref().unwrap_or(&empty)),
+            field!(
                 "Documentation:",
                 self.krate.documentation.as_ref().unwrap_or(&empty)
             ),
-            format_args!(
-                "{:<16}{}",
+            field!(
                 "Repository:",
                 self.krate.repository.as_ref().unwrap_or(&empty)
             ),
-            format_args!("{:<16}{:#}", "Last updated:", updated_at),
-            format_args!("{:<16}\n{}", "Version history:", versions)
+            field!("Last updated:", updated_at),
+            format_args!("{:<16}\n{}", "Version history:".bold(), versions)
         )
     }
 }
