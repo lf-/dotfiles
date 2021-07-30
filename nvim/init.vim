@@ -30,9 +30,6 @@ Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 
-" github link for the selected text
-Plug 'knsh14/vim-github-link'
-
 " File types
 Plug 'LnL7/vim-nix'
 Plug 'alx741/yesod.vim'

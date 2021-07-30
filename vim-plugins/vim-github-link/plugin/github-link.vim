@@ -1,6 +1,6 @@
-command! -range GetCommitLink <line1>,<line2>call s:get_commit_link("file")
-command! -range GetCurrentBranchLink <line1>,<line2>call s:get_commit_link("branch")
-command! -range GetCurrentCommitLink <line1>,<line2>call s:get_commit_link("head")
+command! -range GitCommitLink <line1>,<line2>call s:get_commit_link("file")
+command! -range GitCurrentBranchLink <line1>,<line2>call s:get_commit_link("branch")
+command! -range GitCurrentCommitLink <line1>,<line2>call s:get_commit_link("head")
 
 function! s:get_commit_link(which_ref) range
     let s:currentdir = getcwd()
