@@ -49,6 +49,8 @@ actions = [
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
+    SymlinkAction('powershell', '~/.config/powershell'),
+
     MkdirAction('~/.config/systemd/user'),
     MkdirAction('~/.cargo'),
     SymlinkAction('docs-svc/*.service', '~/.config/systemd/user'),

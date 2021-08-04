@@ -1,16 +1,17 @@
 use clap::Clap;
 use color_eyre::{eyre::eyre, eyre::Context, Result};
+use futures::future;
 use lazy_static::lazy_static;
 use log::{debug, info, LevelFilter};
-use neovim_lib::{Neovim, Session};
+use nvim_rs::rpc::handler::Dummy;
 use regex::Regex;
 
 use std::{
-    fs, io,
+    io,
     path::{Path, PathBuf},
 };
 
-#[derive(Clap, Debug)]
+#[derive(Clap, Debug, Clone)]
 enum EachCmd {
     /// run a command verbatim
     Run { cmd: String },
@@ -41,9 +42,9 @@ struct Args {
 ///
 /// This is a horrible hack. At least(?) it's not procfs.
 #[cfg(windows)]
-fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
+async fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
     // on windows this is a pipe in the global pipes place
-    fn file_is_probably_nvim_socket(dent: &DirEntry) -> Result<bool, io::Error> {
+    fn file_is_probably_nvim_socket(dent: &tokio::fs::DirEntry) -> Result<bool, io::Error> {
         lazy_static! {
             // "In Windows this is a named pipe in the format \\.\pipe\nvim-<PID>-<COUNTER>."
             static ref NAME_RE: Regex = Regex::new(r"nvim-\d+-\d+").unwrap();
@@ -58,7 +59,8 @@ fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
 
     let mut socks = Vec::new();
 
-    for ent in fs::read_dir(r"\\.\pipe")?.flatten() {
+    let mut it = tokio::fs::read_dir(r"\\.\pipe").await?;
+    while let Some(ent) = it.next_entry().await? {
         if let Ok(true) = file_is_probably_nvim_socket(&ent) {
             socks.push(ent.path());
         }
@@ -72,7 +74,16 @@ fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
 ///
 /// This is a horrible hack. At least(?) it's not procfs.
 #[cfg(not(windows))]
-fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
+async fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
+    macro_rules! try_or_continue {
+        ($e:expr) => {
+            match $e {
+                Ok(v) => v,
+                Err(_) => continue,
+            }
+        };
+    }
+
     lazy_static! {
         // STRCAT(template, "nvimXXXXXX");
         static ref NAME_RE: Regex = Regex::new(r"nvim.{6}").unwrap();
@@ -84,62 +95,74 @@ fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
     static TEMP_DIR_NAMES: &[&str] = &["$TMPDIR", "/tmp", ".", "~"];
 
     for &tmpdir in TEMP_DIR_NAMES {
-        (|| {
-            let expanded = shellexpand::full(tmpdir).ok()?;
+        let expanded = try_or_continue!(shellexpand::full(tmpdir));
 
-            for item in fs::read_dir(expanded.as_ref()).ok()?.flatten() {
-                // it has the nvim temp template
-                if !(item
+        let mut it = try_or_continue!(tokio::fs::read_dir(expanded.as_ref()).await);
+
+        while let Some(e) = it.next_entry().await? {
+            // it has the nvim temp template
+            if !(e
                     .file_name()
                     .to_str()
                     .map(|s| NAME_RE.is_match(s))
                     .unwrap_or(false)
                     // it's a dir
-                    && item.file_type().ok()?.is_dir())
-                {
-                    continue;
-                }
+                    && try_or_continue!(e.file_type().await).is_dir())
+            {
+                continue;
+            }
 
-                // look for /0
-                let mut p = item.path();
-                p.push("0");
+            // look for /0
+            let mut p = e.path();
+            p.push("0");
 
-                let meta = fs::metadata(&p).ok()?;
+            let meta = tokio::fs::metadata(&p).await;
 
+            if let Ok(meta) = meta {
                 if meta.file_type().is_socket() {
                     socks.push(p);
                 }
             }
-            Some(())
-        })();
+        }
     }
 
     Ok(socks)
 }
 
-fn run_cmd_on(sock: &Path, cmd: &str) -> Result<()> {
+async fn run_cmd_on(sock: &Path, cmd: &str) -> Result<()> {
     debug!("connect to {}", sock.display());
-    let mut sess = Session::new_unix_socket(sock).wrap_err("connect to nvim")?;
-    sess.start_event_loop();
-    let mut nvim = Neovim::new(sess);
+    let hand = Dummy::new();
+    let (nvim, _jh) = nvim_rs::create::tokio::new_path(sock, hand)
+        .await
+        .wrap_err("connect to nvim")?;
+
     let result = nvim
-        .session
         .call("nvim_exec", vec![cmd.into(), true.into()])
+        .await?
         .map_err(|v| eyre!("error running command: {}", v.to_string()))?;
     info!("Call on {} returns {}", sock.display(), result);
     Ok(())
 }
 
-fn cmd_each(cmd: EachCmd) -> Result<()> {
-    for sock in find_sockets().wrap_err("could not find sockets")? {
-        match cmd {
-            EachCmd::Run { ref cmd } => run_cmd_on(&sock, cmd),
-        }?
-    }
+async fn cmd_each(cmd: EachCmd) -> Result<()> {
+    let socks = find_sockets().await.wrap_err("could not find sockets")?;
+    debug!("socks: {:?}", &socks);
+    future::join_all(socks.into_iter().map(|sock| {
+        let cmd = cmd.clone();
+        tokio::spawn(async move {
+            match cmd {
+                EachCmd::Run { ref cmd } => run_cmd_on(&sock, cmd).await,
+            }
+        })
+    }))
+    .await;
+
+    debug!("done");
     Ok(())
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let args: Args = Args::parse();
     let config = simplelog::ConfigBuilder::new()
         .add_filter_ignore("neovim_lib::rpc::client".to_string())
@@ -153,7 +176,8 @@ fn main() -> Result<()> {
     simplelog::TermLogger::init(level_filter, config, simplelog::TerminalMode::Stderr)?;
     color_eyre::install()?;
     debug!("args: {:#?}", &args);
+
     match args.subcmd {
-        SubCommand::Each { cmd } => cmd_each(cmd),
+        SubCommand::Each { cmd } => cmd_each(cmd).await,
     }
 }
