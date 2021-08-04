@@ -1,0 +1,19 @@
+[package]
+name = "nvremote"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.dev.package.backtrace]
+opt-level = 3
+
+[dependencies]
+clap = "3.0.0-beta"
+color-eyre = "0.5.10"
+lazy_static = "1.4.0"
+log = "0.4.14"
+neovim-lib = "0.6.1"
+regex = "1.5.4"
+shellexpand = "2.1.0"
+simplelog = "0.9.0"
