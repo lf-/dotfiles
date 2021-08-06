@@ -2,5 +2,5 @@ bundle/*
 plugged/*
 autoload/*
 .netrwhist
-spell/*
+spell/*.spl
 shada/*

@@ -36,7 +36,7 @@ actions = [
     MkdirAction('~/.config'),
     SymlinkAction('colors', '~/.colors'),
     SymlinkAction('prezto', '~/.zprezto'),
-    SymlinkAction('bin', '~/bin'),
+    SymlinkAction('../bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
 
     MkdirAction('~/.config/fontconfig/conf.d'),
@@ -86,7 +86,7 @@ alacritty_config = 'alacritty-laptop.yml' \
 for dc in dotconfigs:
     actions.append(SymlinkAction(*dotconfig(dc)))
 
-alacritty = Path('~/.dotfiles/alacritty')
+alacritty = Path('~/.dotfiles/configs/alacritty')
 dc_alacritty = Path('~/.config/alacritty')
 actions.append(CatAction(
     dc_alacritty / 'alacritty.yml',
