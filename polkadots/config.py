@@ -50,6 +50,8 @@ actions = [
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
     SymlinkAction('powershell', '~/.config/powershell'),
+    MkdirAction('~/.ghc'),
+    SymlinkAction('ghc', '~/.ghc', dir_mode=True),
 
     MkdirAction('~/.config/systemd/user'),
     MkdirAction('~/.cargo'),
