@@ -259,9 +259,11 @@ endfunction
 augroup formatoptions
   autocmd!
   autocmd FileType * call SetFormatOptions()
+  autocmd FileType gitcommit setlocal spell
 augroup END
 
 augroup highlightingfix
+  autocmd!
   " shakespearean templates ≈ their respective languages, and I'd rather have
   " shitty highlighting than no highlighting
   au BufRead,BufNewFile *.julius setlocal filetype=javascript
@@ -274,6 +276,7 @@ set ts=4 sts=4 sw=4 et ai
 
 "" Spacing
 augroup spacing
+  autocmd!
   autocmd FileType python setlocal sw=4 sts=4 et
   autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
   autocmd FileType cabal setlocal sw=4 sts=4 ts=4 et ai
@@ -289,6 +292,7 @@ augroup END
 
 set title
 augroup titling
+  autocmd!
   autocmd BufEnter * let &titlestring = 'nvim: ' . fnamemodify(getcwd(), ':t') . ' - ' . expand('%:t')
 augroup END
 
