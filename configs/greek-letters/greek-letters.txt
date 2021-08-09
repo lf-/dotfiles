@@ -86,3 +86,10 @@
 □ proof qed
 ∨ logic or disjunction
 ∧ logic and conjunction
+ℂ bb capital c complex
+ℍ bb capital h quaternion
+ℕ bb capital n natural
+ℙ bb capital p
+ℚ bb capital q rational
+ℝ bb capital r real
+ℤ bb capital z integer
