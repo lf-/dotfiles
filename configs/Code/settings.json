@@ -170,5 +170,7 @@
     "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
     "window.zoomLevel": 1,
     "security.workspace.trust.untrustedFiles": "open",
+    "editor.renderFinalNewline": false,
+    "files.insertFinalNewline": true,
     // "rust-analyzer.trace.server": "verbose"
 }
