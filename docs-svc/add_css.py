@@ -67,6 +67,32 @@ ul li {
     margin: 0.2em 0;
 }
 
+/**** nav ****/
+
+nav ul.nav li {
+    display: inline-block;
+    margin: .75rem 1.5rem;
+    font-size: 1.5em;
+}
+
+nav ul.nav a {
+    color: var(--link);
+}
+
+nav ul.nav {
+    background-color: var(--subtle-highlight);
+    border-radius: 0.8em;
+    padding: 0;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    flex-wrap: wrap;
+}
+
+/**** dark ****/
+
 @media(prefers-color-scheme: dark) {
     :root {
         --page-bg: #181818;
@@ -99,6 +125,13 @@ ul li {
 }
 """
 
+NAV = """
+<ul class="nav">
+    <li><a href="https://docs.jade.fyi">docs.jade.fyi</a></li>
+    <li><a href="https://github.com/lf-/dotfiles/blob/main/docs-svc/add_css.py">Source Code</a></li>
+    <li><a href="https://github.com/lf-/dotfiles/issues">Feedback</a></li>
+</ul>
+"""
 
 def has_content_type(metas) -> bool:
     return any(
@@ -113,6 +146,18 @@ def has_content_type(metas) -> bool:
 
 def has_meta_viewport(metas) -> bool:
     return any(m.attrs.get("name") == "viewport" for m in metas)
+
+
+def add_nav(soup: BeautifulSoup):
+    tag = soup.select_one('#nav')
+    if not tag:
+        tag = soup.new_tag('nav')
+        tag.attrs['id'] = 'nav'
+        soup.body.insert(0, tag)
+    tag.clear()
+    nav_contents = BeautifulSoup(NAV, features='lxml')
+    for el in nav_contents.body.contents:
+        tag.append(el)
 
 
 def apply(f: Path) -> str:
@@ -147,6 +192,8 @@ def apply(f: Path) -> str:
         tag.attrs["name"] = "viewport"
         tag.attrs["content"] = "width=device-width, initial-scale=1"
         soup.head.insert(-1, tag)
+
+    add_nav(soup)
 
     # if any direct descendent tables aren't wrapped, wrap them in a container
     # to stop overflows

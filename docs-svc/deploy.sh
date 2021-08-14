@@ -14,7 +14,7 @@ fi
 
 source .deploy_config
 
-# tar -C "${HOME}/.docs" -czvf "${HOME}/.docs/gnudocs.tar.gz" gnu/
+tar -C "${HOME}/.docs" -czvf "${HOME}/.docs/gnudocs.tar.gz" gnu/
 # trailing slash: copy contents of directory into destination
 DEFAULT_OPTS="--protect-args --verbose --human-readable --recursive --times \
     --new-compress"
