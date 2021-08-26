@@ -9,6 +9,7 @@
 	d = diff --staged
 	rs = restore --staged
 	ap = add -pu
+    fix = commit --fixup
 	git = !git
 	pukk = pull
 	r = restore
