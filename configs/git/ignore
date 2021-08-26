@@ -9,3 +9,4 @@ a.vim
 *.o
 .vim-bookmarks
 tags
+*.nixops
