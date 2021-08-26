@@ -131,7 +131,7 @@ let
       EOF
 
       # see "HTMLS_BUILD"
-      for f in cpp gcc cppinternals; do
+      for f in cpp gcc cppinternals gccint; do
         echo makeinfo $f
         makeinfo --html -I $(realpath ..) -I $(realpath include) -o $out/ --no-split $f.texi
       done

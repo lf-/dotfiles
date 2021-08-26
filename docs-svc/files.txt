@@ -1,4 +1,5 @@
 d/rust-analyzer
+d/chalk
 gnu
 gnudocs.tar.gz
 man
