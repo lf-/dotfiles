@@ -50,14 +50,13 @@ actions = [
     MkdirAction('~/.config/Code/User'),
     SymlinkAction('Code', '~/.config/Code/User', dir_mode=True),
 
-    SymlinkAction('powershell', '~/.config/powershell'),
     MkdirAction('~/.ghc'),
     SymlinkAction('ghc', '~/.ghc', dir_mode=True),
 
     MkdirAction('~/.config/systemd/user'),
     MkdirAction('~/.cargo'),
-    SymlinkAction('docs-svc/*.service', '~/.config/systemd/user'),
-    SymlinkAction('docs-svc/*.timer', '~/.config/systemd/user'),
+    SymlinkAction('../docs-svc/*.service', '~/.config/systemd/user'),
+    SymlinkAction('../docs-svc/*.timer', '~/.config/systemd/user'),
     SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
 
     MkdirAction('~/.ipython/profile_default'),
@@ -69,15 +68,17 @@ actions = [
 ]
 
 dotconfigs = [
-    'polkadots',
     'aiopanel',
-    'sxhkd',
-    'nvim',
     'bspwm',
+    'gh',
+    'git',
+    'lolcate',
+    'nvim',
+    'polkadots',
+    'powershell',
     'qemu-box',
     'rofi',
-    'git',
-    'gh',
+    'sxhkd',
 ]
 
 alacritty_config = 'alacritty-laptop.yml' \
