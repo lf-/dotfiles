@@ -33,6 +33,10 @@ in
       openssh.authorizedKeys.keys = creds.iris.sshKeys;
     };
 
+    systemd.tmpfiles.rules = [
+      "d /home/shared 0770 root users"
+    ];
+
     services.openssh.enable = true;
     services.openssh.passwordAuthentication = false;
     networking.firewall.allowedTCPPorts = [ 80 443 ];
