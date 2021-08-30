@@ -1,0 +1,34 @@
+#!/bin/sh
+# sets up a nix-shell for stack to actually work
+set -euo pipefail
+
+if [[ -f ./shell.nix ]]; then
+    echo './shell.nix exists already! Bailing.' >&2
+    exit 1
+fi
+
+cat > ./shell.nix <<'EOF'
+let
+  pkgs = import <nixpkgs> { };
+in
+pkgs.mkShell {
+  # idk if half this shit is required, i am too tired to care
+  packages = with pkgs; [
+    haskell-language-server
+    stack
+    glibcLocales
+    pkgs.haskellPackages.implicit-hie
+    gmp
+    mariadb
+    openssl
+    postgresql
+    libmysqlclient
+    pcre
+    pkg-config
+    zlib
+  ];
+}
+EOF
+
+echo 'gen-hie' >&2
+nix-shell --run 'gen-hie > hie.yaml'
