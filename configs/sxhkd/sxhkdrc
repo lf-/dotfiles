@@ -127,13 +127,17 @@ Print
 super + space
     rofi -show combi
 
+# screenshot
+super + p
+    maim -s ~/.screenshots/$(date -Isec).png
+
 # emoji picker
 super + period
     rofimoji -c
 
 # greek letter picker
 super + comma
-    rofimoji -c --emoji-file ~/.dotfiles/configs/greek-letters/greek-letters.txt
+    rofimoji -c --files ~/.dotfiles/greek-letters/greek-letters.txt
 
 # run wireless login script
 super + grave
