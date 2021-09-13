@@ -172,5 +172,6 @@
     "security.workspace.trust.untrustedFiles": "open",
     "editor.renderFinalNewline": false,
     "files.insertFinalNewline": true,
+    "extensions.ignoreRecommendations": true,
     // "rust-analyzer.trace.server": "verbose"
 }
