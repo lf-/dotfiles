@@ -1,4 +1,16 @@
 {
+    "haskell-language-server": {
+        "branch": "update-flake",
+        "description": "Official haskell ide support via language server (LSP). Successor of ghcide & haskell-ide-engine.",
+        "homepage": "",
+        "owner": "lf-",
+        "repo": "haskell-language-server",
+        "rev": "46a731aab2c843cbd2951df6956915f18e7f641b",
+        "sha256": "0fh5ala8ga6mlfwdas357hd75w3lj2krvh2vlfchjcll9ckxzwgj",
+        "type": "tarball",
+        "url": "https://github.com/lf-/haskell-language-server/archive/46a731aab2c843cbd2951df6956915f18e7f641b.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "nixops": {
         "branch": "master",
         "description": "NixOps is a tool for deploying to NixOS machines in a network or cloud.",
