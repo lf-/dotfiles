@@ -53,7 +53,7 @@ actions = [
     MkdirAction('~/.ghc'),
     SymlinkAction('ghc', '~/.ghc', dir_mode=True),
 
-    MkdirAction('~/.config/systemd/user'),
+    MkdirAction('~/.config/systemd'),
     MkdirAction('~/.cargo'),
     SymlinkAction('../docs-svc/*.service', '~/.config/systemd/user'),
     SymlinkAction('../docs-svc/*.timer', '~/.config/systemd/user'),
