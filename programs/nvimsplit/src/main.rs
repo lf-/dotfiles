@@ -1,5 +1,4 @@
 use std::env;
-use std::path::PathBuf;
 
 use neovim_lib::{Neovim, NeovimApi, Session};
 
@@ -94,8 +93,8 @@ fn main() -> Result<()> {
     let recv = sess.start_event_loop_channel();
     let mut nvim = Neovim::new(sess);
 
-    let abspath = PathBuf::from(&args.filename);
-    let abspath = abspath.canonicalize().unwrap_or(abspath);
+    let cwd = env::current_dir()?;
+    let abspath = cwd.join(&args.filename);
 
     let abspath_s = abspath
         .to_str()
