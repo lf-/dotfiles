@@ -230,6 +230,9 @@ let g:ctrlp_custom_ignore = {
   \ 'file': '\v\.o$',
 \ }
 
+" cache only if there are more than 500 files (chosen at random)
+let g:ctrlp_use_caching = 500
+
 set wildignore+=*/target/*
 
 nnoremap <Leader><C-p> <esc>:CtrlPCurFile<cr>
@@ -361,7 +364,7 @@ command! SyntaxQuery call s:syntax_query()
 " COMPLETION
 """"""""""""""""""""""""""""""""""""""
 
-let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-json', 'coc-pyright']
+let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-json', 'coc-pyright', 'coc-yaml']
 
 " Use tab for trigger completion with characters ahead and navigate.
 " Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
