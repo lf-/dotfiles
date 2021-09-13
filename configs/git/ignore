@@ -10,3 +10,4 @@ a.vim
 .vim-bookmarks
 tags
 *.nixops
+result
