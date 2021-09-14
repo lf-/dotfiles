@@ -244,6 +244,7 @@ rec {
     autoconf
     automake
     binutils-unwrapped
+    cflow
     coreutils
     cpio
     diffutils
