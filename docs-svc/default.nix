@@ -1,155 +1,190 @@
 {}:
 let
-  pkgs = import <nixpkgs> { };
+  pkgs = import <nixpkgs> {};
 
-  buildHtmlWith = f: pkg: pkg.overrideAttrs (old@{ nativeBuildInputs ? [ ], ... }: {
-    docsSvcName = pkgs.lib.getName old;
-    installPhase = ''
-      mkdir -p $out
-      find . -name '*.html' -exec cp '{}' $out/ ';'
-    '';
-    dontFixup = true;
-    doInstallCheck = false;
-    doCheck = false;
-    doDist = false;
-    outputs = [ "out" ];
+  buildHtmlWith = f: pkg: pkg.overrideAttrs (
+    old@{ nativeBuildInputs ? [], ... }: {
+      docsSvcName = pkgs.lib.getName old;
+      installPhase = ''
+        mkdir -p $out
+        find . -name '*.html' -exec cp '{}' $out/ ';'
+      '';
+      dontFixup = true;
+      doInstallCheck = false;
+      doCheck = false;
+      doDist = false;
+      outputs = [ "out" ];
 
-    nativeBuildInputs = nativeBuildInputs ++ [ pkgs.texinfo ];
-  } // (f old));
+      nativeBuildInputs = nativeBuildInputs ++ [ pkgs.texinfo ];
+    } // (f old)
+  );
 
-  defaultAutotools = buildHtmlWith (old: {
-    buildPhase = ''
-      make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
-    '';
-  });
+  addNativeBuildInputs = addInputs: pkg: pkg.overrideAttrs (
+    old@{ nativeBuildInputs ? [], ... }: {
+      nativeBuildInputs = nativeBuildInputs ++ addInputs;
+    }
+  );
 
-  autotoolsBuildFirst = buildHtmlWith (old: {
-    buildPhase = ''
-      make -j$NIX_BUILD_CORES
-      make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
-    '';
-  });
+  defaultAutotools = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+    }
+  );
+
+  autotoolsBuildFirst = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        make -j$NIX_BUILD_CORES
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+    }
+  );
 
   # it's got a bunch of rubbish in tests
-  buildTexinfo = buildHtmlWith (old: {
-    buildPhase = ''
-      make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
-    '';
-    installPhase = ''
-      mkdir -p $out
-      find doc/ -name '*.html' -print -exec cp '{}' $out/ ';'
-    '';
-  });
+  buildTexinfo = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+      installPhase = ''
+        mkdir -p $out
+        find doc/ -name '*.html' -print -exec cp '{}' $out/ ';'
+      '';
+    }
+  );
 
-  buildM4 = buildHtmlWith (old: {
-    nativeBuildInputs = [
-      pkgs.recode
-      pkgs.texinfo
-    ];
-    postPatch = ''
-      find doc/ -name '*.texi' -exec recode latin1..utf8 '{}' ';'
-    '';
-    buildPhase = ''
-      make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
-    '';
-  });
+  buildM4 = buildHtmlWith (
+    old: {
+      nativeBuildInputs = [
+        pkgs.recode
+        pkgs.texinfo
+      ];
+      postPatch = ''
+        find doc/ -name '*.texi' -exec recode latin1..utf8 '{}' ';'
+      '';
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+    }
+  );
 
-  buildBash = buildHtmlWith (old: {
-    buildPhase = ''
-      make doc
-    '';
-    installPhase = ''
-      mkdir -p $out
-      find . -name 'bash*.html' -exec cp '{}' $out/ ';'
-    '';
-  });
+  buildBash = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        make doc
+      '';
+      installPhase = ''
+        mkdir -p $out
+        find . -name 'bash*.html' -exec cp '{}' $out/ ';'
+      '';
+    }
+  );
 
   # glibc is a special little shit, it doesn't have a makefile target to
   # produce the artefact we want. We can get what we want by doing make html
   # then building the final artefact manually though.
-  buildGlibc = buildHtmlWith (old:
-    let ver = builtins.elemAt (pkgs.lib.splitString "-" old.version) 0;
-    in
-    {
+  buildGlibc = buildHtmlWith (
+    old:
+      let
+        ver = builtins.elemAt (pkgs.lib.splitString "-" old.version) 0;
+      in
+        {
+          buildPhase = ''
+            # this builds a bunch of garbage we don't want
+            make -j$NIX_BUILD_CORES html
+
+            echo 'Makeinfo for real'
+            makeinfo --no-split -P ./manual ../glibc-${ver}/manual/libc.texinfo -I $(realpath ../glibc-${ver}/manual) --html -o .
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp libc.html $out/glibc.html
+          '';
+
+          # we don't have debug info just html
+          separateDebugInfo = false;
+          outputs = [ "out" ];
+        }
+  );
+
+
+  buildScreen = buildHtmlWith (
+    old: {
+      dontConfigure = true;
+      nativeBuildInputs = [
+        pkgs.recode
+        pkgs.texinfo
+      ];
       buildPhase = ''
-        # this builds a bunch of garbage we don't want
-        make -j$NIX_BUILD_CORES html
-
-        echo 'Makeinfo for real'
-        makeinfo --no-split -P ./manual ../glibc-${ver}/manual/libc.texinfo -I $(realpath ../glibc-${ver}/manual) --html -o .
+        recode latin1..utf8 doc/screen.texinfo
+        makeinfo --html --no-split doc/screen.texinfo -o $out/
       '';
-      installPhase = ''
-        mkdir -p $out
-        cp libc.html $out/glibc.html
-      '';
-
-      # we don't have debug info just html
-      separateDebugInfo = false;
-      outputs = [ "out" ];
-    });
-
-
-  buildScreen = buildHtmlWith (old: {
-    dontConfigure = true;
-    nativeBuildInputs = [
-      pkgs.recode
-      pkgs.texinfo
-    ];
-    buildPhase = ''
-      recode latin1..utf8 doc/screen.texinfo
-      makeinfo --html --no-split doc/screen.texinfo -o $out/
-    '';
-  });
+    }
+  );
   buildEd = manuallyMakeinfo "ed.texi";
   buildDdrescue = manuallyMakeinfo "ddrescue.texi";
 
-  buildFindutils = name: buildHtmlWith (old: {
-    buildPhase = ''
-      make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
-    '';
-  });
+  manuallyMakeinfo = name: buildHtmlWith (
+    old: {
+      dontConfigure = true;
+      buildPhase = ''
+        makeinfo --html --no-split doc/${name} -o $out/
+      '';
+    }
+  );
 
-  manuallyMakeinfo = name: buildHtmlWith (old: {
-    dontConfigure = true;
-    buildPhase = ''
-      makeinfo --html --no-split doc/${name} -o $out/
-    '';
-  });
+  buildGcc = buildHtmlWith (
+    old: {
+      # we completely replace the build system
+      pname = "gcc";
+      dontConfigure = true;
+      buildPhase = ''
+        cd gcc/doc
+        # see gcc/doc/install.texi2html
+        cat > gcc-vers.texi <<EOF
+        @set version-GCC ${old.version}
+        @set VERSION_PACKAGE (GCC)
+        @clear DEVELOPMENT
+        @set srcdir $(realpath ..)
+        EOF
 
-  buildGcc = buildHtmlWith (old: {
-    # we completely replace the build system
-    pname = "gcc";
-    dontConfigure = true;
-    buildPhase = ''
-      cd gcc/doc
-      # see gcc/doc/install.texi2html
-      cat > gcc-vers.texi <<EOF
-      @set version-GCC ${old.version}
-      @set VERSION_PACKAGE (GCC)
-      @clear DEVELOPMENT
-      @set srcdir $(realpath ..)
-      EOF
+        # see "HTMLS_BUILD"
+        for f in cpp gcc cppinternals gccint; do
+          echo makeinfo $f
+          makeinfo --html -I $(realpath ..) -I $(realpath include) -o $out/ --no-split $f.texi
+        done
 
-      # see "HTMLS_BUILD"
-      for f in cpp gcc cppinternals gccint; do
-        echo makeinfo $f
-        makeinfo --html -I $(realpath ..) -I $(realpath include) -o $out/ --no-split $f.texi
-      done
+        cd ../fortran
+        for f in gfortran gfc-internals; do
+          echo makeinfo $f
+          makeinfo --html -I $(realpath ..) -I $(realpath ../doc) -I $(realpath ../doc/include) -o $out/ --no-split $f.texi
+        done
 
-      cd ../fortran
-      for f in gfortran gfc-internals; do
-        echo makeinfo $f
-        makeinfo --html -I $(realpath ..) -I $(realpath ../doc) -I $(realpath ../doc/include) -o $out/ --no-split $f.texi
-      done
+        cd ../ada
+        for f in gnat_rm gnat_ugn; do
+          echo makeinfo $f
+          makeinfo --html -I $(realpath ..) -I $(realpath ../doc) -I $(realpath ../doc/include) -o $out/ --no-split $f.texi
+        done
+      '';
+      dontInstall = true;
+    }
+  );
 
-      cd ../ada
-      for f in gnat_rm gnat_ugn; do
-        echo makeinfo $f
-        makeinfo --html -I $(realpath ..) -I $(realpath ../doc) -I $(realpath ../doc/include) -o $out/ --no-split $f.texi
-      done
-    '';
-    dontInstall = true;
-  });
+  buildBison = buildHtmlWith (
+    old: {
+      nativeBuildInputs = [
+        pkgs.texinfo
+      ];
+      # builds doxygen crap I don't care about
+      buildPhase = ''
+        make -j$NIX_BUILD_CORES
+        make -j$NIX_BUILD_CORES doc/bison.html
+      '';
+    }
+  );
+
 
   docify = p: pkgs.stdenv.mkDerivation {
     name = "${p.name}-htmldoc";
@@ -235,35 +270,44 @@ rec {
 
   bash = buildBash pkgs.bash;
   screen = buildScreen pkgs.screen;
-  glibc = buildGlibc (pkgs.glibc.overrideAttrs (old: {
-    # need perl for texi generation scripts
-    nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.perl ];
-  }));
+  glibc = buildGlibc (
+    pkgs.glibc.overrideAttrs (
+      old: {
+        # need perl for texi generation scripts
+        nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.perl ];
+      }
+    )
+  );
 
-  defaults = map defaultAutotools (with pkgs; [
-    autoconf
-    automake
-    binutils-unwrapped
-    cflow
-    coreutils
-    cpio
-    diffutils
-    gdb
-    gnufdisk
-    gnumake
-    gnupg
-    gnused
-    gnutar
-    grub
-    guile
-    gzip
-    libtool
-    nano
-    parallel
-    readline
-    wget
-    which
-  ]);
+  bison = buildBison pkgs.bison;
+
+  defaults = map defaultAutotools (
+    with pkgs; [
+      autoconf
+      automake
+      binutils-unwrapped
+      cflow
+      coreutils
+      cpio
+      diffutils
+      flex
+      gdb
+      gnufdisk
+      gnumake
+      gnupg
+      gnused
+      gnutar
+      grub
+      guile
+      gzip
+      libtool
+      nano
+      parallel
+      readline
+      wget
+      which
+    ]
+  );
 
   allDocs = pkgs.stdenv.mkDerivation {
     name = "all-gnu-docs";
@@ -318,16 +362,19 @@ rec {
 
     '';
 
-    buildInputs = map docify ([
-      bash
-      ddrescue
-      ed
-      findutils
-      gcc
-      glibc
-      m4
-      screen
-      texinfo
-    ] ++ defaults);
+    buildInputs = map docify (
+      [
+        bash
+        bison
+        ddrescue
+        ed
+        findutils
+        gcc
+        glibc
+        m4
+        screen
+        texinfo
+      ] ++ defaults
+    );
   };
 }
