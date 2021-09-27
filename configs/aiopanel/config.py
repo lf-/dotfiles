@@ -12,7 +12,7 @@ out_adapter = aiopanel.SubprocessAdapter([
 ])
 out_fmt = '{{ bspwm }}%{c}{{ title }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf017 {{ date }}'
 
-log_level = 'DEBUG'
+log_level = 'INFO'
 
 bspwm_ctx = {
     'active_colour': '#ff4c5399',
