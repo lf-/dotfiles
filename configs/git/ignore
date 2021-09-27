@@ -11,3 +11,4 @@ a.vim
 tags
 *.nixops
 result
+*~
