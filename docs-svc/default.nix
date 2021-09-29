@@ -232,7 +232,7 @@ let
     "bfd:binutils"
     "binutils"
     "cpp:gcc"
-    "findutils"
+    "find:findutils"
     "gcc"
     "gdb"
     "gfortran:gcc"
@@ -352,6 +352,11 @@ rec {
       shouldFail=0
       for expectSc in "''${expectScs[@]}" ; do
         if [[ ! -f "$out/$expectSc" ]] ; then
+          # findutils does not produce a findutils.html
+          if [[ "$expectSc" == "findutils.html" ]] ; then
+            continue
+          fi
+
           shouldFail=1
           echo "!! missing shortcut: $out/$expectSc" >&2
         fi
