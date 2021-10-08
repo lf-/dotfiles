@@ -74,7 +74,7 @@ super + e
 
 # rotate the tree
 super + r
-    bspc desktop focused -R 90
+    bspc node @parent -R 90
 
 ##Global Operations##
 
