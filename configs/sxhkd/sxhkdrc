@@ -133,11 +133,11 @@ super + p
 
 # emoji picker
 super + period
-    rofimoji -c
+    rofimoji
 
 # greek letter picker
 super + comma
-    rofimoji -c --files ~/.dotfiles/greek-letters/greek-letters.txt
+    rofimoji --files ~/.dotfiles/greek-letters/greek-letters.txt
 
 # run wireless login script
 super + grave
