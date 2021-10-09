@@ -12,3 +12,5 @@ tags
 *.nixops
 result
 *~
+.ipynb_checkpoints
+.vim/svlangserver
