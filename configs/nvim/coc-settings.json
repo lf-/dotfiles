@@ -1,69 +1,74 @@
 {
-  "hover.floatMaxWidth": 90,
-  "hover.floatMaxHeight": 20,
-  "signature.maxWindowHeight": 15,
-  "list.maxPreviewHeight": 25,
-  "rust-analyzer.diagnostics.disabled": [
-    "incorrect-ident-case",
-  ],
-  "list.normalMappings": {
-    "h": "action:split",
-  },
-  "rust-analyzer.server.extraEnv": {
-    "RA_LOG": "info,salsa::derived::slot=warn,chalk_recursive=warn,hir_ty::traits=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,project_model=debug,proc_macro_api=debug,hir_expand::db=error,ide_assists=debug,ide=debug"
-  },
-  "rust-analyzer.updates.channel": "nightly",
-  "coc.preferences.formatOnSaveFiletypes": [
-    "rust"
-  ],
-  "languageserver": {
-    "nix": {
-      "command": "rnix-lsp",
-      "filetypes": [
-        "nix"
-      ]
+    "hover.floatMaxWidth": 90,
+    "hover.floatMaxHeight": 20,
+    "signature.maxWindowHeight": 15,
+    "list.maxPreviewHeight": 25,
+    "rust-analyzer.diagnostics.disabled": ["incorrect-ident-case"],
+    "list.normalMappings": {
+        "h": "action:split"
     },
-    "serenata": {
-      "host": "127.0.0.1",
-      "port": 11111,
-      "filetypes": [
-        "php"
-      ]
+    "rust-analyzer.server.extraEnv": {
+        "RA_LOG": "info,salsa::derived::slot=warn,chalk_recursive=warn,hir_ty::traits=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,project_model=debug,proc_macro_api=debug,hir_expand::db=error,ide_assists=debug,ide=debug"
     },
-    "haskell": {
-      "command": "hls-nix",
-      "args": ["--lsp"],
-      "rootPatterns": ["*.cabal", "stack.yaml", "cabal.project", "package.yaml", "hie.yaml"],
-      "filetypes": ["haskell", "lhaskell"],
-      "settings": {
-        "languageServerHaskell": {
-          "formattingProvider": "stylish-haskell"
+    "rust-analyzer.updates.channel": "nightly",
+    "coc.preferences.formatOnSaveFiletypes": ["rust"],
+    "languageserver": {
+        "nix": {
+            "command": "rnix-lsp",
+            "filetypes": ["nix"]
+        },
+        "svlangserver": {
+            // npm i -g @imc-trading/svlangserver
+            "module": "~/.local/share/npm-packages/lib/node_modules/@imc-trading/svlangserver/lib/svlangserver.js",
+            "filetypes": ["systemverilog", "verilog"],
+            "settings": {
+                "systemverilog.includeIndexing": ["**/*.{sv,svh}"],
+                "systemverilog.excludeIndexing": ["test/**/*.sv*"],
+                "systemverilog.defines": [],
+                "systemverilog.launchConfiguration": "verilator -sv -Wall --lint-only",
+                "systemverilog.formatCommand": "verible-verilog-format"
+            }
+        },
+        "serenata": {
+            "host": "127.0.0.1",
+            "port": 11111,
+            "filetypes": ["php"]
+        },
+        "haskell": {
+            "command": "hls-nix",
+            "args": ["--lsp"],
+            "rootPatterns": [
+                "*.cabal",
+                "stack.yaml",
+                "cabal.project",
+                "package.yaml",
+                "hie.yaml"
+            ],
+            "filetypes": ["haskell", "lhaskell"],
+            "settings": {
+                "languageServerHaskell": {
+                    "formattingProvider": "stylish-haskell"
+                }
+            }
         }
-      }
     },
-    "svlangserver": {
-      "module": "~/.local/share/npm-packages/lib/node_modules/@imc-trading/svlangserver/lib/svlangserver.js",
-      "filetypes": ["systemverilog", "verilog"]
-    }
-  },
-  "prettier.tabWidth": 4,
-  "codeLens.enable": true,
-  "python.pythonPath": "/home/jade/bin/_pyright_python",
-  "python.formatting.provider": "yapf",
-  "coc.preferences.rootPatterns": [
-    ".python-root",
-    ".git",
-    ".hg",
-    ".projections.json",
-  ],
-  "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
-  "rust-analyzer.experimental.procAttrMacros": true,
-  "rust-analyzer.cargo.unsetTest": [
-    "ed25519-dalek",
-    "core",
-  ],
-  "yaml.schemas": {
-    "https://raw.githubusercontent.com/docker/cli/master/cli/compose/schema/data/config_schema_v3.9.json": ["docker-compose.yml"],
-  },
-  "yaml.trace.server": "verbose",
+    "prettier.tabWidth": 4,
+    "codeLens.enable": true,
+    "python.pythonPath": "/home/jade/bin/_pyright_python",
+    "python.formatting.provider": "yapf",
+    "coc.preferences.rootPatterns": [
+        ".python-root",
+        ".git",
+        ".hg",
+        ".projections.json"
+    ],
+    "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
+    "rust-analyzer.experimental.procAttrMacros": true,
+    "rust-analyzer.cargo.unsetTest": ["ed25519-dalek", "core"],
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/docker/cli/master/cli/compose/schema/data/config_schema_v3.9.json": [
+            "docker-compose.yml"
+        ]
+    },
+    "yaml.trace.server": "verbose"
 }
