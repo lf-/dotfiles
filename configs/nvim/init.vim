@@ -36,6 +36,7 @@ Plug 'alx741/yesod.vim'
 Plug 'ekalinin/Dockerfile.vim'
 Plug 'plasticboy/vim-markdown'
 Plug 'qnighy/lalrpop.vim'
+Plug 'editorconfig/editorconfig-vim'
 
 " All of your Plugs must be added before the following line
 call plug#end()
@@ -299,7 +300,7 @@ augroup titling
   autocmd BufEnter * let &titlestring = 'nvim: ' . fnamemodify(getcwd(), ':t') . ' - ' . expand('%:t')
 augroup END
 
-set tabstop=4
+let g:EditorConfig_exclude_patterns = ['fugitive://.*']
 
 """"""""""""""""""""""""""""""""""""""
 " Highlight
