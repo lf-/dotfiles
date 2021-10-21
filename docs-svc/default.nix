@@ -135,6 +135,15 @@ let
     }
   );
 
+  buildZsh = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        cd Doc
+        makeinfo --html --no-split zsh.texi -o $out/
+      '';
+    }
+  );
+
   buildGcc = buildHtmlWith (
     old: {
       # we completely replace the build system
@@ -280,6 +289,34 @@ rec {
   );
 
   bison = buildBison pkgs.bison;
+  zsh' = docify (buildZsh pkgs.zsh);
+  zsh = pkgs.stdenv.mkDerivation {
+    name = "zsh-dir";
+    phases = [ "buildPhase" ];
+
+    buildCommand = ''
+      mkdir -p $out
+      for inp in $buildInputs ; do
+        echo $inp copy
+        cp -R $inp/* $out
+      done
+
+      cat > $out/index.html <<EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta http-equiv="refresh" content="0;./zsh.html">
+        </head>
+        <body>
+        </body>
+        </html>
+      EOF
+    '';
+
+    buildInputs = [ zsh' ];
+
+  };
 
   defaults = map defaultAutotools (
     with pkgs; [
