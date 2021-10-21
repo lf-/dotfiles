@@ -18,6 +18,7 @@ Plug 'ctrlpvim/ctrlp.vim'
 
 " completion
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'mattn/emmet-vim'
 
 " UI
 Plug 'gcmt/taboo.vim'
@@ -255,6 +256,10 @@ augroup END
 function! SetFormatOptions()
   if &ft =~ 'gitcommit'
     return
+  endif
+  if &ft =~ 'text'
+      setlocal textwidth=79
+      return
   endif
   setlocal formatoptions=roqnlj
 endfunction
