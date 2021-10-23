@@ -28,7 +28,7 @@
 	features = line-numbers decorations
 
 [user]
-	name = Jade
+	name = Jade Lovelace
 	email = software@lfcode.ca
 
 [pull]
