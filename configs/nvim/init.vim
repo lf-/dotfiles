@@ -6,7 +6,6 @@ call plug#begin('~/.config/nvim/plugged')
 " Editing
 Plug 'tomtom/tcomment_vim'
 Plug 'tpope/vim-surround'
-Plug 'wellle/targets.vim'
 Plug 'godlygeek/tabular'
 
 Plug 'jbyuki/instant.nvim'
@@ -30,6 +29,7 @@ Plug 'wesQ3/vim-windowswap'
 Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -324,6 +324,16 @@ require'nvim-treesitter.configs'.setup {
     enable = false, -- it's not good enough. worse than default in python,
                     -- rust, cpp
     disable = { "rust", "cpp" },
+  },
+  textobjects = {
+    select = {
+      enable = true,
+      lookahead = true,
+      keymaps = {
+        ["ia"] = "@parameter.inner",
+        ["aa"] = "@parameter.outer",
+      },
+    },
   },
 }
 EOF
