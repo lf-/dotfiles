@@ -317,8 +317,9 @@ require'nvim-treesitter.configs'.setup {
   -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
   highlight = {
     enable = true,
-    disable = { "python" }, -- breaks if handled by anything but the delicate
-                            -- touch of a lesbian
+    disable = { "python", "html" },
+        -- breaks if handled by anything but the delicate
+        -- touch of a lesbian
   },
   indent = {
     enable = false, -- it's not good enough. worse than default in python,
