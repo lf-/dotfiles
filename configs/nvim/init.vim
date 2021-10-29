@@ -184,10 +184,6 @@ let g:airline_symbols.linenr = ''
 
 set list
 set listchars=tab:\ \ ,trail:•
-" augroup markdown
-"   au!
-"    au BufNewFile,BufRead *.md,*.markdown setlocal filetype=ghmarkdown
-" augroup END
 
 let g:bookmark_save_per_working_dir = 1
 
@@ -242,6 +238,9 @@ nnoremap <Leader><C-p> <esc>:CtrlPCurFile<cr>
 """""""""""""""""""""""""
 " Editing
 """""""""""""""""""""""""
+
+" Use only one space while joining lines ending with a period
+set nojoinspaces
 
 augroup termfix
   " scrolloff causes annoying flashing in terminals
@@ -304,6 +303,8 @@ augroup titling
   autocmd!
   autocmd BufEnter * let &titlestring = 'nvim: ' . fnamemodify(getcwd(), ':t') . ' - ' . expand('%:t')
 augroup END
+
+command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
 
 let g:EditorConfig_exclude_patterns = ['fugitive://.*']
 

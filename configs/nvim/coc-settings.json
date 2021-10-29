@@ -20,6 +20,7 @@
         "svlangserver": {
             // npm i -g @imc-trading/svlangserver
             "module": "~/.local/share/npm-packages/lib/node_modules/@imc-trading/svlangserver/lib/svlangserver.js",
+            "rootPatterns": [".svls_root"],
             "filetypes": ["systemverilog", "verilog"],
             "settings": {
                 "systemverilog.includeIndexing": ["**/*.{sv,svh}"],
@@ -62,7 +63,6 @@
         ".hg",
         ".projections.json"
     ],
-    "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
     "rust-analyzer.experimental.procAttrMacros": true,
     "rust-analyzer.cargo.unsetTest": ["ed25519-dalek", "core"],
     "yaml.schemas": {
