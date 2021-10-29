@@ -1,0 +1,8 @@
+[Unit]
+Description=rsync dev docs from abyss
+
+[Service]
+Type=simple
+ExecStart=%h/.dotfiles/docs-svc/pull.sh
+WorkingDirectory=%h/.dotfiles/docs-svc
+

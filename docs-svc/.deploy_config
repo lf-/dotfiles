@@ -1,4 +1,7 @@
 DEPLOY_HOST=abyss
 DEPLOY_DIR=/usr/share/nginx/html/docs
+PULL_HOST=abyss
+PULL_DIR=/usr/share/nginx/html/docs/
 
 EXTRA_OPTS_MAIN="--filter=protect,_.style --files-from=./files.txt --links --copy-unsafe-links --delete-delay"
+PULL_OPTS_MAIN="--delete-delay --files-from=./files-pull.txt"
