@@ -318,9 +318,13 @@ require'nvim-treesitter.configs'.setup {
   -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
   highlight = {
     enable = true,
+    -- breaks if handled by anything but the delicate
+    -- touch of a lesbian
     disable = { "python", "html" },
-        -- breaks if handled by anything but the delicate
-        -- touch of a lesbian
+    -- this needs to be here because the autoindent plugin is fucked on js
+    -- without having vim highlighting on (typing /*<Enter> causes a spurious
+    -- extra indent).
+    additional_vim_regex_highlighting = { "javascript" },
   },
   indent = {
     enable = false, -- it's not good enough. worse than default in python,
