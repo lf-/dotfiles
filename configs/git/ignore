@@ -13,4 +13,4 @@ tags
 result
 *~
 .ipynb_checkpoints
-.vim/svlangserver
+**/.vim/svlangserver
