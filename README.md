@@ -63,7 +63,7 @@ $ pip install git+https://github.com/lf-/polkadots.git
 
 ```sh
 # go meta
-ln -s ~+/polkadots ~/.config/polkadots
+ln -s ~+/configs/polkadots ~/.config/polkadots
 # deal with the rest of them
 polkadots -2
 ```
