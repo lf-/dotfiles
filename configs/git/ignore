@@ -14,3 +14,5 @@ result
 *~
 .ipynb_checkpoints
 **/.vim/svlangserver
+*.autosave.xopp
+a.out

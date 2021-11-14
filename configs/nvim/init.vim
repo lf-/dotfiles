@@ -308,7 +308,10 @@ command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
 " turns input logic [1:0] blah,
 " into .blah(blah)
 command! -range VerilogPorts :<line1>,<line2>s/\v.* (\w+),?$/.\1(\1),/
-command! -range VerilogDecls :<line1>,<line2>s/\v^\s+(input|output) (.*),?$/\2;/
+command! -range VerilogDecls :<line1>,<line2>s/\v^\s+(input|output) (.{-}),?$/\2;/
+
+" replace the word under the cursor with ,s
+nnoremap <Leader>s :%s/\<<C-r><C-w>\>//g<Left><Left>
 
 let g:EditorConfig_exclude_patterns = ['fugitive://.*']
 
