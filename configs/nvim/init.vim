@@ -30,6 +30,7 @@ Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
+Plug 'RRethy/nvim-treesitter-textsubjects'
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -346,6 +347,13 @@ require'nvim-treesitter.configs'.setup {
         ["ia"] = "@parameter.inner",
         ["aa"] = "@parameter.outer",
       },
+    },
+  },
+  textsubjects = {
+    enable = true,
+    keymaps = {
+      ['.'] = 'textsubjects-smart',
+      [';'] = 'textsubjects-container-outer',
     },
   },
 }
