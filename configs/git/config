@@ -9,6 +9,7 @@
 	d = diff --staged
 	rs = restore --staged
 	ap = add -pu
+    bigclone = clone --filter=tree:0
     fix = commit --fixup
 	git = !git
 	pukk = pull
