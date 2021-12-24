@@ -13,7 +13,10 @@ Plug 'jbyuki/instant.nvim'
 Plug 'tpope/vim-dispatch'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-eunuch'
-Plug 'ctrlpvim/ctrlp.vim'
+
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-telescope/telescope-fzy-native.nvim'
 
 " completion
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -222,19 +225,8 @@ function! DeleteWindow()
   hide
 endfunction
 
-"""""""" CtrlP
-" ignore dist-newstyle and friends in ctrlp
-let g:ctrlp_custom_ignore = {
-  \ 'dir': '\v[\/]dist-.*$',
-  \ 'file': '\v\.o$',
-\ }
-
-" cache only if there are more than 500 files (chosen at random)
-let g:ctrlp_use_caching = 500
-
-set wildignore+=*/target/*
-
-nnoremap <Leader><C-p> <esc>:CtrlPCurFile<cr>
+"""""""" telescope
+nnoremap <C-p> <Cmd>Telescope find_files<cr>
 
 """""""""""""""""""""""""
 " Editing
