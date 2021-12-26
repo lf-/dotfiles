@@ -43,6 +43,17 @@ require'nvim-treesitter.configs'.setup {
   },
 }
 
+require('telescope').setup {
+    defaults = {
+        mappings = {
+            i = {
+                ["<C-Down>"] = require('telescope.actions').cycle_history_next,
+                ["<C-Up>"] = require('telescope.actions').cycle_history_prev,
+            },
+        }
+    },
+}
+
 _G.find_files_relative = function ()
   require('telescope.builtin').find_files({
     search_dirs = {nvim_eval("expand('%:h')")}
@@ -73,10 +84,10 @@ nnoremap("g=", "mpgqap'p")
 
 -- Leader commands
 vim.g.mapleader = ","
-noremap("<M-n>", "<esc>:tabn<cr>")
-noremap("<M-p>", "<esc>:tabp<cr>")
-nmap("<Leader>iv", "<esc>:source ~/.config/nvim/init.vim<cr>")
-nnoremap("<Leader>t", "<esc>:vsp term://zsh<cr>")
+noremap("<M-n>", "<Cmd>:tabn<cr>")
+noremap("<M-p>", "<Cmd>:tabp<cr>")
+nmap("<Leader>iv", "<Cmd>:source ~/.config/nvim/init.vim<cr>")
+nnoremap("<Leader>t", "<Cmd>:vsp term://zsh<cr>")
 nnoremap("<Leader>oiv", "<Cmd>:call OpenVimrc()<cr>")
 nnoremap("<Leader>op", "<Cmd>:sp output:///rust-analyzer<cr>")
 nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
@@ -84,6 +95,7 @@ nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
 -- telescope
 nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
 nnoremap("<Leader><C-p>", "<Cmd>lua find_files_relative()<cr>")
+nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
 
 -- replace the word under the cursor with ,s
 nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
@@ -101,7 +113,7 @@ _G.check_back_space = function ()
     local row, col = curs[1], curs[2]
     local line = vim.api.nvim_get_current_line()
     -- 1-indexed arrays lol
-    return not not (col == 0 or is_space:match_str(line:sub(col + 1, col + 1)))
+    return not not (col == 0 or is_space:match_str(line:sub(col, col)))
 end
 
 -- Use <c-space> to trigger completion.
@@ -134,7 +146,7 @@ _G.show_documentation = function ()
     if vim.tbl_contains({'vim', 'help'}, bufopt.filetype) then
         nvim_exec('h ' .. nvim_eval("expand('<cword')"))
     else
-        nvim_call('CocAction', 'doHover')
+        nvim_call('CocAction', {'doHover'})
     end
 end
 

@@ -256,6 +256,9 @@ set ts=4 sts=4 sw=4 et ai
 "" Spacing
 augroup spacing
   autocmd!
+  " the stock html indentexpr is broken as hell
+  autocmd FileType html setlocal indentexpr=
+
   autocmd FileType python setlocal sw=4 sts=4 et
   autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
   autocmd FileType cabal setlocal sw=4 sts=4 ts=4 et ai
