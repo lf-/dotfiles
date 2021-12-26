@@ -197,25 +197,6 @@ let g:bookmark_save_per_working_dir = 1
 
 let g:windowswap_map_keys = 0
 
-nnoremap ; :
-
-nnoremap <C-w>y <Cmd>call WindowSwap#MarkWindowSwap()<cr>
-nnoremap <C-w>d <Cmd>call DeleteWindow()<cr>
-nnoremap <C-w>p <Cmd>call WindowSwap#DoWindowSwap()<cr>
-
-" reflow a paragraph
-nnoremap g= mpgqap'p
-
-"" Leader commands
-let mapleader=","
-noremap <M-n> <esc>:tabn<cr>
-noremap <M-p> <esc>:tabp<cr>
-map <Leader>iv <esc>:source ~/.config/nvim/init.vim<cr>
-nnoremap <Leader>t <esc>:vsp term://zsh<cr>
-nnoremap <Leader>oiv <Cmd>:call OpenVimrc()<cr>
-nnoremap <Leader>op <Cmd>:sp output:///rust-analyzer<cr>
-nnoremap <Leader>oh <Cmd>:sp output:///languageserver.haskell<cr>
-
 function! OpenVimrc()
   ! snvim ~/.config/nvim/init.vim
 endfunction
@@ -224,9 +205,6 @@ function! DeleteWindow()
   call WindowSwap#MarkWindowSwap()
   hide
 endfunction
-
-"""""""" telescope
-nnoremap <C-p> <Cmd>Telescope find_files<cr>
 
 """""""""""""""""""""""""
 " Editing
@@ -303,53 +281,12 @@ command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
 command! -range VerilogPorts :<line1>,<line2>s/\v.* (\w+),?$/.\1(\1),/
 command! -range VerilogDecls :<line1>,<line2>s/\v^\s+(input|output) (.{-}),?$/\2;/
 
-" replace the word under the cursor with ,s
-nnoremap <Leader>s :%s/\<<C-r><C-w>\>//g<Left><Left>
-
 let g:EditorConfig_exclude_patterns = ['fugitive://.*']
 
 """"""""""""""""""""""""""""""""""""""
 " Highlight
 """"""""""""""""""""""""""""""""""""""
 
-lua <<EOF
-require'nvim-treesitter.configs'.setup {
-  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
-  -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
-  highlight = {
-    enable = true,
-    -- breaks if handled by anything but the delicate
-    -- touch of a lesbian
-    disable = { "python", "html" },
-    -- this needs to be here because the autoindent plugin is fucked on js
-    -- without having vim highlighting on (typing /*<Enter> causes a spurious
-    -- extra indent).
-    additional_vim_regex_highlighting = { "javascript" },
-  },
-  indent = {
-    enable = false, -- it's not good enough. worse than default in python,
-                    -- rust, cpp
-    disable = { "rust", "cpp" },
-  },
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true,
-      keymaps = {
-        ["ia"] = "@parameter.inner",
-        ["aa"] = "@parameter.outer",
-      },
-    },
-  },
-  textsubjects = {
-    enable = true,
-    keymaps = {
-      ['.'] = 'textsubjects-smart',
-      [';'] = 'textsubjects-container-outer',
-    },
-  },
-}
-EOF
 if $TERM == 'alacritty' || $COLORTERM == 'truecolor' || $WT_SESSION != ''
   set termguicolors
 endif
@@ -394,66 +331,8 @@ command! SyntaxQuery call s:syntax_query()
 
 let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-json', 'coc-pyright', 'coc-yaml', 'coc-clangd']
 
-" Use tab for trigger completion with characters ahead and navigate.
-" Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" Use <c-space> to trigger completion.
-inoremap <silent><expr> <c-space> coc#refresh()
-
-" Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
-" Coc only does snippet and additional edit on confirm.
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-" Or use `complete_info` if your vim support it, like:
-" inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
-
-" Use `[g` and `]g` to navigate diagnostics
-nmap <silent> [g <Plug>(coc-diagnostic-prev)
-nmap <silent> ]g <Plug>(coc-diagnostic-next)
-
-" Remap keys for gotos
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gY <Plug>(coc-declaration)
-nmap <silent> gD <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-" open the given thing in a split
-nmap <silent> <leader>gd <Cmd>call CocActionAsync('jumpDefinition', 'sp')<cr>
-nmap <silent> <leader>gy <Cmd>call CocActionAsync('jumpTypeDefinition', 'sp')<cr>
-nmap <silent> <leader>gY <Cmd>call CocActionAsync('jumpDeclaration', 'sp')<cr>
-nmap <silent> <leader>gD <Cmd>call CocActionAsync('jumpImplementation', 'sp')<cr>
-nmap <silent> <leader>gr <Cmd>call CocActionAsync('jumpReferences', 'sp')<cr>
-
-" Use K to show documentation in preview window
-nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocAction('doHover')
-  endif
-endfunction
-
 " Highlight symbol under cursor on CursorHold
 autocmd CursorHold * silent call CocActionAsync('highlight')
-
-" Remap for rename current word
-nmap <leader>rn <Plug>(coc-rename)
-nnoremap <leader>rs :CocRestart<cr>
-
-" Remap for format selected region
-xmap <leader>f  <Plug>(coc-format-selected)
-nmap <leader>f  <Plug>(coc-format-selected)
 
 augroup mygroup
   autocmd!
@@ -462,25 +341,6 @@ augroup mygroup
   " Update signature help on jump placeholder
   autocmd User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
 augroup end
-
-" Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
-xmap <leader>a  <Plug>(coc-codeaction-selected)
-nmap <leader>a  <Plug>(coc-codeaction-selected)
-
-" Remap for do codeAction of current line
-nmap <leader>ac  <Plug>(coc-codeaction)
-" Fix autofix problem of current line
-nmap <leader>qf  <Plug>(coc-fix-current)
-
-" Create mappings for function text object, requires document symbols feature of languageserver.
-xmap if <Plug>(coc-funcobj-i)
-xmap af <Plug>(coc-funcobj-a)
-omap if <Plug>(coc-funcobj-i)
-omap af <Plug>(coc-funcobj-a)
-
-" Use <C-d> for select selections ranges, needs server support, like: coc-tsserver, coc-python
-nmap <silent> <C-d> <Plug>(coc-range-select)
-xmap <silent> <C-d> <Plug>(coc-range-select)
 
 " Use `:Format` to format current buffer
 command! -nargs=0 Format :call CocAction('format')
@@ -494,27 +354,4 @@ command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organize
 " Add status line support, for integration with other plugin, checkout `:h coc-status`
 set statusline^=%{coc#status()}%{get(b:,'coc_current_function','')}
 
-" Using CocList
-" Show all diagnostics
-nnoremap <silent> <space>a  :<C-u>CocList diagnostics<cr>
-" Manage extensions
-nnoremap <silent> <space>e  :<C-u>CocList extensions<cr>
-" Show commands
-nnoremap <silent> <space>c  :<C-u>CocList commands<cr>
-" Find symbol of current document
-nnoremap <silent> <space>o  :<C-u>CocList outline<cr>
-" Search workspace symbols
-nnoremap <silent> <space>s  :<C-u>CocList -I symbols<cr>
-" Do default action for next item.
-nnoremap <silent> <space>j  :<C-u>CocNext<CR>
-" Do default action for previous item.
-nnoremap <silent> <space>k  :<C-u>CocPrev<CR>
-" Resume latest coc list
-nnoremap <silent> <space>p  :<C-u>CocListResume<CR>
-nmap <silent> <space>l  <Plug>(coc-codelens-action)
-
-" remove highlights with space+h
-nnoremap <silent> <space>h  :<C-u>nohlsearch<CR>
-
-nnoremap <silent> <space>b  <Cmd>CtrlPBuffer<CR>
-
+runtime lateinit.lua
