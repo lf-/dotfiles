@@ -20,7 +20,12 @@ haswindow() {
 
 while [[ $pid != 1 ]]; do
     if haswindow $pid; then
-        exec xdo activate -p $pid
+        winid="$(xdo id -p $pid)"
+        if [[ "$RAISEPID_SUMMON" == 1 ]]; then
+            exec wmctrl -i -R "${winid}"
+        else
+            exec wmctrl -i -a "${winid}"
+        fi
     fi
     pid=$(ppid $pid)
 done
