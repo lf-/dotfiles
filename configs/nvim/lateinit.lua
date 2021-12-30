@@ -60,7 +60,7 @@ _G.find_files_relative = function ()
   })
 end
 
-local nmap_silent = maps.nnoremap_silent
+local nmap_silent = maps.nmap_silent
 local noremap = maps.noremap
 local nnoremap = maps.nnoremap
 local nnoremap_silent = maps.nnoremap_silent
