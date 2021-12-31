@@ -1,46 +1,50 @@
 local maps = require('maps')
-local opt = vim.o
-local bufopt = vim.bo
+local opt = vim.opt
+local bufopt = vim.opt_local
 
 local nvim_eval = vim.api.nvim_eval
 local nvim_exec = vim.api.nvim_exec
 local nvim_call = vim.api.nvim_call_function
 
 require'nvim-treesitter.configs'.setup {
-  ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
-  -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
-  highlight = {
-    enable = true,
-    -- breaks if handled by anything but the delicate
-    -- touch of a lesbian
-    disable = { "python", "html" },
-    -- this needs to be here because the autoindent plugin is fucked on js
-    -- without having vim highlighting on (typing /*<Enter> causes a spurious
-    -- extra indent).
-    additional_vim_regex_highlighting = { "javascript" },
-  },
-  indent = {
-    enable = false, -- it's not good enough. worse than default in python,
-                    -- rust, cpp
-    disable = { "rust", "cpp" },
-  },
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true,
-      keymaps = {
-        ["ia"] = "@parameter.inner",
-        ["aa"] = "@parameter.outer",
-      },
+    ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+    -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
+    highlight = {
+        enable = true,
+        -- breaks if handled by anything but the delicate
+        -- touch of a lesbian
+        disable = { "python", "html" },
+        -- this needs to be here because the autoindent plugin is fucked on js
+        -- without having vim highlighting on (typing /*<Enter> causes a spurious
+        -- extra indent).
+        additional_vim_regex_highlighting = { "javascript" },
     },
-  },
-  textsubjects = {
-    enable = true,
-    keymaps = {
-      ['.'] = 'textsubjects-smart',
-      [';'] = 'textsubjects-container-outer',
+    indent = {
+        enable = false, -- it's not good enough. worse than default in python,
+                        -- rust, cpp
+        disable = { "rust", "cpp" },
     },
-  },
+    textobjects = {
+        select = {
+            enable = true,
+            lookahead = true,
+            keymaps = {
+                ["ia"] = "@parameter.inner",
+                ["aa"] = "@parameter.outer",
+            },
+        },
+    },
+    textsubjects = {
+        enable = true,
+        keymaps = {
+            ['.'] = 'textsubjects-smart',
+            [';'] = 'textsubjects-container-outer',
+        },
+    },
+    rainbow = {
+        enable = true,
+        extended_mode = true,
+    },
 }
 
 require('telescope').setup {
@@ -53,6 +57,71 @@ require('telescope').setup {
         }
     },
 }
+
+----------------------------------------------------------------------
+-- Options
+----------------------------------------------------------------------
+
+opt.modelines = 0
+opt.history = 1000
+
+-- completion stuff
+-- https://github.com/neoclide/coc.nvim/issues/649
+opt.backup = false
+opt.writebackup = false
+
+-- more space for the command window on bottom of screen
+opt.cmdheight = 2
+
+-- aggressively write swap files (maybe used for diagnostics?)
+opt.updatetime = 300
+
+-- don't give |ins-completion-menu| messages.
+opt.shortmess:append('c')
+
+-- add extra column on left for IDE stuff
+opt.signcolumn = 'yes'
+
+-- deliberately disable smartindent since it somehow got turned on in python
+opt.autoindent = true
+opt.smartindent = false
+
+opt.showmode = true
+opt.showcmd = true
+opt.hidden = true
+opt.wildmenu = true
+opt.wildmode = 'list:longest'
+opt.visualbell = true
+opt.ruler = true
+opt.backspace = 'indent,eol,start'
+opt.laststatus = 2
+opt.undofile = true
+
+-- this was needed for fish but is now probs just a perf improvement
+opt.shell = 'bash'
+
+-- Movement
+opt.scrolloff = 7
+opt.showmatch = true
+opt.mouse = 'a'
+
+-- Search
+opt.incsearch = true
+opt.hlsearch = true
+opt.ignorecase = true
+opt.smartcase = true
+opt.lazyredraw = false
+
+-- Visual stuff
+opt.cursorline = true
+opt.number = true
+
+-- Use only one space while joining lines ending with a period
+opt.joinspaces = false
+
+----------------------------------------------------------------------
+-- Mappings
+----------------------------------------------------------------------
 
 _G.find_files_relative = function ()
   require('telescope.builtin').find_files({
@@ -204,3 +273,17 @@ nnoremap_silent("<space>h", ":<C-u>nohlsearch<CR>")
 
 nnoremap_silent("<space>b", "<Cmd>CtrlPBuffer<CR>")
 
+----------------------------------------------------------------------
+-- autocmd sadness land
+----------------------------------------------------------------------
+
+_G.set_format_options = function()
+    if vim.o.filetype == 'gitcommit' then
+        return
+    end
+    if vim.o.filetype == 'text' then
+        bufopt.textwidth = 79
+        return
+    end
+    bufopt.formatoptions = 'roqnlj'
+end

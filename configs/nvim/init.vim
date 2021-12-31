@@ -31,9 +31,11 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'wesQ3/vim-windowswap'
 Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
+
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'RRethy/nvim-treesitter-textsubjects'
+Plug 'p00f/nvim-ts-rainbow'
 
 " File types
 Plug 'LnL7/vim-nix'
@@ -52,45 +54,6 @@ let g:instant_username = 'jade'
 if $COC_DEBUG == '1'
   let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register')]
 endif
-
-set modelines=0
-set encoding=utf-8
-set history=1000
-
-" completion stuff
-" allegedly stops bugs in some language servers
-set nobackup
-set nowritebackup
-
-" more space for the command window on bottom of screen
-set cmdheight=2
-
-" aggressively write swap files (maybe used for diagnostics?)
-set updatetime=300
-
-" don't give |ins-completion-menu| messages.
-set shortmess+=c
-
-" add extra column on left for IDE stuff
-set signcolumn=yes
-
-" deliberately disable smartindent since it somehow got turned on in python
-set autoindent
-set nosmartindent
-
-set showmode
-set showcmd
-set hidden
-set wildmenu
-set wildmode=list:longest
-set visualbell
-set ruler
-set backspace=indent,eol,start
-set laststatus=2
-set undofile
-
-" this was needed for fish but is now probs just a perf improvement
-set shell=bash
 
 " use chromium on all platforms to open all urls
 " this is lazy as hell but I just wnat it to work
@@ -116,24 +79,6 @@ let $VISUAL = 'nvimsplit'
 """""""""""""""""""""""""
 " Text UI
 """""""""""""""""""""""""
-
-"" Movement
-set scrolloff=7
-set showmatch
-if has('mouse')
-  set mouse=a
-endif
-
-"" Search
-set incsearch
-set hlsearch
-set ignorecase
-set smartcase
-set nolazyredraw
-
-"" Visual stuff
-set cursorline
-set number
 
 let g:neovide_cursor_animation_length=0.02
 let g:neovide_cursor_trail_length=0
@@ -210,9 +155,6 @@ endfunction
 " Editing
 """""""""""""""""""""""""
 
-" Use only one space while joining lines ending with a period
-set nojoinspaces
-
 augroup termfix
   " scrolloff causes annoying flashing in terminals
   " NOTE: if you are looking for the scrolloff bug, it's this. scrolloff is
@@ -223,21 +165,10 @@ augroup termfix
   autocmd TermLeave * checktime
 augroup END
 
-function! SetFormatOptions()
-  if &ft =~ 'gitcommit'
-    return
-  endif
-  if &ft =~ 'text'
-      setlocal textwidth=79
-      return
-  endif
-  setlocal formatoptions=roqnlj
-endfunction
-
 " The default is to set formatoptions to automatically wrap comments
 augroup formatoptions
   autocmd!
-  autocmd FileType * call SetFormatOptions()
+  autocmd FileType * lua set_format_options()
   autocmd FileType gitcommit setlocal spell
 augroup END
 
@@ -269,7 +200,7 @@ augroup spacing
   " the default plugin for this sets tw to 100 or something. I don't use the
   " formatoption to format while typing so this only matters for comments
   " where 79 is better.
-  autocmd FileType rust setlocal tw=79
+  autocmd FileType rust setlocal tw=79 fo+=c
 augroup END
 
 set title
