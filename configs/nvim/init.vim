@@ -49,8 +49,6 @@ Plug 'editorconfig/editorconfig-vim'
 call plug#end()
 filetype plugin indent on
 
-let g:instant_username = 'jade'
-
 if $COC_DEBUG == '1'
   let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register')]
 endif
@@ -76,71 +74,9 @@ endif
 " tab in the existing session
 let $VISUAL = 'nvimsplit'
 
-"""""""""""""""""""""""""
-" Text UI
-"""""""""""""""""""""""""
-
-let g:neovide_cursor_animation_length=0.02
-let g:neovide_cursor_trail_length=0
-
-" coc windows have blur on top of them sometimes, workaround
-" https://github.com/Kethku/neovide/issues/432
-let g:neovide_window_floating_blur = 0
-let g:neovide_window_floating_opacity = 0.8
-
-set guifont=Iosevka:h18
-
-" disable built in yesod maps
-let g:yesod_disable_maps = 1
-
-" disable folding in vim markdown
-let g:vim_markdown_folding_disabled = 1
-
-" attempt a perf improvement? see
-" https://github.com/vim-airline/vim-airline/issues/1026
-let g:airline_highlighting_cache = 1
-
-" our fonts support powerline symbols
-let g:airline_powerline_fonts = 1
-
-if !exists('g:airline_symbols')
-  let g:airline_symbols = {}
-endif
-" remove annoying hamburger symbol
-" unicode symbols
-let g:airline_left_sep = '»'
-let g:airline_left_sep = '▶'
-let g:airline_right_sep = '«'
-let g:airline_right_sep = '◀'
-let g:airline_symbols.crypt = '🔒'
-let g:airline_symbols.linenr = '␤'
-let g:airline_symbols.linenr = '¶'
-let g:airline_symbols.maxlinenr = ''
-let g:airline_symbols.paste = 'ρ'
-let g:airline_symbols.paste = 'Þ'
-let g:airline_symbols.paste = '∥'
-let g:airline_symbols.spell = 'Ꞩ'
-let g:airline_symbols.notexists = '∄'
-let g:airline_symbols.whitespace = 'Ξ'
-" powerline symbols
-let g:airline_left_sep = ''
-let g:airline_left_alt_sep = ''
-let g:airline_right_sep = ''
-let g:airline_right_alt_sep = ''
-let g:airline_symbols.branch = ''
-let g:airline_symbols.readonly = ''
-let g:airline_symbols.linenr = ''
-
-set list
-set listchars=tab:\ \ ,trail:•
-
-let g:bookmark_save_per_working_dir = 1
-
 """"""""""""""""""""""""""""""""""""""
 " Mappings
 """"""""""""""""""""""""""""""""""""""
-
-let g:windowswap_map_keys = 0
 
 function! OpenVimrc()
   ! snvim ~/.config/nvim/init.vim
@@ -214,8 +150,6 @@ command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
 " into .blah(blah)
 command! -range VerilogPorts :<line1>,<line2>s/\v.* (\w+),?$/.\1(\1),/
 command! -range VerilogDecls :<line1>,<line2>s/\v^\s+(input|output) (.{-}),?$/\2;/
-
-let g:EditorConfig_exclude_patterns = ['fugitive://.*']
 
 """"""""""""""""""""""""""""""""""""""
 " Highlight

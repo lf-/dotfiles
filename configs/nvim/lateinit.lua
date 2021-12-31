@@ -1,6 +1,7 @@
 local maps = require('maps')
 local opt = vim.opt
 local bufopt = vim.opt_local
+local g = vim.g
 
 local nvim_eval = vim.api.nvim_eval
 local nvim_exec = vim.api.nvim_exec
@@ -57,6 +58,69 @@ require('telescope').setup {
         }
     },
 }
+
+
+----------------------------------------------------------------------
+-- Plugin configs
+----------------------------------------------------------------------
+
+g.instant_username = 'jade'
+
+g.EditorConfig_exclude_patterns = {'fugitive://.*'}
+g.windowswap_map_keys = 0
+
+g.neovide_cursor_animation_length=0.02
+g.neovide_cursor_trail_length=0
+
+-- coc windows have blur on top of them sometimes, workaround
+-- https://github.com/Kethku/neovide/issues/432
+g.neovide_window_floating_blur = 0
+g.neovide_window_floating_opacity = 0.8
+
+-- disable built in yesod maps
+g.yesod_disable_maps = 1
+
+-- disable folding in vim markdown
+g.vim_markdown_folding_disabled = 1
+
+-- attempt a perf improvement? see
+-- https://github.com/vim-airline/vim-airline/issues/1026
+g.airline_highlighting_cache = 1
+
+-- our fonts support powerline symbols
+g.airline_powerline_fonts = 1
+
+if g.airline_symbols == nil then
+  g.airline_symbols = vim.empty_dict()
+end
+
+-- remove annoying hamburger symbol
+-- unicode symbols
+g.airline_left_sep = '»'
+g.airline_left_sep = '▶'
+g.airline_right_sep = '«'
+g.airline_right_sep = '◀'
+g.airline_symbols.crypt = '🔒'
+g.airline_symbols.linenr = '␤'
+g.airline_symbols.linenr = '¶'
+g.airline_symbols.maxlinenr = ''
+g.airline_symbols.paste = 'ρ'
+g.airline_symbols.paste = 'Þ'
+g.airline_symbols.paste = '∥'
+g.airline_symbols.spell = 'Ꞩ'
+g.airline_symbols.notexists = '∄'
+g.airline_symbols.whitespace = 'Ξ'
+-- powerline symbols
+g.airline_left_sep = ''
+g.airline_left_alt_sep = ''
+g.airline_right_sep = ''
+g.airline_right_alt_sep = ''
+g.airline_symbols.branch = ''
+g.airline_symbols.readonly = ''
+g.airline_symbols.linenr = ''
+
+g.bookmark_save_per_working_dir = 1
+
 
 ----------------------------------------------------------------------
 -- Options
@@ -118,6 +182,11 @@ opt.number = true
 
 -- Use only one space while joining lines ending with a period
 opt.joinspaces = false
+
+opt.list = true
+opt.listchars = 'tab:  ,trail:•'
+
+opt.guifont = 'Iosevka:h18'
 
 ----------------------------------------------------------------------
 -- Mappings
