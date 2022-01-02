@@ -44,7 +44,7 @@ super + a
 
 # Stick
 super + s
-    bspc node focused -t '~sticky'
+    bspc node focused -g sticky
 
 # Zide (obviously)
 super + z
