@@ -70,5 +70,7 @@
             "docker-compose.yml"
         ]
     },
-    "yaml.trace.server": "verbose"
+    "yaml.trace.server": "verbose",
+    "sumneko-lua.enableNvimLuaDev": true,
+    "Lua.telemetry.enable": false
 }

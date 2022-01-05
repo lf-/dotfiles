@@ -193,20 +193,21 @@ opt.guifont = 'Iosevka:h18'
 ----------------------------------------------------------------------
 
 _G.find_files_relative = function ()
-  require('telescope.builtin').find_files({
-    search_dirs = {nvim_eval("expand('%:h')")}
-  })
+    local cur_file_cwd = nvim_eval("expand('%:h')")
+    require('telescope.builtin').find_files({
+        cwd = cur_file_cwd
+    })
 end
 
 local nmap_silent = maps.nmap_silent
 local noremap = maps.noremap
 local nnoremap = maps.nnoremap
 local nnoremap_silent = maps.nnoremap_silent
-local vnoremap = maps.vnoremap
+-- local vnoremap = maps.vnoremap
 local inoremap = maps.inoremap
 local inoremap_silent = maps.inoremap_silent
 local nmap = maps.nmap
-local vmap = maps.vmap
+-- local vmap = maps.vmap
 local omap = maps.omap
 local xmap = maps.xmap
 local xmap_silent = maps.xmap_silent
@@ -345,6 +346,10 @@ nnoremap_silent("<space>b", "<Cmd>CtrlPBuffer<CR>")
 ----------------------------------------------------------------------
 -- autocmd sadness land
 ----------------------------------------------------------------------
+
+_G.pp = function (v)
+    print(vim.inspect(v))
+end
 
 _G.set_format_options = function()
     if vim.o.filetype == 'gitcommit' then
