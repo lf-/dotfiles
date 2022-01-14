@@ -73,10 +73,10 @@ class HexDump(gdb.Command):
 
     def invoke(self, arg, _from_tty):
         argv = gdb.string_to_argv(arg)
-        print('argv', argv)
+        # print('argv', argv)
 
         addr = gdb.parse_and_eval(argv[0])
-        print('addr', type(addr))
+        # print('addr', type(addr))
         if len(argv) == 2:
              try:
                  nbytes = int(gdb.parse_and_eval(argv[1]))
@@ -88,9 +88,9 @@ class HexDump(gdb.Command):
         inferior = gdb.selected_inferior()
 
         mem = inferior.read_memory(addr, nbytes)
-        pr_addr = int(str(addr), 16)
+        pr_addr = int(addr)
 
-        print('pr_addr = ', pr_addr, addr)
+        # print('pr_addr = ', pr_addr, addr)
         hxd(mem.tobytes(), pr_addr)
 
 HexDump()
