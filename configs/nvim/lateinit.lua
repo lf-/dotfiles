@@ -235,6 +235,7 @@ nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
 nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
 nnoremap("<Leader><C-p>", "<Cmd>lua find_files_relative()<cr>")
 nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
+nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
 
 -- replace the word under the cursor with ,s
 nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
@@ -340,8 +341,6 @@ nmap_silent("<space>l", "<Plug>(coc-codelens-action)")
 
 -- remove highlights with space+h
 nnoremap_silent("<space>h", ":<C-u>nohlsearch<CR>")
-
-nnoremap_silent("<space>b", "<Cmd>CtrlPBuffer<CR>")
 
 ----------------------------------------------------------------------
 -- autocmd sadness land
