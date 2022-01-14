@@ -1,5 +1,12 @@
 # various bit twiddling
 
+def unhx(s):
+    assert len(s) % 2 == 0
+    out = bytearray()
+    for n in range(len(s) // 2):
+        out.append(int(s[n*2:n*2+2], 16))
+    return bytes(out)
+
 def hx(b):
     """
     good hex
@@ -12,18 +19,31 @@ def hx(b):
 def hxd(b):
     print(hxd_s(b))
 
+def hxarr(b):
+    ret = '['
+    for idx, byte in enumerate(b):
+        if idx != 0:
+            ret += ', '
+        ret += f'0x{byte:02x}'
+    ret += ']'
+    return ret
+
+def grouper(iterable, n):
+    import itertools
+
+    class Filler(object): pass
+    return (itertools.filterfalse(lambda x: x is Filler, chunk) for chunk in (itertools.zip_longest(*[iter(iterable)]*n, fillvalue=Filler)))
+
+
+def strgroups(s, n):
+    return ' '.join(''.join(a for a in vv) for vv in grouper(s, n))
+
 def hxd_s(b):
     """
     hexdump
     """
-    import itertools
-
     def isprintable(c):
         return c > 0x20 and c < 0x7e
-
-    def grouper(iterable, n):
-        class Filler(object): pass
-        return (itertools.filterfalse(lambda x: x is Filler, chunk) for chunk in (itertools.zip_longest(*[iter(iterable)]*n, fillvalue=Filler)))
 
     def asciify(c):
         return chr(c) if isprintable(c) else '.'
