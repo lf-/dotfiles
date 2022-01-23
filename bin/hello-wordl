@@ -1,0 +1,7 @@
+#!/bin/sh
+
+b64d="$(echo -n "$1" | base64 | tr '+/' '-_')"
+
+url="https://hellowordl.net/?challenge=$b64d"
+echo "Copied: $url"
+echo "$url" | xsel -b
