@@ -3,7 +3,7 @@
 
 _pkgname=bspwm
 pkgname=${_pkgname}-git
-pkgver=0.9.10.r33.ge22d0fa
+pkgver=0.9.10.r34.g2712c61
 pkgrel=1
 pkgdesc='A tiling window manager based on binary space partitioning'
 arch=('i686' 'x86_64')
@@ -17,7 +17,7 @@ optdepends=('sxhkd-git: to define keyboard and pointer bindings'
 	    'sutils-git: for the example panel'
 	    'terminus-font: for the example panel'
 	    'python3: for some scripting examples')
-source=("$pkgname::git://github.com/baskerville/${_pkgname}.git")
+source=("$pkgname::git://github.com/lf-/${_pkgname}.git#branch=bspc-rule-escape")
 md5sums=('SKIP')
 provides=("${_pkgname}=${pkgver%%.r*}-${pkgrel}")
 conflicts=("${_pkgname}")
