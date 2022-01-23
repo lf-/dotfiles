@@ -3,6 +3,8 @@ bspc monitor -d I II III IV V VI VII VIII
 bspc config focus_follows_pointer true
 bspc config pointer_modifier mod4
 bspc config pointer_action1 move
+
+bspc rule -a '*:*:Plover\: Suggestions' sticky=true
 bspc config external_rules_command ~/.config/bspwm/external_rules
 AIOPANEL_LOG=aiopanel.PulseStateWatcher=debug aiopanel &
 #panelfix &
