@@ -45,6 +45,7 @@ Plug 'ekalinin/Dockerfile.vim'
 Plug 'plasticboy/vim-markdown'
 Plug 'qnighy/lalrpop.vim'
 Plug 'editorconfig/editorconfig-vim'
+Plug 'tikhomirov/vim-glsl'
 
 " All of your Plugs must be added before the following line
 call plug#end()

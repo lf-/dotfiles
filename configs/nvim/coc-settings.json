@@ -51,6 +51,11 @@
                     "formattingProvider": "stylish-haskell"
                 }
             }
+        },
+        "glsl": {
+          "command": "glslls",
+          "args": ["--stdin"],
+          "filetypes": ["glsl"]
         }
     },
     "prettier.tabWidth": 4,
