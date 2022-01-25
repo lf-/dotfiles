@@ -33,6 +33,7 @@ Plug 'AndrewRadev/undoquit.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 
 Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+Plug 'nvim-treesitter/playground'
 Plug 'nvim-treesitter/nvim-treesitter-textobjects'
 Plug 'RRethy/nvim-treesitter-textsubjects'
 Plug 'p00f/nvim-ts-rainbow'
