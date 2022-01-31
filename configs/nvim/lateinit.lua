@@ -6,6 +6,8 @@ local g = vim.g
 local nvim_eval = vim.api.nvim_eval
 local nvim_exec = vim.api.nvim_exec
 local nvim_call = vim.api.nvim_call_function
+-- make it not do anything if there is no support
+local nvim_new_command = vim.api.nvim_add_user_command or function () end
 
 require'nvim-treesitter.configs'.setup {
     ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
@@ -193,9 +195,8 @@ opt.guifont = 'Iosevka:h18'
 ----------------------------------------------------------------------
 
 _G.find_files_relative = function ()
-    local cur_file_cwd = nvim_eval("expand('%:h')")
     require('telescope.builtin').find_files({
-        cwd = cur_file_cwd
+        cwd = require'telescope.utils'.buffer_dir()
     })
 end
 
@@ -345,6 +346,15 @@ nnoremap_silent("<space>h", ":<C-u>nohlsearch<CR>")
 ----------------------------------------------------------------------
 -- autocmd sadness land
 ----------------------------------------------------------------------
+
+nvim_new_command('FindFiles', function (args)
+    require'telescope.builtin'.find_files({
+        cwd = args.args,
+    })
+end, {
+    nargs = 1,
+    complete = 'file',
+})
 
 _G.pp = function (v)
     print(vim.inspect(v))

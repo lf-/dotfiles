@@ -4,3 +4,4 @@ autoload/*
 .netrwhist
 spell/*.spl
 shada/*
+plugin/packer_compiled.lua
