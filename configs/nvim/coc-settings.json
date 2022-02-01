@@ -27,7 +27,7 @@
                 "systemverilog.excludeIndexing": ["test/**/*.sv*"],
                 "systemverilog.defines": [],
                 "systemverilog.launchConfiguration": "verilator -sv -Wall --lint-only",
-                "systemverilog.formatCommand": "verible-verilog-format"
+                "systemverilog.formatCommand": "verible-verilog-format --indentation_spaces 4"
             }
         },
         "serenata": {
@@ -51,11 +51,6 @@
                     "formattingProvider": "stylish-haskell"
                 }
             }
-        },
-        "glsl": {
-          "command": "glslls",
-          "args": ["--stdin"],
-          "filetypes": ["glsl"]
         }
     },
     "prettier.tabWidth": 4,
