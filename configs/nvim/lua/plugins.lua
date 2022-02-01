@@ -3,6 +3,7 @@ local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
 local packer_bootstrap
 if fn.empty(fn.glob(install_path)) > 0 then
     packer_bootstrap = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
+    -- https://github.com/wbthomason/packer.nvim/issues/750#issuecomment-1018881168
     vim.o.runtimepath = vim.fn.stdpath('data') .. '/site/pack/*/start/*,' .. vim.o.runtimepath
 end
 
