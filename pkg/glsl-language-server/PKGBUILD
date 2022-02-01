@@ -9,7 +9,7 @@ url="https://github.com/svenstaro/glsl-language-server"
 license=(MIT)
 depends=('gcc-libs')
 makedepends=('cmake' 'git' 'ninja' 'python')
-source=(git+git://github.com/svenstaro/glsl-language-server.git#tag=${pkgver})
+source=(git+git://github.com/lf-/glsl-language-server.git)
 sha512sums=('SKIP')
 
 prepare() {
