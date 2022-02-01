@@ -1,6 +1,6 @@
 # neovim configs
 
-NOTE: requires neovim 0.5.0 (currently unreleased; use a git build such as
-`neovim-git` from the AUR).
+NOTE: although this runs in the 0.6.1 series, for all features, 0.7 nightly is
+required
 
-Run `setup.sh` to initialize Plug and get started.
+To use this, simply run nvim and it will bootstrap itself.
