@@ -82,6 +82,41 @@ let
     }
   );
 
+  # gdb has a broken makefile for some reason. just do it manually....
+  buildGdb = buildHtmlWith (
+    old: {
+      configurePhase = ''
+        ./configure
+        cd gdb
+        ./configure
+        cd ../libiberty
+        ./configure
+        cd ../bfd
+        ./configure
+        cd ../gnulib
+
+        # ???? lmao
+        chmod +x configure
+        ./configure
+      '';
+      buildPhase = ''
+        cd ../gdb/
+        make html MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+        cd ../libiberty/
+        make html MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+        cd ../bfd/
+        make html MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+      installPhase = ''
+        mkdir -p $out
+        cd ..
+        find gdb -name '*.html' -exec cp '{}' $out/ ';'
+        find libiberty -name '*.html' -exec cp '{}' $out/ ';'
+        cp bfd/doc/bfd.html $out/
+      '';
+    }
+  );
+
   # glibc is a special little shit, it doesn't have a makefile target to
   # produce the artefact we want. We can get what we want by doing make html
   # then building the final artefact manually though.
@@ -276,6 +311,7 @@ rec {
   findutils = autotoolsBuildFirst pkgs.findutils;
   m4 = buildM4 pkgs.m4;
   texinfo = buildTexinfo pkgs.texinfo;
+  gdb = buildGdb pkgs.gdb;
 
   bash = buildBash pkgs.bash;
   screen = buildScreen pkgs.screen;
@@ -328,7 +364,6 @@ rec {
       cpio
       diffutils
       flex
-      gdb
       gnufdisk
       gnumake
       gnupg
@@ -345,6 +380,7 @@ rec {
       which
     ]
   );
+
 
   allDocs = pkgs.stdenv.mkDerivation {
     name = "all-gnu-docs";
@@ -412,6 +448,7 @@ rec {
         ed
         findutils
         gcc
+        gdb
         glibc
         m4
         screen

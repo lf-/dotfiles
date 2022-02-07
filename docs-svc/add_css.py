@@ -35,8 +35,8 @@ div.example {
     margin-left: 1em !important;
 }
 
-code {
-    word-wrap: break-word;
+html {
+    overflow-wrap: break-word;
 }
 
 pre, .table-wrapper {
@@ -54,7 +54,6 @@ code, pre {
 }
 
 a {
-    word-wrap: break-word;
     text-decoration: none;
     color: var(--link);
 }
