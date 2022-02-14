@@ -16,7 +16,7 @@ require'nvim-treesitter.configs'.setup {
         enable = true,
         -- breaks if handled by anything but the delicate
         -- touch of a lesbian
-        disable = { "python", "html" },
+        disable = { "python" },
         -- this needs to be here because the autoindent plugin is fucked on js
         -- without having vim highlighting on (typing /*<Enter> causes a spurious
         -- extra indent).
@@ -47,6 +47,29 @@ require'nvim-treesitter.configs'.setup {
     rainbow = {
         enable = true,
         extended_mode = true,
+    },
+    playground = {
+        enable = true,
+        disable = {},
+        updatetime = 25,
+        persist_queries = false,
+        keybindings = {
+            toggle_query_editor = 'o',
+            toggle_hl_groups = 'i',
+            toggle_injected_languages = 't',
+            toggle_anonymous_nodes = 'a',
+            toggle_language_display = 'I',
+            focus_language = 'f',
+            unfocus_language = 'F',
+            update = 'R',
+            goto_node = '<cr>',
+            show_help = '?',
+        },
+    },
+    query_linter = {
+        enable = true,
+        use_virtual_text = true,
+        lint_events = {"BufWrite", "CursorHold"},
     },
 }
 
