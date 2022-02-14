@@ -17,7 +17,7 @@ return require('packer').startup(function(use)
         local S_IFDIR = 0x4000
         local coname = vim.fn.expand('$HOME') .. '/co/' .. basename
         local stat = vim.loop.fs_stat(coname)
-        if bit.band(stat.mode, S_IFDIR) ~= 0 then
+        if stat and bit.band(stat.mode, S_IFDIR) ~= 0 then
             if type(tableInput) == 'table' then
                 tableInput[1] = coname
                 return use(tableInput)
