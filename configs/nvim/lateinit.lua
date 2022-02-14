@@ -347,14 +347,19 @@ nnoremap_silent("<space>h", ":<C-u>nohlsearch<CR>")
 -- autocmd sadness land
 ----------------------------------------------------------------------
 
-nvim_new_command('FindFiles', function (args)
-    require'telescope.builtin'.find_files({
-        cwd = args.args,
+local function make_telescope_command(name, builtin_name)
+    nvim_new_command(name, function (args)
+        (require'telescope.builtin')[builtin_name]({
+            cwd = args.args,
+        })
+    end, {
+        nargs = 1,
+        complete = 'file',
     })
-end, {
-    nargs = 1,
-    complete = 'file',
-})
+end
+
+make_telescope_command('FindFiles', 'find_files')
+make_telescope_command('LiveGrep', 'live_grep')
 
 _G.pp = function (v)
     print(vim.inspect(v))

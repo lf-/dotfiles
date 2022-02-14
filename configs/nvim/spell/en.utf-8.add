@@ -95,3 +95,6 @@ fontconfig
 ModelSim
 multilib
 Quartus
+SystemVerilog
+OO
+verilog

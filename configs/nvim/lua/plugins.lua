@@ -8,6 +8,27 @@ if fn.empty(fn.glob(install_path)) > 0 then
 end
 
 return require('packer').startup(function(use)
+    local function useLocal(name, ...)
+        local tableInput = name
+        if type(tableInput) == 'table' then
+            name = tableInput[1]
+        end
+        local basename = name:match('[^/]/([^/]+)')
+        local S_IFDIR = 0x4000
+        local coname = vim.fn.expand('$HOME') .. '/co/' .. basename
+        local stat = vim.loop.fs_stat(coname)
+        if bit.band(stat.mode, S_IFDIR) ~= 0 then
+            if type(tableInput) == 'table' then
+                tableInput[1] = coname
+                return use(tableInput)
+            else
+                return use(coname, ...)
+            end
+        end
+
+        -- passthru it, it doesn't matter if it's a table
+        return use(name, ...)
+    end
     use 'wbthomason/packer.nvim'
 
     use 'tomtom/tcomment_vim'
@@ -38,11 +59,11 @@ return require('packer').startup(function(use)
     use 'AndrewRadev/undoquit.vim'
     use 'MattesGroeger/vim-bookmarks'
 
-    use {'nvim-treesitter/nvim-treesitter', run = ':TSUpdate'}
+    useLocal {'nvim-treesitter/nvim-treesitter', run = ':TSUpdate'}
     use 'nvim-treesitter/playground'
     use 'nvim-treesitter/nvim-treesitter-textobjects'
     use 'RRethy/nvim-treesitter-textsubjects'
-    use 'p00f/nvim-ts-rainbow'
+    useLocal 'p00f/nvim-ts-rainbow'
 
     -- File types
     use 'LnL7/vim-nix'
