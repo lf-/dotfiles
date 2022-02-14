@@ -129,11 +129,11 @@ super + space
 
 # screenshot
 super + p
-    maim -s ~/.screenshots/$(date -Isec).png
+    screenshot -s
 
 # emoji picker
 super + period
-    rofimoji --action clipboard
+    rofimoji
 
 # greek letter picker
 super + comma

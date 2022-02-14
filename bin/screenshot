@@ -1,0 +1,3 @@
+#!/bin/sh
+fname="$HOME/.screenshots/$(date -Isec).png"
+maim "$@" | tee "$fname" | xclip -selection clipboard -t image/png
