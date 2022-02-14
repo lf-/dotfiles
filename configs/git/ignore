@@ -16,3 +16,4 @@ result
 **/.vim/svlangserver
 *.autosave.xopp
 a.out
+node_modules
