@@ -375,3 +375,12 @@ _G.set_format_options = function()
     end
     bufopt.formatoptions = 'roqnlj'
 end
+
+vim.cmd([[
+augroup formatoptions
+  autocmd!
+  autocmd FileType * lua set_format_options()
+  autocmd FileType gitcommit setlocal spell
+augroup END
+]])
+

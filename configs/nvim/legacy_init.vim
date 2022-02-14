@@ -52,13 +52,6 @@ augroup termfix
   autocmd TermLeave * checktime
 augroup END
 
-" The default is to set formatoptions to automatically wrap comments
-augroup formatoptions
-  autocmd!
-  autocmd FileType * lua set_format_options()
-  autocmd FileType gitcommit setlocal spell
-augroup END
-
 augroup highlightingfix
   autocmd!
   " shakespearean templates ≈ their respective languages, and I'd rather have
