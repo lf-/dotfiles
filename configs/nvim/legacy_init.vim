@@ -116,13 +116,20 @@ highlight CocHintSign ctermfg=10 guifg=#586e75
 " likewise on code lenses
 highlight! link CocCodeLens CocHintSign
 
-" Make the highlight of inactive code and such much much less obtrusive
-if has('gui_running') || &termguicolors
+function! s:configure_highlights() abort
   let s:normal_bg = toupper(synIDattr(synIDtrans(hlID("Normal")), 'bg#'))
   exe 'highlight CocHintHighlight guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.40)
 
   " also make the floating window background have contrast with the normal background
   exe 'highlight CocFloating guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.30)
+
+  exe 'highlight TreesitterContext guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.40)
+endfunction
+
+" Make the highlight of inactive code and such much much less obtrusive
+if has('gui_running') || &termguicolors
+  call s:configure_highlights()
+  au ColorScheme * call <SID>configure_highlights()
 endif
 
 " By default the search highlight is very obvious and kinda ugly. we make it
@@ -135,7 +142,7 @@ function! s:syntax_query() abort
     echo synIDattr(id, "name")
   endfor
 endfunction
-command! SyntaxQuery call s:syntax_query()
+command! SyntaxQuery call <SID>syntax_query()
 
 """"""""""""""""""""""""""""""""""""""
 " COMPLETION
