@@ -1,4 +1,6 @@
 local maps = require('maps')
+local Path = require('plenary.path')
+local uv = vim.loop
 local opt = vim.opt
 local bufopt = vim.opt_local
 local g = vim.g
@@ -218,6 +220,9 @@ opt.listchars = 'tab:  ,trail:•'
 
 opt.guifont = 'Iosevka:h18'
 
+opt.printoptions = 'paper:letter,syntax:y,number:y,left:3pc'
+opt.printfont = 'Iosevka:h10'
+
 ----------------------------------------------------------------------
 -- Mappings
 ----------------------------------------------------------------------
@@ -388,6 +393,39 @@ end
 
 make_telescope_command('FindFiles', 'find_files')
 make_telescope_command('LiveGrep', 'live_grep')
+
+nvim_new_command('PrintPDF', function (args)
+        local p = tostring(Path:new(vim.fn.stdpath('cache')) / 'printpdf.ps')
+        local p_esc = vim.fn.fnameescape(p)
+
+        -- switch to a light theme
+        local prev_col = g.colors_name
+        local prev_bg = opt.background
+        vim.cmd('colorscheme PaperColor')
+        opt.background = 'light'
+
+        local bufnr = vim.api.nvim_get_current_buf()
+        require('nvim-treesitter.configs').detach_module('highlight', bufnr)
+
+        -- do the hardcopy
+        vim.cmd('hardcopy > ' .. p_esc)
+        uv.spawn('ps2pdf', {
+            args = {p, args.args},
+        }, function ()
+            -- delete our temp file once we're done
+            uv.fs_unlink(p)
+        end)
+
+        -- revert
+        vim.cmd('colorscheme ' .. prev_col)
+        opt.background = prev_bg
+        require('nvim-treesitter.configs').attach_module(
+            'highlight',
+            bufnr,
+            require('nvim-treesitter.parsers').get_buf_lang(bufnr)
+        )
+    end,
+    {nargs = 1, complete = 'file'})
 
 _G.pp = function (v)
     print(vim.inspect(v))
