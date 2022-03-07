@@ -1,6 +1,8 @@
 import logging
 import sys
 
+logger = logging.getLogger('aiopanel.my_config')
+
 import aiopanel
 
 out_adapter = aiopanel.SubprocessAdapter([
@@ -14,10 +16,7 @@ out_fmt = '{{ bspwm }}%{c}{{ title }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf01
 
 log_level = 'INFO'
 
-bspwm_ctx = {
-    'active_colour': '#ff4c5399',
-    'inactive_colour': '#ff303030'
-}
+bspwm_ctx = {'active_colour': '#ff4c5399', 'inactive_colour': '#ff303030'}
 
 bspwm_template = """
 {%- for m in wm.monitors.values() -%}
@@ -34,7 +33,6 @@ bspwm_template = """
 {{- '' -}}
 """
 
-
 cm_template = """
 {%- set active_svcs = services.filter('State', 'online') %}
 {%- for svc in active_svcs.filter('Type', 'ethernet').values() %}
@@ -44,7 +42,6 @@ cm_template = """
     {{- '\uf1eb ' }}{{ svc.Name }}{{ ' | ' }}
 {%- endfor -%}
 """
-
 
 colour_fullycharged = '#20c424'
 colour_low = '#c40004'
@@ -67,7 +64,7 @@ def select_batt_icon(dev):
     devstates = {
         aiopanel.UPowerState.EMPTY: '\uf244',
         aiopanel.UPowerState.FULLY_CHARGED:
-                f'\uf1e6 %{{F{colour_fullycharged}}}\uf240%{{F-}}',
+        f'\uf1e6 %{{F{colour_fullycharged}}}\uf240%{{F-}}',
         aiopanel.UPowerState.DISCHARGING: get_batt_cap_icon(dev),
         aiopanel.UPowerState.PENDING_DISCHARGE: get_batt_cap_icon(dev),
         aiopanel.UPowerState.CHARGING: '\uf1e6 ' + get_batt_cap_icon(dev),
@@ -98,6 +95,16 @@ upower_ctx = {
     'select_batt_icon': select_batt_icon,
 }
 
+def select_dev_icon(dev):
+    # FIXME: this doesn't support many icons
+    icon_name = dev.proplist.get('device.icon_name')
+    icon = {
+        'audio-headset-bluetooth': '\uf294',
+    }.get(icon_name, '')
+    logger.info('icon name %r icon is %r', icon_name, icon)
+
+    return icon
+
 
 def select_vol_icon(dev):
     vol = dev.volume * 100.0
@@ -109,15 +116,16 @@ def select_vol_icon(dev):
     else:
         return '\uf027'
 
+
 pulse_ctx = {
     'select_vol_icon': select_vol_icon,
+    'select_dev_icon': select_dev_icon,
 }
 
 pulse_template = """
-{{- ctx.select_vol_icon(state) }}{{ ' ' }}
+{{- ctx.select_vol_icon(state) }}{{- ctx.select_dev_icon(state) }}{{ ' ' }}
 {{- (state.volume * 100)|round|int }}{{ '% | ' -}}
 """
-
 
 widgets = {
     'bspwm': [aiopanel.BspwmWidget(bspwm_template, ctx=bspwm_ctx)],
