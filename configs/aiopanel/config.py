@@ -7,8 +7,10 @@ import aiopanel
 
 out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
+    '-o0',
     '-fSource Sans Pro:size=11',
-    '-fFontAwesome:size=11',
+    '-o-2',
+    '-fFont Awesome 5 Free:size=11',
     '-gx20',
     '-naiopanel',
 ])
@@ -101,7 +103,6 @@ def select_dev_icon(dev):
     icon = {
         'audio-headset-bluetooth': '\uf294',
     }.get(icon_name, '')
-    logger.info('icon name %r icon is %r', icon_name, icon)
 
     return icon
 
