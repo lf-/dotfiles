@@ -11,6 +11,8 @@ out_adapter = aiopanel.SubprocessAdapter([
     '-fSource Sans Pro:size=11',
     '-o-2',
     '-fFont Awesome 5 Free:size=11',
+    '-o-2',
+    '-fFont Awesome 5 Brands:size=11',
     '-gx20',
     '-naiopanel',
 ])
