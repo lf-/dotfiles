@@ -10,6 +10,7 @@
 	rs = restore --staged
 	ap = add -pu
     bigclone = clone --filter=tree:0
+    amend = commit --amend --no-edit
     fix = commit --fixup
 	git = !git
 	pukk = pull
