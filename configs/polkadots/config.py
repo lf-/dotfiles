@@ -70,6 +70,7 @@ actions = [
 dotconfigs = [
     'aiopanel',
     'bspwm',
+    'gdb',
     'gh',
     'git',
     'lolcate',
