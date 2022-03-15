@@ -47,7 +47,8 @@ require'nvim-treesitter.configs'.setup {
         },
     },
     rainbow = {
-        enable = true,
+        -- FIXME: this seems to be too slow :(
+        enable = false,
         extended_mode = true,
     },
     playground = {
