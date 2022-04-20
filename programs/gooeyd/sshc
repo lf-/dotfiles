@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ -z "$LC_GOOEYD_SOCK" ]]; then
+    echo 'missing LC_GOOEYD_SOCK env-var'
+fi
+
+localsock="$LC_GOOEYD_SOCK"
+export LC_GOOEYD_SOCK=/tmp/gooeyd-$RANDOM
+exec ssh -o SendEnv=LC_GOOEYD_SOCK -R "$LC_GOOEYD_SOCK:$localsock" "$@"

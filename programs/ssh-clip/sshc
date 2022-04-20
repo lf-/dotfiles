@@ -1,9 +1,0 @@
-#!/bin/bash
-
-if [[ -z "$LC_SSH_CLIP_SOCK" ]]; then
-    echo 'missing LC_SSH_CLIP_SOCK env-var'
-fi
-
-localsock="$LC_SSH_CLIP_SOCK"
-export LC_SSH_CLIP_SOCK=/tmp/ssh-clip-$RANDOM
-exec ssh -o SendEnv=LC_SSH_CLIP_SOCK -R "$LC_SSH_CLIP_SOCK:$localsock" "$@"
