@@ -63,7 +63,11 @@ If you have an http client that supports running over a Unix socket, here's the
 API:
 
 `POST /copy` - with body of what you want to copy
+
 `POST /copy?primary=xyzThisFieldIsIgnored` - same but primary selection
+
 `GET /paste` - returns the clipboard contents as body
+
 `GET /paste?primary=xyzThisFieldIsIgnored` - same but primary selection
+
 `POST /open-url` - with body of the url you want to open
