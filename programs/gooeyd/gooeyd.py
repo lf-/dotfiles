@@ -9,16 +9,20 @@
 # use the ssh option -o SendEnv=LC_CRIMES
 
 import argparse
-import pyperclip
+import atexit
+from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import inspect
+from pathlib import Path
 import socket
 from socketserver import TCPServer
-from http.server import BaseHTTPRequestHandler, HTTPServer
 import sys
-from pathlib import Path
-from dataclasses import dataclass
-import webbrowser
 import tempfile
-import atexit
+from typing import Tuple
+import urllib.parse
+import webbrowser
+
+import pyperclip
 
 TEMPDIR = Path(tempfile.gettempdir())
 SOCK = TEMPDIR / 'gooeyd.sock'
@@ -27,6 +31,9 @@ atexit.register(lambda: SOCK.unlink(missing_ok=True))
 SOCK.unlink(missing_ok=True)
 
 DO_OPEN = True
+
+(copy, paste) = pyperclip.determine_clipboard()
+HAVE_PRIMARY = 'primary' in inspect.signature(copy).parameters
 
 
 # hack from https://stackoverflow.com/questions/21650370/setting-up-an-http-server-that-listens-over-a-file-socket
@@ -55,6 +62,11 @@ class Reply:
     content_type: str = 'application/octet-stream'
 
 
+def parse_path(path) -> Tuple[str, dict[str, list[str]]]:
+    res = urllib.parse.urlparse(path, 'http://')
+    return (res.path, urllib.parse.parse_qs(res.query))
+
+
 class Handler(BaseHTTPRequestHandler):
 
     def reply(self, reply: Reply):
@@ -68,30 +80,44 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(content)
 
-    def do_GET(self):
-        HANDLERS = {
-            '/paste': self.paste,
-        }
-
-        handler = HANDLERS.get(self.path)
+    def call_handler(self, handlers, body=None):
+        (path, args) = parse_path(self.path)
+        handler = handlers.get(path)
         if handler:
-            reply = handler()
+            reply = handler(args=args, body=body)
         else:
             reply = Reply(404, {}, 'Path not found')
 
         self.reply(reply)
 
-    def paste(self) -> Reply:
-        clip = pyperclip.paste()
+    def do_GET(self):
+        HANDLERS = {
+            '/paste': self.paste,
+        }
+
+        self.call_handler(HANDLERS)
+
+    def paste(self, args, **_) -> Reply:
+        if args.get('primary') and HAVE_PRIMARY:
+            clip = paste(primary=True)  # type: ignore
+        else:
+            clip = paste()
+
         return Reply(code=200, headers={}, content=clip)
 
-    def copy(self, body: str) -> Reply:
-        pyperclip.copy(body)
+    def copy(self, body: str, args, **_) -> Reply:
+        if args.get('primary') and HAVE_PRIMARY:
+            copy(body, primary=True)  # type: ignore
+        else:
+            copy(body)
+
         return Reply(code=200, headers={}, content='')
 
-    def open_url(self, body: str) -> Reply:
+    def open_url(self, body: str, **_) -> Reply:
         if not DO_OPEN:
-            return Reply(code=401, headers={}, content='open-url is disabled on this server')
+            return Reply(code=401,
+                         headers={},
+                         content='open-url is disabled on this server')
         # XXX: this is an arbitrary remote command execution on platforms where
         # the browser is set to something like the `open` command. i don't
         # think there's much we can actually do about this short of a highly
@@ -116,30 +142,28 @@ class Handler(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('Content-Length'))
         post_body = self.rfile.read(content_len).decode('utf-8')
 
-        handler = HANDLERS.get(self.path)
-        if handler:
-            reply = handler(post_body)
-        else:
-            reply = Reply(404, {}, 'Path not found')
-
-        self.reply(reply)
+        self.call_handler(HANDLERS, post_body)
 
 
 def main(raw_args, prog_name):
     global DO_OPEN
     ap = argparse.ArgumentParser(prog=prog_name)
-    ap.add_argument('--disable-open', help='disables the open handler, as it '
-            'may be a remote code execution by opening files for anyone with '
-            'the socket if your system has "open" or similar set as the '
-            'browser', action='store_true', default=False)
+    ap.add_argument(
+        '--disable-open',
+        help='disables the open handler, as it '
+        'may be a remote code execution by opening files for anyone with '
+        'the socket if your system has "open" or similar set as the '
+        'browser',
+        action='store_true',
+        default=False)
 
     args = ap.parse_args(raw_args)
     DO_OPEN = not args.disable_open
 
-    server = UnixHTTPServer(str(SOCK), Handler)
+    server = UnixHTTPServer(str(SOCK), Handler)  # type: ignore
     print(f"socket is at {SOCK}")
     server.serve_forever()
 
+
 if __name__ == '__main__':
     main(sys.argv[1:], sys.argv[0])
-

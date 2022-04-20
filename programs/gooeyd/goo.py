@@ -12,8 +12,8 @@ def post(path, socket, data=None):
     stdin = subprocess.PIPE if data else None
 
     cmdline = ('curl', '--silent', '--unix-socket', socket, '-XPOST',
-                    '--fail-with-body',
-                    '--data-binary', '@-', 'http:/test{path}'.format(path=path))
+               '--fail-with-body', '--data-binary', '@-',
+               'http:/test{path}'.format(path=path))
     proc = subprocess.Popen(cmdline, stdin=stdin)
     if data:
         proc.communicate(data.encode('utf-8'))
@@ -23,12 +23,14 @@ def post(path, socket, data=None):
 
 
 def do_copy(args):
-    post('/copy', args.socket)
+    primary = '?primary=true' if args.primary else ''
+    post('/copy{primary}'.format(primary=primary), args.socket)
 
 
 def do_paste(args):
-    subprocess.run(
-        ('curl', '--silent', '--unix-socket', args.socket, 'http:/test/paste'))
+    primary = '?primary=true' if args.primary else ''
+    subprocess.run(('curl', '--silent', '--unix-socket', args.socket,
+                    'http:/test/paste{primary}'.format(primary=primary)))
 
 
 def do_open_url(args):
@@ -56,10 +58,20 @@ def main(args_raw, prog_name):
     copy_parser = sps.add_parser('copy',
                                  help='copy something to the clipboard')
     copy_parser.set_defaults(target=do_copy)
+    copy_parser.add_argument(
+        '--primary',
+        '-p',
+        help='use the primary (middle click) selection if available',
+        action='store_true')
 
     paste_parser = sps.add_parser('paste',
                                   help='paste text from the clipboard')
     paste_parser.set_defaults(target=do_paste)
+    paste_parser.add_argument(
+        '--primary',
+        '-p',
+        help='use the primary (middle click) selection if available',
+        action='store_true')
 
     open_url_parser = sps.add_parser('open', help='open a url')
     open_url_parser.set_defaults(target=do_open_url)
