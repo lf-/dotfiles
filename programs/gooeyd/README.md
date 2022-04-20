@@ -34,7 +34,7 @@ the environment variable some other way.
 **NOTE**: on some systems, the python webbrowser module which we use will open
 arbitrary files if you give it arbitrary file paths. this is probably a remote
 code execution (but restricted to your user) as it could open arbitrary
-programs. if you don't like this, pass `--disable-open` to `gooeyd.py` and to
+programs. if you don't like this, pass `--disable-open` to `gooeyd.py` to
 disable the open feature.
 
 ### Usage
