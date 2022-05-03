@@ -38,7 +38,12 @@ struct Args {
 }
 
 fn get_socket() -> Result<String> {
-    env::var("NVIM_LISTEN_ADDRESS").wrap_err("getting NVIM_LISTEN_ADDRESS")
+    // https://github.com/neovim/neovim/pull/11009 changed the socket env-var
+    // from NVIM_LISTEN_ADDRESS to NVIM, but the latter is not available on
+    // older builds
+    env::var("NVIM")
+        .or_else(|_| env::var("NVIM_LISTEN_ADDRESS"))
+        .wrap_err("getting $NVIM/$NVIM_LISTEN_ADDRESS")
 }
 
 /// Opening mode
