@@ -12,7 +12,7 @@ local nvim_call = vim.api.nvim_call_function
 local nvim_new_command = vim.api.nvim_add_user_command or function () end
 
 require'nvim-treesitter.configs'.setup {
-    ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
+    ensure_installed = "all", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
     -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
     highlight = {
         enable = true,
@@ -234,18 +234,20 @@ _G.find_files_relative = function ()
     })
 end
 
-local nmap_silent = maps.nmap_silent
-local noremap = maps.noremap
-local nnoremap = maps.nnoremap
-local nnoremap_silent = maps.nnoremap_silent
--- local vnoremap = maps.vnoremap
-local inoremap = maps.inoremap
-local inoremap_silent = maps.inoremap_silent
-local nmap = maps.nmap
--- local vmap = maps.vmap
-local omap = maps.omap
-local xmap = maps.xmap
-local xmap_silent = maps.xmap_silent
+-- Make all of these global so I can just add a mapping and copy it from the rc
+-- file without restarting the editor
+_G.nmap_silent = maps.nmap_silent
+_G.noremap = maps.noremap
+_G.nnoremap = maps.nnoremap
+_G.nnoremap_silent = maps.nnoremap_silent
+-- _G.vnoremap = maps.vnoremap
+_G.inoremap = maps.inoremap
+_G.inoremap_silent = maps.inoremap_silent
+_G.nmap = maps.nmap
+-- _G.vmap = maps.vmap
+_G.omap = maps.omap
+_G.xmap = maps.xmap
+_G.xmap_silent = maps.xmap_silent
 
 nnoremap(";", ":")
 
@@ -262,6 +264,7 @@ noremap("<M-n>", "<Cmd>:tabn<cr>")
 noremap("<M-p>", "<Cmd>:tabp<cr>")
 nmap("<Leader>iv", "<Cmd>:source ~/.config/nvim/init.vim<cr>")
 nnoremap("<Leader>t", "<Cmd>:vsp term://zsh<cr>")
+nnoremap("<Leader>T", "<Cmd>:below split term://zsh<cr>")
 nnoremap("<Leader>oiv", "<Cmd>:call OpenVimrc()<cr>")
 nnoremap("<Leader>op", "<Cmd>:sp output:///rust-analyzer<cr>")
 nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
@@ -436,11 +439,20 @@ _G.set_format_options = function()
     if vim.o.filetype == 'gitcommit' then
         return
     end
-    if vim.o.filetype == 'text' then
+    if vim.o.filetype == 'text' or vim.o.filetype == 'markdown' then
         bufopt.textwidth = 79
         return
     end
+
     bufopt.formatoptions = 'roqnlj'
+
+    -- the default plugin for this sets tw to 100 or something. I don't use the
+    -- formatoption to format while typing so this only matters for comments
+    -- where 79 is better.
+    if vim.o.filetype == 'rust' then
+        bufopt.textwidth = 79
+        bufopt.formatoptions:append('c')
+    end
 end
 
 vim.cmd([[

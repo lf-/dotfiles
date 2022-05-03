@@ -77,10 +77,6 @@ augroup spacing
   autocmd FileType yesod setlocal sw=4 sts=4 ts=4 et ai
   autocmd FileType vim setlocal sw=2 sts=2 ts=2 et ai
   autocmd FileType json setlocal sw=2 sts=2 ts=2 et ai
-  " the default plugin for this sets tw to 100 or something. I don't use the
-  " formatoption to format while typing so this only matters for comments
-  " where 79 is better.
-  autocmd FileType rust setlocal tw=79 fo+=c
 augroup END
 
 set title
