@@ -49,6 +49,8 @@ in
       (import ../overlays/polkadots.nix { inherit (sources) polkadots; })
     ];
 
+    boot.loader.grub.configurationLimit = 1;
+
     environment.systemPackages =
       with (import ../packages.nix { inherit pkgs; });
       builtins.concatLists [ base dev ];
