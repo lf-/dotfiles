@@ -1,3 +1,13 @@
 #!/bin/sh
 
-nix-shell --run "haskell-language-server-wrapper $@"
+if [[ -e ./.no-hls ]]; then
+    echo "$0: .no-hls present, not trying" >&2
+    exit 1
+elif [[ -e ./flake.nix ]]; then
+    nix develop -c haskell-language-server-wrapper "$@"
+elif [[ -e ./shell.nix || -e ./default.nix ]]; then
+    nix-shell --run "haskell-language-server-wrapper $@"
+else
+    echo "$0: No Nix files detected in this root" >&2
+    exit 1
+fi
