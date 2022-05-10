@@ -1,0 +1,4 @@
+#!/bin/sh
+export SSH_AUTH_SOCK=/tmp/$USER/ssh-agent.sock
+ssh-agent -a $SSH_AUTH_SOCK >/dev/null
+SSH_ASKPASS=ksshaskpass ssh-add -s /usr/lib/pkcs11/libtpm2_pkcs11.so </dev/null
