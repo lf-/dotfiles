@@ -1,4 +1,10 @@
 #!/bin/sh
 export SSH_AUTH_SOCK=/tmp/$USER/ssh-agent.sock
+pkcs11_mod=/usr/lib/pkcs11/libtpm2_pkcs11.so
+
+if [[ -d /etc/nixos ]]; then
+    pkcs11_mod=/run/current-system/sw/lib/libtpm2_pkcs11.so
+fi
+
 ssh-agent -a $SSH_AUTH_SOCK >/dev/null
-SSH_ASKPASS=ksshaskpass ssh-add -s /usr/lib/pkcs11/libtpm2_pkcs11.so </dev/null
+SSH_ASKPASS=ksshaskpass ssh-add -s $pkcs11_mod </dev/null
