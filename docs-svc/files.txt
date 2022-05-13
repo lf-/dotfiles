@@ -4,3 +4,4 @@ gnu
 zsh
 gnudocs.tar.gz
 man
+postgres

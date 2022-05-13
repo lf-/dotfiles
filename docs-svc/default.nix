@@ -378,7 +378,7 @@ rec {
 
   };
 
-  postgresql = buildPostgres pkgs.postgresql;
+  postgresql = docify (buildPostgres pkgs.postgresql);
 
   defaults = map defaultAutotools (
     with pkgs; [
