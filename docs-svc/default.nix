@@ -1,6 +1,7 @@
 {}:
 let
-  pkgs = import <nixpkgs> {};
+  sources = import ./nix/sources.nix;
+  pkgs = import sources.nixpkgs {};
 
   buildHtmlWith = f: pkg: pkg.overrideAttrs (
     old@{ nativeBuildInputs ? [], ... }: {
@@ -229,6 +230,29 @@ let
     }
   );
 
+  buildPostgres = buildHtmlWith (
+    old: {
+      buildInputs = old.buildInputs ++ (with pkgs; [
+        docbook_xsl
+        docbook_xml_dtd_42
+      ]);
+      nativeBuildInputs = old.nativeBuildInputs ++ (with pkgs; [
+        libxslt
+        perl
+      ]);
+      doConfigure = false;
+      separateDebugInfo = false;
+      buildPhase = ''
+        cd doc/src/sgml
+        make postgres.html
+      '';
+
+      installPhase = ''
+        mkdir -p $out
+        find . -name postgres.html -exec cp '{}' $out ';'
+      '';
+    }
+  );
 
   docify = p: pkgs.stdenv.mkDerivation {
     name = "${p.name}-htmldoc";
@@ -353,6 +377,8 @@ rec {
     buildInputs = [ zsh' ];
 
   };
+
+  postgresql = buildPostgres pkgs.postgresql;
 
   defaults = map defaultAutotools (
     with pkgs; [
