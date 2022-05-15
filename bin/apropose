@@ -1,0 +1,2 @@
+#!/bin/sh
+rg -lz "$1" /usr/share/man | perl -pe 's#.*/(.*?)(\.gz)?$#\1#'
