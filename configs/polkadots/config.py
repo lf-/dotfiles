@@ -55,8 +55,9 @@ actions = [
 
     MkdirAction('~/.config/systemd'),
     MkdirAction('~/.cargo'),
-    SymlinkAction('../docs-svc/*.service', '~/.config/systemd/user'),
-    SymlinkAction('../docs-svc/*.timer', '~/.config/systemd/user'),
+    # this is a bad idea... but also it does not do globbing or probably dirs properly lmao
+    # SymlinkAction('../docs-svc/*.service', '~/.config/systemd/user'),
+    # SymlinkAction('../docs-svc/*.timer', '~/.config/systemd/user'),
     SymlinkAction('cargo/config.toml', '~/.cargo/config.toml'),
 
     MkdirAction('~/.ipython/profile_default'),
@@ -70,6 +71,7 @@ actions = [
 dotconfigs = [
     'aiopanel',
     'bspwm',
+    'direnv',
     'gdb',
     'gh',
     'git',

@@ -10,7 +10,7 @@ pager:
 aliases:
     co: pr checkout
     clone: repo clone
-    search: 'api -X GET search/repositories -f q=''$1'' --template ''{{range .items}}{{ .full_name | color "white" }}: {{ .description }}{{"\n"}}{{ end }}'''
+    sr: search repos
     # token may not have privs. try
     # gh auth refresh -h github.com -s delete_repo
     repoDelete: 'api -X DELETE repos/$1'
