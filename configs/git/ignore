@@ -17,3 +17,5 @@ result
 *.autosave.xopp
 a.out
 node_modules
+.envrc
+.direnv/

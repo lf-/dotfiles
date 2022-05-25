@@ -1,4 +1,4 @@
-include "%L"   # import the default Compose file for your locale
+#include "%L"   # import the default Compose file for your locale
 include "%H/.dotfiles/configs/xcompose/dotXCompose"
 
 <Multi_key> <x> <plus>     : "✔" U2714
