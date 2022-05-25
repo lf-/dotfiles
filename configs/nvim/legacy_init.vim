@@ -69,14 +69,6 @@ augroup spacing
   autocmd!
   " the stock html indentexpr is broken as hell
   autocmd FileType html setlocal indentexpr=
-
-  autocmd FileType python setlocal sw=4 sts=4 et
-  autocmd FileType docker-compose setlocal ts=4 sts=4 sw=4 et ai
-  autocmd FileType cabal setlocal sw=4 sts=4 ts=4 et ai
-  autocmd FileType haskell setlocal sw=4 sts=4 ts=4 et ai
-  autocmd FileType yesod setlocal sw=4 sts=4 ts=4 et ai
-  autocmd FileType vim setlocal sw=2 sts=2 ts=2 et ai
-  autocmd FileType json setlocal sw=2 sts=2 ts=2 et ai
 augroup END
 
 set title

@@ -100,6 +100,9 @@ require('telescope').setup {
 g.instant_username = 'jade'
 
 g.EditorConfig_exclude_patterns = {'fugitive://.*'}
+-- don't touch formatoptions when editorconfig specifies line length
+g.EditorConfig_preserve_formatoptions = 1
+
 g.windowswap_map_keys = 0
 
 g.neovide_cursor_animation_length=0.02
@@ -213,6 +216,9 @@ opt.lazyredraw = false
 opt.cursorline = true
 opt.number = true
 
+-- Don't rebalance windows on change
+opt.equalalways = false
+
 -- Use only one space while joining lines ending with a period
 opt.joinspaces = false
 
@@ -223,6 +229,35 @@ opt.guifont = 'Iosevka:h18'
 
 opt.printoptions = 'paper:letter,syntax:y,number:y,left:3pc'
 opt.printfont = 'Iosevka:h10'
+
+-- See https://github.com/neovim/neovim/issues/10223#issuecomment-703544303
+if vim.env.WAYLAND_DISPLAY then
+    -- clipboard on wayland with newline fix
+    vim.g.clipboard = {
+        name = "WL-Clipboard with ^M Trim",
+        copy = {
+            ["+"] = "wl-copy --foreground --trim-newline --type text/plain",
+            ["*"] = "wl-copy --foreground --trim-newline --type text/plain --primary"
+        },
+        paste = {
+            ["+"] = function()
+                return {vim.fn.systemlist(
+                    'wl-paste --no-newline --type "text/plain;charset=utf-8" 2>/dev/null | tr -d $"\r"',
+                    "",
+                    1
+                ), 'v'}
+            end,
+            ["*"] = function()
+                return {vim.fn.systemlist(
+                    'wl-paste --no-newline --type "text/plain;charset=utf-8" --primary 2>/dev/null | tr -d $"\r"',
+                    "",
+                    1
+                ), 'v'}
+            end
+        },
+        cache_enabled = 1
+    }
+end
 
 ----------------------------------------------------------------------
 -- Mappings
@@ -268,6 +303,7 @@ nnoremap("<Leader>T", "<Cmd>:below split term://zsh<cr>")
 nnoremap("<Leader>oiv", "<Cmd>:call OpenVimrc()<cr>")
 nnoremap("<Leader>op", "<Cmd>:sp output:///rust-analyzer<cr>")
 nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
+nnoremap("<Leader>hl", "<Cmd>:call CocAction('toggleService', 'languageserver.haskell')<cr>")
 
 -- telescope
 nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
