@@ -234,7 +234,7 @@ let
     old: {
       buildInputs = old.buildInputs ++ (with pkgs; [
         docbook_xsl
-        docbook_xml_dtd_42
+        docbook_xml_dtd_45
       ]);
       nativeBuildInputs = old.nativeBuildInputs ++ (with pkgs; [
         libxslt
@@ -378,7 +378,7 @@ rec {
 
   };
 
-  postgresql = docify (buildPostgres pkgs.postgresql);
+  postgresql = docify (buildPostgres pkgs.postgresql_14);
 
   defaults = map defaultAutotools (
     with pkgs; [
