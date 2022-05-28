@@ -31,6 +31,10 @@ let
       buildPhase = ''
         make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
       '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
+      outputs = [ "out" ];
     }
   );
 
@@ -379,6 +383,8 @@ rec {
   };
 
   postgresql = docify (buildPostgres pkgs.postgresql_14);
+
+  coreutils = defaultAutotools pkgs.coreutils;
 
   defaults = map defaultAutotools (
     with pkgs; [
