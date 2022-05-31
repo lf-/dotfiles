@@ -1,3 +1,4 @@
 gnu
 zsh
 man
+postgres

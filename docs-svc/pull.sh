@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 source .deploy_config
 
 DEFAULT_OPTS="--protect-args --verbose --human-readable --recursive --times \
