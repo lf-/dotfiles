@@ -46,11 +46,6 @@
                 "hie.yaml"
             ],
             "filetypes": ["haskell", "lhaskell"],
-            "settings": {
-                "languageServerHaskell": {
-                    "formattingProvider": "stylish-haskell"
-                }
-            }
         }
     },
     "prettier.tabWidth": 4,
