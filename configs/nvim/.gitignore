@@ -5,3 +5,4 @@ autoload/*
 spell/*.spl
 shada/*
 plugin/packer_compiled.lua
+lateinit-site.lua

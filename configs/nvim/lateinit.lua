@@ -501,3 +501,4 @@ augroup formatoptions
 augroup END
 ]])
 
+vim.api.nvim_exec('runtime lateinit-site.lua', false)
