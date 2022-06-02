@@ -1,2 +1,3 @@
 #!/bin/sh
-rg -lz "$1" /usr/share/man | perl -pe 's#.*/(.*?)(\.gz)?$#\1#'
+mp="$(manpath | tr ':' ' ')"
+rg -lz "$1" $mp | perl -pe 's#.*/(.*?)(\.gz)?$#\1#'
