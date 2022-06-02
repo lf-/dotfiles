@@ -9,6 +9,7 @@ a.vim
 *.o
 .vim-bookmarks
 tags
+tags-haskell
 *.nixops
 result
 *~
