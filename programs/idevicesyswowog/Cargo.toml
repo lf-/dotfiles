@@ -10,5 +10,5 @@ dirs = "3.0.2"
 lazy_static = "1.4.0"
 owo-colors = "2.0.0"
 regex = "1.5.3"
-rusqlite = { version = "0.25.1", features = ["functions"] }
+rusqlite = { version = "0.25.4", features = ["functions"] }
 tui = "0.15.0"
