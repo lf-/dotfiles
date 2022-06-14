@@ -14,7 +14,11 @@ if has('unix')
     let s:uri = matchstr(getline('.'), '[a-z]*:\/\/[^ >,;()]*')
     let s:uri = shellescape(s:uri, 1)
     if s:uri != ''
-      silent exec "!xdg-open '".s:uri."'"
+      if has('mac')
+        silent exec "!open '".s:uri."'"
+      else
+        silent exec "!xdg-open '".s:uri."'"
+      endif
       :redraw!
     endif
   endfunction
