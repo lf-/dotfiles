@@ -11,8 +11,9 @@ let g:netrw_nogx = 1
 
 if has('unix')
   function! OpenURLUnderCursor()
-    let s:uri = matchstr(getline('.'), '[a-z]*:\/\/[^ >,;()]*')
+    let s:uri = matchstr(getline('.'), '[a-z]*:\/\/[^ >,;()"'']*')
     let s:uri = shellescape(s:uri, 1)
+    echo 'opened ' . s:uri
     if s:uri != ''
       if has('mac')
         silent exec "!open '".s:uri."'"
