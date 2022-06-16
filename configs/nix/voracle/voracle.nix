@@ -37,6 +37,8 @@ in
       "d /home/shared 0770 root users"
     ];
 
+    i18n.defaultLocale = "en_US.UTF-8";
+
     services.openssh.enable = true;
     services.openssh.passwordAuthentication = false;
     networking.firewall.allowedTCPPorts = [ 80 443 ];

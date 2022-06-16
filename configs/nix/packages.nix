@@ -7,6 +7,7 @@
     nodejs
     rustup
     zsh
+    glibcLocales
   ];
 
   dev = with pkgs; [
