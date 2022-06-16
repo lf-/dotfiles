@@ -60,6 +60,26 @@ let
     }
   );
 
+  buildBinutils = buildHtmlWith (
+    old: {
+      # i quite frankly have no idea why they did this
+      # there's a html-local target that builds docs with split=node
+      # forced?????
+      # WHY!! Let's break it!
+      postPatch = ''
+        find . '(' -name 'Makefile*' -or -name 'local.mk' ')' -exec sed -Ei '/html-am:/s/html-local//' '{}' ';'
+      '';
+
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
+      outputs = [ "out" ];
+    }
+  );
+
   buildM4 = buildHtmlWith (
     old: {
       nativeBuildInputs = [
@@ -386,11 +406,12 @@ rec {
 
   coreutils = defaultAutotools pkgs.coreutils;
 
+  binutils = buildBinutils pkgs.binutils-unwrapped;
+
   defaults = map defaultAutotools (
     with pkgs; [
       autoconf
       automake
-      binutils-unwrapped
       cflow
       coreutils
       cpio
@@ -476,6 +497,7 @@ rec {
       [
         bash
         bison
+        binutils
         ddrescue
         ed
         findutils
