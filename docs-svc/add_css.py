@@ -53,6 +53,11 @@ code, pre {
     border-radius: 0.3em;
 }
 
+svg {
+    /* prevent svgs from doing a wee x overflow */
+    width: 100%;
+}
+
 a {
     text-decoration: none;
     color: var(--link);
