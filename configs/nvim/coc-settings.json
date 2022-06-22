@@ -60,11 +60,7 @@
     ],
     "rust-analyzer.experimental.procAttrMacros": true,
     "rust-analyzer.cargo.unsetTest": ["ed25519-dalek", "core"],
-    "yaml.schemas": {
-        "https://raw.githubusercontent.com/docker/cli/master/cli/compose/schema/data/config_schema_v3.9.json": [
-            "docker-compose.yml"
-        ]
-    },
+    "yaml.schemaStore.enable": true,
     "yaml.trace.server": "verbose",
     "sumneko-lua.enableNvimLuaDev": true,
     "Lua.telemetry.enable": false,
