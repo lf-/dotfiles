@@ -257,6 +257,18 @@ if vim.env.WAYLAND_DISPLAY then
         },
         cache_enabled = 1
     }
+elseif vim.env.LC_GOOEYD_SOCK and vim.fn.executable('goo') then
+    vim.g.clipboard = {
+        name = "gooeyd",
+        copy = {
+            ["+"] = "goo copy",
+            ["*"] = "goo copy --primary",
+        },
+        paste = {
+            ["+"] = "goo paste",
+            ["*"] = "goo paste --primary",
+        }
+    }
 end
 
 ----------------------------------------------------------------------
