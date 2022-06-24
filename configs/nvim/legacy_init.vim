@@ -15,7 +15,9 @@ if has('unix')
     let s:uri = shellescape(s:uri, 1)
     echo 'opened ' . s:uri
     if s:uri != ''
-      if has('mac')
+      if exists("$LC_GOOEYD_SOCK") && executable('goo')
+        silent exec "!goo open '".s:uri."'"
+      elseif has('mac')
         silent exec "!open '".s:uri."'"
       else
         silent exec "!xdg-open '".s:uri."'"
