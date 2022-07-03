@@ -14,6 +14,7 @@
     nix-index
     gitAndTools.delta
     ripgrep
+    fd
     dtach
     tmux
     nix-doc
