@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+resources="$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
+
+nix path-info -rsS --json "$@" \
+    | jq -r -f "$resources/nix-path-info-graphviz.jq" \
+        --argjson simplify_paths true \
+    | dot -Tsvg
+
