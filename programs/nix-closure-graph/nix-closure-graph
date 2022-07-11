@@ -5,6 +5,7 @@ simplify_paths=true
 while true ; do
     case "$1" in
         --)
+            shift
             break
             ;;
         --no-simplify-paths)
