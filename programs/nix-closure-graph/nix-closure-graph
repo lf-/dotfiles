@@ -4,6 +4,9 @@ resources="$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 simplify_paths=true
 while true ; do
     case "$1" in
+        --)
+            break
+            ;;
         --no-simplify-paths)
             simplify_paths=false
             shift
