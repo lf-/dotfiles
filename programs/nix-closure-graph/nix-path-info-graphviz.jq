@@ -26,19 +26,19 @@ def size_pretty:
 
 def graphedge:
     # debug |
-    .path as $origpath
-    | render_path(.path) as $path
+    .path as $path
     | .references[]
-    | select(. != $origpath)
-    | "\"\($path)\" -> \"\(render_path(.))\";"
+    | select(. != $path)
+    | "\"\($path)\" -> \"\(.)\";"
     ;
 
 def graphnode:
     # debug |
-    (.path | render_path(.)) as $node
+    .path as $node
+    | (.path | render_path(.)) as $pretty
     | (.narSize | size_pretty) as $size
     | (.closureSize | size_pretty) as $closureSize
-    | "\"\($node)\" [label = \"\($node)\\n\($size) / \($closureSize)\"];"
+    | "\"\($node)\" [label = \"\($pretty)\\n\($size) / \($closureSize)\"];"
     ;
 
 "digraph G {\n",
