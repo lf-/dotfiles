@@ -34,12 +34,7 @@ this is desktop agnostic, in general. however, some desktops have configs.
 
 #### editor
 
-nvim, with a buncha vim-plug plugins. Can be installed post-polkadots:
-
-```sh
-# ensure you have neovim 0.5
-$ ~/.config/nvim/setup.sh
-```
+nvim, with a buncha vim-plug plugins.
 
 #### shell
 
