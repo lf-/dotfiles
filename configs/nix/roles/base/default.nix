@@ -5,7 +5,7 @@
   environment.systemPackages = with pkgs; [
     file
     neovim
-    polkadots
+    pkgs.polkadots
     nodejs
     rustup
     zsh
