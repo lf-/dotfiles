@@ -8,7 +8,7 @@ import aiopanel
 out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
     '-o0',
-    '-fRoboto:size=11',
+    '-fSource Sans 3:size=11',
     '-o-2',
     '-fFont Awesome 5 Free:size=11',
     '-o-2',
