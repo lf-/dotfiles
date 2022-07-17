@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # to paste:
 # curl --unix-socket /tmp/nya.sock http:/test
 #
