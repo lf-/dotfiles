@@ -74,6 +74,7 @@ return require('packer').startup(function(use)
     use 'qnighy/lalrpop.vim'
     use 'editorconfig/editorconfig-vim'
     use 'tikhomirov/vim-glsl'
+    use 'bfrg/vim-jq'
 
     -- Automatically set up your configuration after cloning packer.nvim
     -- Put this at the end after all plugins
