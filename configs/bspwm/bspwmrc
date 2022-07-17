@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 bspc monitor -d I II III IV V VI VII VIII
 bspc config focus_follows_pointer true
 bspc config pointer_modifier mod4
