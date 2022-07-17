@@ -1,8 +1,6 @@
 { config, pkgs, ... }:
-let sources = import ./nix/sources.nix;
-in
 {
-  nix.nixPath = [ "nixpkgs=${sources.nixpkgs}" ];
+  nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
 
   environment.systemPackages = with pkgs; [
     file
