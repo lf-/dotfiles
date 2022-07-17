@@ -29,6 +29,7 @@ in
     psmisc
     glibcLocales
     nixos-option
+    gcc
   ];
 
   programs.git.enable = true;
