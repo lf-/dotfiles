@@ -1,12 +1,14 @@
 { config, pkgs, lib, ... }:
 with lib;
 {
-  jade.wireguard = {
-    enable = mkEnableOption "jade wireguard";
-    upstreamInterface = mkOption {
-      description = "upstream interface for wireguard vpn server";
-      type = types.string;
-      default = "eth0";
+  options = {
+    jade.wireguard = {
+      enable = mkEnableOption "jade wireguard";
+      upstreamInterface = mkOption {
+        description = "upstream interface for wireguard vpn server";
+        type = types.str;
+        default = "eth0";
+      };
     };
   };
 

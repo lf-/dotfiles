@@ -1,0 +1,60 @@
+{
+  "nodes": {
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1656928814,
+        "narHash": "sha256-RIFfgBuKz6Hp89yRr7+NR5tzIAbn52h8vT6vXkYjZoM=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "7e2a3b3dfd9af950a856d66b0a7d01e3c18aa249",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1657802959,
+        "narHash": "sha256-9+JWARSdlL8KiH3ymnKDXltE1vM+/WEJ78F5B1kjXys=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "4a01ca36d6bfc133bc617e661916a81327c9bbc8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "polkadots": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1621318037,
+        "narHash": "sha256-pb3g/XpCNsDm/IoYqE+TEKENeMHKSPdc9IYH929dpdQ=",
+        "owner": "lf-",
+        "repo": "polkadots",
+        "rev": "cbda8e517807b296f772d93e5045fd7d406e6fad",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lf-",
+        "repo": "polkadots",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs",
+        "polkadots": "polkadots"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
