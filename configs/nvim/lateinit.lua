@@ -1,5 +1,6 @@
 local maps = require('maps')
 local Path = require('plenary.path')
+local augroup = require('augroup').augroup
 local uv = vim.loop
 local opt = vim.opt
 local bufopt = vim.opt_local
@@ -9,9 +10,9 @@ local nvim_eval = vim.api.nvim_eval
 local nvim_exec = vim.api.nvim_exec
 local nvim_call = vim.api.nvim_call_function
 -- make it not do anything if there is no support
-local nvim_new_command = vim.api.nvim_create_user_command or function () end
+local nvim_new_command = vim.api.nvim_create_user_command or function() end
 
-require'nvim-treesitter.configs'.setup {
+require 'nvim-treesitter.configs'.setup {
     ensure_installed = "all", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
     -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
     highlight = {
@@ -26,7 +27,7 @@ require'nvim-treesitter.configs'.setup {
     },
     indent = {
         enable = false, -- it's not good enough. worse than default in python,
-                        -- rust, cpp
+        -- rust, cpp
         disable = { "rust", "cpp" },
     },
     textobjects = {
@@ -72,11 +73,11 @@ require'nvim-treesitter.configs'.setup {
     query_linter = {
         enable = true,
         use_virtual_text = true,
-        lint_events = {"BufWrite", "CursorHold"},
+        lint_events = { "BufWrite", "CursorHold" },
     },
 }
 
-require'treesitter-context'.setup{
+require 'treesitter-context'.setup {
     max_lines = 3,
     min_window_height = 30,
 }
@@ -99,14 +100,14 @@ require('telescope').setup {
 
 g.instant_username = 'jade'
 
-g.EditorConfig_exclude_patterns = {'fugitive://.*'}
+g.EditorConfig_exclude_patterns = { 'fugitive://.*' }
 -- don't touch formatoptions when editorconfig specifies line length
 g.EditorConfig_preserve_formatoptions = 1
 
 g.windowswap_map_keys = 0
 
-g.neovide_cursor_animation_length=0.02
-g.neovide_cursor_trail_length=0
+g.neovide_cursor_animation_length = 0.02
+g.neovide_cursor_trail_length = 0
 
 -- coc windows have blur on top of them sometimes, workaround
 -- https://github.com/Kethku/neovide/issues/432
@@ -127,7 +128,7 @@ g.airline_highlighting_cache = 1
 g.airline_powerline_fonts = 1
 
 if g.airline_symbols == nil then
-  g.airline_symbols = vim.empty_dict()
+    g.airline_symbols = vim.empty_dict()
 end
 
 -- remove annoying hamburger symbol
@@ -241,18 +242,22 @@ if vim.env.WAYLAND_DISPLAY then
         },
         paste = {
             ["+"] = function()
-                return {vim.fn.systemlist(
+                return { vim.fn.systemlist(
                     'wl-paste --no-newline --type "text/plain;charset=utf-8" 2>/dev/null | tr -d $"\r"',
                     "",
+                    -- https://github.com/xiyaowong/coc-sumneko-lua/issues/26
+                    ---@diagnostic disable-next-line: redundant-parameter
                     1
-                ), 'v'}
+                ), 'v' }
             end,
             ["*"] = function()
-                return {vim.fn.systemlist(
+                return { vim.fn.systemlist(
                     'wl-paste --no-newline --type "text/plain;charset=utf-8" --primary 2>/dev/null | tr -d $"\r"',
                     "",
+                    -- https://github.com/xiyaowong/coc-sumneko-lua/issues/26
+                    ---@diagnostic disable-next-line: redundant-parameter
                     1
-                ), 'v'}
+                ), 'v' }
             end
         },
         cache_enabled = 1
@@ -275,9 +280,9 @@ end
 -- Mappings
 ----------------------------------------------------------------------
 
-_G.find_files_relative = function ()
+_G.find_files_relative = function()
     require('telescope.builtin').find_files({
-        cwd = require'telescope.utils'.buffer_dir()
+        cwd = require 'telescope.utils'.buffer_dir()
     })
 end
 
@@ -331,11 +336,11 @@ nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
 -- Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
 inoremap_silent("<TAB>",
     [[pumvisible() ? "\<C-n>" : luaeval("check_back_space()") ? "\<TAB>" : coc#refresh()]],
-    {expr = true})
-inoremap("<S-TAB>", [[pumvisible() ? "\<C-p>" : "\<C-h>"]], {expr = true})
+    { expr = true })
+inoremap("<S-TAB>", [[pumvisible() ? "\<C-p>" : "\<C-h>"]], { expr = true })
 
 local is_space = vim.regex([[\s]])
-_G.check_back_space = function ()
+_G.check_back_space = function()
     local curs = vim.api.nvim_win_get_cursor(0)
     local row, col = curs[1], curs[2]
     local line = vim.api.nvim_get_current_line()
@@ -344,11 +349,11 @@ _G.check_back_space = function ()
 end
 
 -- Use <c-space> to trigger completion.
-inoremap_silent("<c-space>", "coc#refresh()", {expr = true})
+inoremap_silent("<c-space>", "coc#refresh()", { expr = true })
 
 -- Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
 -- Coc only does snippet and additional edit on confirm.
-inoremap("<cr>", [[pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"]], {expr = true})
+inoremap("<cr>", [[pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"]], { expr = true })
 -- Or use `complete_info` if your vim support it, like:
 -- inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 
@@ -369,11 +374,11 @@ nmap_silent("<leader>gY", "<Cmd>call CocActionAsync('jumpDeclaration', 'sp')<cr>
 nmap_silent("<leader>gD", "<Cmd>call CocActionAsync('jumpImplementation', 'sp')<cr>")
 nmap_silent("<leader>gr", "<Cmd>call CocActionAsync('jumpReferences', 'sp')<cr>")
 
-_G.show_documentation = function ()
-    if vim.tbl_contains({'vim', 'help'}, bufopt.filetype) then
-        nvim_exec('h ' .. nvim_eval("expand('<cword')"))
+_G.show_documentation = function()
+    if vim.tbl_contains({ 'vim', 'help' }, bufopt.filetype) then
+        nvim_exec('h ' .. nvim_eval("expand('<cword')"), false)
     else
-        nvim_call('CocAction', {'doHover'})
+        nvim_call('CocAction', { 'doHover' })
     end
 end
 
@@ -385,8 +390,10 @@ nmap("<leader>rn", "<Plug>(coc-rename)")
 nnoremap("<leader>rs", ":CocRestart<cr>")
 
 -- Remap for format selected region
-xmap("<leader>f", "<Plug>(coc-format-selected)")
-nmap("<leader>f", "<Plug>(coc-format-selected)")
+-- this feature exists in ~no code formatters so just do global format
+-- xmap("<leader>f", "<Plug>(coc-format-selected)")
+-- nmap("<leader>f", "<Plug>(coc-format-selected)")
+nmap('<leader>f', '<Plug>(coc-format)')
 
 -- Remap for do codeAction of selected region, ex: `<leader>aap` for current paragraph
 xmap("<leader>a", "<Plug>(coc-codeaction-selected)")
@@ -434,8 +441,8 @@ nnoremap_silent("<space>h", ":<C-u>nohlsearch<CR>")
 ----------------------------------------------------------------------
 
 local function make_telescope_command(name, builtin_name)
-    nvim_new_command(name, function (args)
-        (require'telescope.builtin')[builtin_name]({
+    nvim_new_command(name, function(args)
+        (require 'telescope.builtin')[builtin_name]({
             cwd = args.args,
         })
     end, {
@@ -447,40 +454,40 @@ end
 make_telescope_command('FindFiles', 'find_files')
 make_telescope_command('LiveGrep', 'live_grep')
 
-nvim_new_command('PrintPDF', function (args)
-        local p = tostring(Path:new(vim.fn.stdpath('cache')) / 'printpdf.ps')
-        local p_esc = vim.fn.fnameescape(p)
+nvim_new_command('PrintPDF', function(args)
+    local p = tostring(Path:new(vim.fn.stdpath('cache')) / 'printpdf.ps')
+    local p_esc = vim.fn.fnameescape(p)
 
-        -- switch to a light theme
-        local prev_col = g.colors_name
-        local prev_bg = opt.background
-        vim.cmd('colorscheme PaperColor')
-        opt.background = 'light'
+    -- switch to a light theme
+    local prev_col = g.colors_name
+    local prev_bg = opt.background
+    vim.cmd('colorscheme PaperColor')
+    opt.background = 'light'
 
-        local bufnr = vim.api.nvim_get_current_buf()
-        require('nvim-treesitter.configs').detach_module('highlight', bufnr)
+    local bufnr = vim.api.nvim_get_current_buf()
+    require('nvim-treesitter.configs').detach_module('highlight', bufnr)
 
-        -- do the hardcopy
-        vim.cmd('hardcopy > ' .. p_esc)
-        uv.spawn('ps2pdf', {
-            args = {p, args.args},
-        }, function ()
-            -- delete our temp file once we're done
-            uv.fs_unlink(p)
-        end)
+    -- do the hardcopy
+    vim.cmd('hardcopy > ' .. p_esc)
+    uv.spawn('ps2pdf', {
+        args = { p, args.args },
+    }, function()
+        -- delete our temp file once we're done
+        uv.fs_unlink(p)
+    end)
 
-        -- revert
-        vim.cmd('colorscheme ' .. prev_col)
-        opt.background = prev_bg
-        require('nvim-treesitter.configs').attach_module(
-            'highlight',
-            bufnr,
-            require('nvim-treesitter.parsers').get_buf_lang(bufnr)
-        )
-    end,
-    {nargs = 1, complete = 'file'})
+    -- revert
+    vim.cmd('colorscheme ' .. prev_col)
+    opt.background = prev_bg
+    require('nvim-treesitter.configs').attach_module(
+        'highlight',
+        bufnr,
+        require('nvim-treesitter.parsers').get_buf_lang(bufnr)
+    )
+end,
+    { nargs = 1, complete = 'file' })
 
-_G.pp = function (v)
+_G.pp = function(v)
     print(vim.inspect(v))
 end
 
@@ -500,9 +507,29 @@ _G.set_format_options = function()
     -- where 79 is better.
     if vim.o.filetype == 'rust' then
         bufopt.textwidth = 79
+        ---@diagnostic disable-next-line: undefined-field
         bufopt.formatoptions:append('c')
     end
 end
+
+vim.opt.title = true
+augroup('titling', function (autocmd)
+    autocmd('BufEnter', {
+        callback = function()
+            local hostname_part = ''
+            if vim.env.SSH_CONNECTION then
+                hostname_part = '@' .. vim.fn.hostname()
+            end
+            local dirname = vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
+
+            -- wrong types: https://github.com/xiyaowong/coc-sumneko-lua/issues/25
+            ---@diagnostic disable-next-line:missing-parameter
+            local filename = vim.fn.expand('%:t')
+
+            bufopt.titlestring = ('%s :: %s - nvim%s'):format(dirname, filename, hostname_part)
+        end
+    })
+end)
 
 -- FIXME: nvim_create_autocmd()
 vim.cmd([[

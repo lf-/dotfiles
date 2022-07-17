@@ -78,12 +78,6 @@ augroup spacing
   autocmd FileType html setlocal indentexpr=
 augroup END
 
-set title
-augroup titling
-  autocmd!
-  autocmd BufEnter * let &titlestring = 'nvim: ' . fnamemodify(getcwd(), ':t') . ' - ' . expand('%:t')
-augroup END
-
 command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
 " turns input logic [1:0] blah,
 " into .blah(blah)
