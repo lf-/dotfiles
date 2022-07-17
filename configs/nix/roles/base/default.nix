@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, polkadots, ... }:
 {
   nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
 
@@ -14,7 +14,7 @@
   ];
 
   nixpkgs.overlays = [
-    (import ../../overlays/polkadots.nix { inherit (sources) polkadots; })
+    (import ../../overlays/polkadots.nix { inherit polkadots; })
   ];
   nixpkgs.config.allowUnfree = true;
 
@@ -25,6 +25,6 @@
   environment.variables = {
     EDITOR = "nvim";
   };
-
-  nix.registry.nixpkgs.flake = sources.nixpkgs;
+  #
+  # nix.registry.nixpkgs.flake = pkgs.path;
 }

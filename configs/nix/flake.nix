@@ -13,7 +13,7 @@
     nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [ ./machines/snowflake ];
-      extraArgs = {
+      specialArgs = {
         inherit polkadots;
       };
     };
