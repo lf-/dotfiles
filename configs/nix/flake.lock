@@ -1,5 +1,37 @@
 {
   "nodes": {
+    "aiobspwm": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1638304840,
+        "narHash": "sha256-ZJkUqVYhwSqCYcRambKjZ6ygxfKlxZB9/iYT7yz5VUU=",
+        "owner": "lf-",
+        "repo": "aiobspwm",
+        "rev": "fa0a22bb28c5ca5f1704a050a0bd9e3e6c9b6631",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lf-",
+        "repo": "aiobspwm",
+        "type": "github"
+      }
+    },
+    "aiopanel": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1646685680,
+        "narHash": "sha256-25KHk9RAh/ZUB+byp768PvpRJb7O10VSSoTn2/tVWM4=",
+        "owner": "lf-",
+        "repo": "aiopanel",
+        "rev": "963ea46cdeece344cf1b7d8c24504b83a38091d8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lf-",
+        "repo": "aiopanel",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1656928814,
@@ -49,6 +81,8 @@
     },
     "root": {
       "inputs": {
+        "aiobspwm": "aiobspwm",
+        "aiopanel": "aiopanel",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "polkadots": "polkadots"

@@ -8,7 +8,7 @@ import aiopanel
 out_adapter = aiopanel.SubprocessAdapter([
     'lemonbar',
     '-o0',
-    '-fSource Sans Pro:size=11',
+    '-fRoboto:size=11',
     '-o-2',
     '-fFont Awesome 5 Free:size=11',
     '-o-2',
@@ -16,7 +16,7 @@ out_adapter = aiopanel.SubprocessAdapter([
     '-gx20',
     '-naiopanel',
 ])
-out_fmt = '{{ bspwm }}%{c}{{ title }}%{r}{{ pulse }}{{ connman }}{{ batt }}\uf017 {{ date }}'
+out_fmt = '{{ bspwm }}%{c}{{ title }}%{r}{{ pulse }}{{ batt }}\uf017 {{ date }}'
 
 log_level = 'INFO'
 
@@ -132,9 +132,9 @@ pulse_template = """
 
 widgets = {
     'bspwm': [aiopanel.BspwmWidget(bspwm_template, ctx=bspwm_ctx)],
-    'title': [aiopanel.SubprocessWidget(['/usr/bin/xtitle', '-s', '-t 200'])],
+    'title': [aiopanel.SubprocessWidget(['xtitle', '-s', '-t 200'])],
     'pulse': [aiopanel.PulseAudioWidget(pulse_template, ctx=pulse_ctx)],
-    'connman': [aiopanel.ConnmanWidget(cm_template)],
+    # 'connman': [aiopanel.ConnmanWidget(cm_template)],
     'batt': [aiopanel.UPowerWidget(upower_template, ctx=upower_ctx)],
     'date': [aiopanel.DateTimeWidget('%b %-d %H:%M', update=2)],
 }

@@ -7,15 +7,37 @@
       url = "github:lf-/polkadots";
       flake = false;
     };
-  };
-
-  outputs = { self, nixpkgs, polkadots, flake-utils }: {
-    nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [ ./machines/snowflake ];
-      specialArgs = {
-        inherit polkadots;
-      };
+    aiobspwm = {
+      url = "github:lf-/aiobspwm";
+      flake = false;
+    };
+    aiopanel = {
+      url = "github:lf-/aiopanel";
+      flake = false;
     };
   };
+
+  outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils }:
+    let
+      aiopanel = /home/jade/dev/aiopanel;
+    in
+    {
+      nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [ ./machines/snowflake ];
+        specialArgs = {
+          inherit polkadots aiobspwm aiopanel;
+        };
+      };
+
+      packages.x86_64-linux.aiopanel =
+        let
+          aiopanel = /home/jade/dev/aiopanel;
+          pkgs = import nixpkgs {
+            overlays = [ (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; }) ];
+            system = "x86_64-linux";
+          };
+        in
+        pkgs.aiopanel;
+    };
 }

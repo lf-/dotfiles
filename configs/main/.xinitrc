@@ -41,6 +41,7 @@ export XDG_CONFIG_HOME="$HOME/.config"
 # UI stuff
 export QT_STYLE_OVERRIDE=GTK+
 setxkbmap -option compose:menu
+setxkbmap -option caps:escape
 
 # screensaver/locking bits
 xset s 240 60

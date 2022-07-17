@@ -1,9 +1,15 @@
 { config, lib, nixpkgs, ... }: {
-  imports = [ ../../roles/dev ../../roles/linux ../../roles/users ./hardware-configuration.nix ];
+  imports = [
+    ../../roles/dev
+    ../../roles/linux
+    ../../roles/users
+    ../../roles/bspwm
+    ./hardware-configuration.nix
+  ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
   # create a swap file on the encrypted partition
-  swapDevices = [ { device = "/swapfile"; size = 16384; } ];
+  swapDevices = [{ device = "/swapfile"; size = 16384; }];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

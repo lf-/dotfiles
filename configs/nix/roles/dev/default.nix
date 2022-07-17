@@ -6,6 +6,7 @@ let pyPkgs = ppkgs: with ppkgs; [
   requests
   tkinter
   pyperclip
+  pip
 ]; in
 {
   environment.systemPackages = with pkgs; [
