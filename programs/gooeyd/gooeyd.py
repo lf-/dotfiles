@@ -162,7 +162,7 @@ def main(raw_args, prog_name):
     DO_OPEN = not args.disable_open
 
     server = UnixHTTPServer(str(SOCK), Handler)  # type: ignore
-    print(f"socket is at {SOCK}")
+    print(f"export LC_GOOEYD_SOCK={SOCK}")
     server.serve_forever()
 
 
