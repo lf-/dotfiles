@@ -9,6 +9,7 @@
 	d = diff --staged
 	rs = restore --staged
 	ap = add -pu
+    lin = linear
     bigclone = clone --filter=tree:0
     amend = commit --amend --no-edit
     fix = commit --fixup
