@@ -1,6 +1,7 @@
 local maps = require('maps')
 local Path = require('plenary.path')
-local augroup = require('augroup').augroup
+local augroups = require('augroups')
+local augroup = augroups.augroup
 local uv = vim.loop
 local opt = vim.opt
 local bufopt = vim.opt_local
@@ -547,27 +548,15 @@ augroup('formatoptions', function(autocmd)
     )
 end)
 
-augroup('filetypedetection', function (autocmd)
-    local function setfiletype(pat, to_ft)
-        autocmd(
-            {'BufRead', 'BufNewFile'},
-            {
-                pattern = pat,
-                callback = function ()
-                    bufopt.filetype = to_ft
-                end
-            }
-        )
-    end
-
+augroups.setfiletypes('filetypedetection', {
     -- shakespearean templates ≈ their respective languages, and I'd rather have
     -- shitty highlighting than no highlighting
-    setfiletype('*.julius', 'javascript')
-    setfiletype('*.cassius', 'css')
-    setfiletype('*.hamlet', 'html')
+    {'*.julius', 'javascript'},
+    {'*.cassius', 'css'},
+    {'*.hamlet', 'html'},
 
     -- git revise -i has the same syntax as git rebase, to a first degree
-    setfiletype('git-revise-todo', 'gitrebase')
-end)
+    {'git-revise-todo', 'gitrebase'},
+})
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)
