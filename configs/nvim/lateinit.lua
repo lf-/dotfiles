@@ -491,27 +491,6 @@ _G.pp = function(v)
     print(vim.inspect(v))
 end
 
-_G.set_format_options = function()
-    if vim.o.filetype == 'gitcommit' then
-        return
-    end
-    if vim.o.filetype == 'text' or vim.o.filetype == 'markdown' then
-        bufopt.textwidth = 79
-        return
-    end
-
-    bufopt.formatoptions = 'roqnlj'
-
-    -- the default plugin for this sets tw to 100 or something. I don't use the
-    -- formatoption to format while typing so this only matters for comments
-    -- where 79 is better.
-    if vim.o.filetype == 'rust' then
-        bufopt.textwidth = 79
-        ---@diagnostic disable-next-line: undefined-field
-        bufopt.formatoptions:append('c')
-    end
-end
-
 vim.opt.title = true
 augroup('titling', function (autocmd)
     autocmd('BufEnter', {
@@ -531,13 +510,64 @@ augroup('titling', function (autocmd)
     })
 end)
 
--- FIXME: nvim_create_autocmd()
-vim.cmd([[
-augroup formatoptions
-  autocmd!
-  autocmd FileType * lua set_format_options()
-  autocmd FileType gitcommit setlocal spell
-augroup END
-]])
+augroup('formatoptions', function(autocmd)
+    autocmd(
+        'FileType',
+        {
+            callback = function()
+                if vim.o.filetype == 'gitcommit' then
+                    return
+                end
+                if vim.o.filetype == 'text' or vim.o.filetype == 'markdown' then
+                    bufopt.textwidth = 79
+                    return
+                end
+
+                bufopt.formatoptions = 'roqnlj'
+
+                -- the default plugin for this sets tw to 100 or something. I don't use the
+                -- formatoption to format while typing so this only matters for comments
+                -- where 79 is better.
+                if vim.o.filetype == 'rust' then
+                    bufopt.textwidth = 79
+                    ---@diagnostic disable-next-line: undefined-field
+                    bufopt.formatoptions:append('c')
+                end
+            end
+        }
+    )
+    autocmd(
+        'FileType',
+        {
+            pattern = 'gitcommit',
+            callback = function ()
+                bufopt.spell = true
+            end
+        }
+    )
+end)
+
+augroup('filetypedetection', function (autocmd)
+    local function setfiletype(pat, to_ft)
+        autocmd(
+            {'BufRead', 'BufNewFile'},
+            {
+                pattern = pat,
+                callback = function ()
+                    bufopt.filetype = to_ft
+                end
+            }
+        )
+    end
+
+    -- shakespearean templates ≈ their respective languages, and I'd rather have
+    -- shitty highlighting than no highlighting
+    setfiletype('*.julius', 'javascript')
+    setfiletype('*.cassius', 'css')
+    setfiletype('*.hamlet', 'html')
+
+    -- git revise -i has the same syntax as git rebase, to a first degree
+    setfiletype('git-revise-todo', 'gitrebase')
+end)
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)

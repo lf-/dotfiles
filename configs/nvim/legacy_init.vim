@@ -59,15 +59,6 @@ augroup termfix
   autocmd TermLeave * checktime
 augroup END
 
-augroup highlightingfix
-  autocmd!
-  " shakespearean templates ≈ their respective languages, and I'd rather have
-  " shitty highlighting than no highlighting
-  au BufRead,BufNewFile *.julius setlocal filetype=javascript
-  au BufRead,BufNewFile *.cassius setlocal filetype=css
-  au BufRead,BufNewFile *.hamlet setlocal filetype=html
-augroup END
-
 " blah
 set ts=4 sts=4 sw=4 et ai
 
