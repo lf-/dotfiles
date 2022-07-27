@@ -6,24 +6,38 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
+ticket="$1"
+shift
+
+function dbg() {
+    if [[ ! -z "$LINEAR_DEBUG" ]]; then
+        echo "$1" >&2
+    fi
+}
+
 APIKEY="$(security find-generic-password -w -a $LOGNAME -s linear-apikey)"
 QUERY="$(cat <<EOF
 query {
-  issue(id: "$1") {
+  issue(id: "$ticket") {
     branchName
   }
 }
 EOF
 )"
 
-branchname="$(curl \
+apiresp="$(curl \
     -s \
     -X POST \
     -H 'Content-Type: application/json' \
     -H "Authorization: $APIKEY" \
     --data "$(jq --null-input --arg q "$QUERY" '{} | .query = $q')" \
     https://api.linear.app/graphql \
-    | jq -r .data.issue.branchName
 )"
 
-git switch -c $branchname "$@"
+dbg 'api response:'
+dbg "$(echo "$apiresp" | jq .)"
+
+branchname="$(echo "$apiresp" | jq -r .data.issue.branchName)"
+dbg "branch name: $branchname"
+
+git switch -c "$branchname" "$@"
