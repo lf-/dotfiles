@@ -232,6 +232,9 @@ opt.guifont = 'Iosevka:h18'
 opt.printoptions = 'paper:letter,syntax:y,number:y,left:3pc'
 opt.printfont = 'Iosevka:h10'
 
+-- Don't use the funny popup menu that is bad
+opt.mousemodel = 'extend'
+
 -- See https://github.com/neovim/neovim/issues/10223#issuecomment-703544303
 if vim.env.WAYLAND_DISPLAY then
     -- clipboard on wayland with newline fix
