@@ -1,0 +1,3 @@
+#!/bin/sh
+
+nix flake init -t "github:lf-/flake-templates#${1}.flakeNix"
