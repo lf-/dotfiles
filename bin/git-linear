@@ -8,6 +8,7 @@ fi
 
 ticket="$1"
 shift
+LINEAR_DEBUG="${LINEAR_DEBUG:-}"
 
 function dbg() {
     if [[ ! -z "$LINEAR_DEBUG" ]]; then
