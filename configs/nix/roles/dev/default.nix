@@ -13,18 +13,21 @@ let pyPkgs = ppkgs: with ppkgs; [
 {
   environment.systemPackages = with pkgs; [
     nix-index
+    nix-doc
+    rnix-lsp
+    nix-direnv
+    direnv
+
     gitAndTools.delta
     git-revise
+    git-absorb
+
     ripgrep
     dtach
     tmux
-    nix-doc
-    rnix-lsp
     gh
     fd
     gdb
-    direnv
-    nix-direnv
     jq
     graphviz
     ctags
