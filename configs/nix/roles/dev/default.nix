@@ -6,7 +6,9 @@ let pyPkgs = ppkgs: with ppkgs; [
   requests
   tkinter
   pyperclip
+
   pip
+  yapf
 
   numpy
 ]; in
