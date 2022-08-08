@@ -18,9 +18,6 @@
   };
 
   outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils }:
-    let
-      aiopanel = /home/jade/dev/aiopanel;
-    in
     {
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

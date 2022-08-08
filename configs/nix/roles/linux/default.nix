@@ -29,7 +29,11 @@ in
     psmisc
     glibcLocales
     nixos-option
-    gcc
+
+    stdenv
+
+    # FIXME: probably should be in a diff file
+    sshfs
   ];
 
   programs.git.enable = true;

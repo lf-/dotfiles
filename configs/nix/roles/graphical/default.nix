@@ -19,7 +19,12 @@
     gimp
     zeal
 
+    vscode
+
     pulseaudio
+    pavucontrol
+
+    audacity
   ];
 
   # gitk

@@ -7,6 +7,8 @@ let pyPkgs = ppkgs: with ppkgs; [
   tkinter
   pyperclip
   pip
+
+  numpy
 ]; in
 {
   environment.systemPackages = with pkgs; [

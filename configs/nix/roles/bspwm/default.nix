@@ -13,6 +13,12 @@
 
   nixpkgs.overlays = [ (import ../../overlays/aiopanel.nix { inherit aiobspwm aiopanel; }) ];
 
+  services.connman = {
+    enable = true;
+    package = pkgs.connmanFull;
+    wifi.backend = "iwd";
+  };
+
   environment.systemPackages = with pkgs; [
     feh
     sxhkd
@@ -25,5 +31,9 @@
     pkgs.aiopanel
     lemonbar-xft
     xtitle
+
+    xdo
+    xdotool
+    wmctrl
   ];
 }
