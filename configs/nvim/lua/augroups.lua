@@ -20,7 +20,7 @@ function M.setfiletypes(name, fts)
                 {
                     pattern = pat,
                     callback = function ()
-                        bufopt.filetype = ft
+                        vim.opt_local.filetype = ft
                     end
                 }
             )
