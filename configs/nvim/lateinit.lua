@@ -132,6 +132,9 @@ if g.airline_symbols == nil then
     g.airline_symbols = vim.empty_dict()
 end
 
+-- truncate the branch name
+g['airline#extensions#branch#displayed_head_limit'] = 15
+
 -- remove annoying hamburger symbol
 -- unicode symbols
 g.airline_left_sep = '»'
@@ -318,7 +321,7 @@ nnoremap("g=", "mpgqap'p")
 vim.g.mapleader = ","
 noremap("<M-n>", "<Cmd>:tabn<cr>")
 noremap("<M-p>", "<Cmd>:tabp<cr>")
-nmap("<Leader>iv", "<Cmd>:source ~/.config/nvim/init.vim<cr>")
+nmap("<Leader>iv", "<Cmd>:source ~/.config/nvim/lateinit.lua<cr>")
 nnoremap("<Leader>t", "<Cmd>:vsp term://zsh<cr>")
 nnoremap("<Leader>T", "<Cmd>:below split term://zsh<cr>")
 nnoremap("<Leader>oiv", "<Cmd>:call OpenVimrc()<cr>")
@@ -338,10 +341,11 @@ nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
 
 -- Use tab for trigger completion with characters ahead and navigate.
 -- Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
-inoremap_silent("<TAB>",
-    [[pumvisible() ? "\<C-n>" : luaeval("check_back_space()") ? "\<TAB>" : coc#refresh()]],
+--
+inoremap('<TAB>',
+	[[ coc#pum#visible() ? coc#pum#next(1): luaeval("check_back_space()") ? "\<Tab>" : coc#refresh() ]],
     { expr = true })
-inoremap("<S-TAB>", [[pumvisible() ? "\<C-p>" : "\<C-h>"]], { expr = true })
+inoremap("<S-TAB>", [[coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"]], { expr = true })
 
 local is_space = vim.regex([[\s]])
 _G.check_back_space = function()
@@ -355,11 +359,7 @@ end
 -- Use <c-space> to trigger completion.
 inoremap_silent("<c-space>", "coc#refresh()", { expr = true })
 
--- Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
--- Coc only does snippet and additional edit on confirm.
-inoremap("<cr>", [[pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"]], { expr = true })
--- Or use `complete_info` if your vim support it, like:
--- inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
+inoremap('<cr>', [[coc#pum#visible() ? coc#_select_confirm() : "\<CR>"]], {expr = true})
 
 -- Use `[g` and `]g` to navigate diagnostics
 nmap_silent("[g", "<Plug>(coc-diagnostic-prev)")

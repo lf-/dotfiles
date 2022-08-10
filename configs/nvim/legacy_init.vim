@@ -37,7 +37,8 @@ let $VISUAL = 'nvimsplit'
 """"""""""""""""""""""""""""""""""""""
 
 function! OpenVimrc()
-  ! snvim ~/.config/nvim/init.vim
+  " ! snvim ~/.config/nvim/lateinit.lua
+  edit ~/.config/nvim/lateinit.lua
 endfunction
 
 function! DeleteWindow()
