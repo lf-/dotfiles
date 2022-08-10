@@ -336,13 +336,6 @@ nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
 -- replace the word under the cursor with ,s
 nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
 
--- Use tab for trigger completion with characters ahead and navigate.
--- Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
-inoremap_silent("<TAB>",
-    [[pumvisible() ? "\<C-n>" : luaeval("check_back_space()") ? "\<TAB>" : coc#refresh()]],
-    { expr = true })
-inoremap("<S-TAB>", [[pumvisible() ? "\<C-p>" : "\<C-h>"]], { expr = true })
-
 local is_space = vim.regex([[\s]])
 _G.check_back_space = function()
     local curs = vim.api.nvim_win_get_cursor(0)
@@ -354,12 +347,6 @@ end
 
 -- Use <c-space> to trigger completion.
 inoremap_silent("<c-space>", "coc#refresh()", { expr = true })
-
--- Use <cr> to confirm completion, `<C-g>u` means break undo chain at current position.
--- Coc only does snippet and additional edit on confirm.
-inoremap("<cr>", [[pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"]], { expr = true })
--- Or use `complete_info` if your vim support it, like:
--- inoremap <expr> <cr> complete_info()["selected"] != "-1" ? "\<C-y>" : "\<C-g>u\<CR>"
 
 -- Use `[g` and `]g` to navigate diagnostics
 nmap_silent("[g", "<Plug>(coc-diagnostic-prev)")
