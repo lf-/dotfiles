@@ -359,7 +359,7 @@ end
 -- Use <c-space> to trigger completion.
 inoremap_silent("<c-space>", "coc#refresh()", { expr = true })
 
-inoremap('<cr>', [[coc#pum#visible() ? coc#_select_confirm() : "\<CR>"]], {expr = true})
+inoremap('<cr>', [[coc#pum#visible() && coc#pum#info()['index'] != -1 ? coc#pum#confirm() : "\<C-g>u\<CR>"]], {expr = true})
 
 -- Use `[g` and `]g` to navigate diagnostics
 nmap_silent("[g", "<Plug>(coc-diagnostic-prev)")
@@ -560,6 +560,9 @@ augroups.setfiletypes('filetypedetection', {
 
     -- git revise -i has the same syntax as git rebase, to a first degree
     {'git-revise-todo', 'gitrebase'},
+
+    -- coc-settings is actually json+comments
+    {'coc-settings.json', 'jsonc'},
 })
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)

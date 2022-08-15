@@ -69,6 +69,11 @@
     "Lua.workspace.library": [
       "/home/jade/.local/share/nvim/site"
     ],
+
+    // dont do stuff when i type
     "html.autoClosingTags": false,
     "html.autoCreateQuotes": false,
+
+    "suggest.noselect": true,
+    "suggest.enablePreselect": false,
 }
