@@ -11,17 +11,6 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       ghcVer = "ghc924";
-      makeHaskellOverlay = overlay: final: prev: {
-        haskell = prev.haskell // {
-          packages = prev.haskell.packages // {
-            ${ghcVer} = prev.haskell.packages."${ghcVer}".override (oldArgs: {
-              overrides =
-                prev.lib.composeExtensions (oldArgs.overrides or (_: _: { }))
-                  (overlay prev);
-            });
-          };
-        };
-      };
 
       out = system:
         let
@@ -67,11 +56,7 @@
     flake-utils.lib.eachDefaultSystem out // {
       # this stuff is *not* per-system
       overlays = {
-        default = makeHaskellOverlay (prev: hfinal: hprev:
-          let hlib = prev.haskell.lib; in
-          {
-            hsutils = hprev.callCabal2nix "hsutils" ./. { };
-          });
+        default = import ./overlay.nix { inherit ghcVer; };
       };
     };
 }

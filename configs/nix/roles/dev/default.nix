@@ -1,18 +1,22 @@
 { pkgs, config, lib, ... }:
-let pyPkgs = ppkgs: with ppkgs; [
-  ipython
-  ipython-sql
-  # jacked on macos currently https://github.com/NixOS/nixpkgs/issues/185918
-  # pgcli
-  requests
-  tkinter
-  pyperclip
+let
+  pyPkgs = ppkgs: with ppkgs; [
+    ipython
+    ipython-sql
+    # jacked on macos currently https://github.com/NixOS/nixpkgs/issues/185918
+    # pgcli
+    requests
+    tkinter
+    pyperclip
 
-  pip
-  yapf
+    pip
+    yapf
 
-  numpy
-]; in
+    numpy
+  ];
+  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc924"; };
+
+in
 {
   environment.systemPackages = with pkgs; [
     nix-index
@@ -24,6 +28,8 @@ let pyPkgs = ppkgs: with ppkgs; [
     gitAndTools.delta
     git-revise
     git-absorb
+
+    hsutils
 
     ripgrep
     dtach
@@ -38,17 +44,21 @@ let pyPkgs = ppkgs: with ppkgs; [
     (python3.withPackages pyPkgs)
   ];
 
+  nixpkgs.overlays = [
+    hsutilsOverlay
+  ];
+
   nix.extraOptions = lib.mkMerge [
     (lib.mkIf pkgs.stdenv.isLinux ''
       plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.so
-      '')
+    '')
     (lib.mkIf pkgs.stdenv.isDarwin ''
       plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.dylib
     '')
     ''
-    # nix-direnv
-    keep-outputs = true
-    keep-derivations = true
+      # nix-direnv
+      keep-outputs = true
+      keep-derivations = true
     ''
   ];
 
