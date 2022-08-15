@@ -2,7 +2,8 @@
 let pyPkgs = ppkgs: with ppkgs; [
   ipython
   ipython-sql
-  pgcli
+  # jacked on macos currently https://github.com/NixOS/nixpkgs/issues/185918
+  # pgcli
   requests
   tkinter
   pyperclip
@@ -49,6 +50,10 @@ let pyPkgs = ppkgs: with ppkgs; [
     keep-outputs = true
     keep-derivations = true
     ''
+  ];
+
+  nix.trustedBinaryCaches = [
+    "https://haskell-language-server.cachix.org"
   ];
 
   environment.pathsToLink = [
