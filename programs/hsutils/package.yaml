@@ -2,20 +2,29 @@ name: hsutils
 version: 0.0.0
 synopsis: Small utilities written in Haskell
 dependencies:
+  - aeson
   - base >= 4.9 && <5
-  - rio
+  - bytestring
+  - directory
+  - generic-lens
   - http-client
   - http-client-tls
-  - directory
+  - http-types
+  - microlens
+  - optparse-applicative
+  - raw-strings-qq
+  - rio
   - yaml
-  - aeson
 
 library:
   source-dirs: src
 
 executables:
   nix-prefetch-github:
-    main: app/NixPrefetchGitHub.hs
+    main: NixPrefetchGitHub.Main
+    source-dirs: app
+    dependencies:
+      - hsutils
 
 ghc-options:
   - -Wall
@@ -39,6 +48,7 @@ default-extensions:
   - DeriveGeneric
   - DeriveTraversable
   - DerivingVia
+  - DuplicateRecordFields
   - FlexibleContexts
   - FlexibleInstances
   - FunctionalDependencies
@@ -54,6 +64,7 @@ default-extensions:
   - NamedFieldPuns
   - NoImplicitPrelude
   - NumericUnderscores
+  - OverloadedLabels
   - OverloadedStrings
   - OverloadedRecordDot
   - PartialTypeSignatures

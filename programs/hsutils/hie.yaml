@@ -3,7 +3,7 @@ cradle:
     - path: "src"
       component: "lib:hsutils"
 
-    - path: "./app/NixPrefetchGitHub.hs"
+    - path: "./app/NixPrefetchGitHub"
       component: "hsutils:exe:nix-prefetch-github"
 
     - path: "./Paths_hsutils.hs"
