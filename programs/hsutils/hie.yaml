@@ -1,0 +1,14 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:hsutils"
+
+    - path: "./app/NixPrefetchGitHub.hs"
+      component: "hsutils:exe:nix-prefetch-github"
+
+    - path: "./Paths_hsutils.hs"
+      component: "hsutils:exe:nix-prefetch-github"
+dependencies:
+  - package.yaml
+  - flake.nix
+  - flake.lock

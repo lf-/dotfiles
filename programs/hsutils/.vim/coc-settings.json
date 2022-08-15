@@ -1,0 +1,10 @@
+{
+    "languageserver": {
+        "haskell": {
+            "command": "direnv-hls",
+            "settings": {
+                "haskell.formattingProvider": "fourmolu"
+            }
+        }
+    }
+}

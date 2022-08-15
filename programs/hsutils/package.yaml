@@ -1,0 +1,70 @@
+name: hsutils
+version: 0.0.0
+synopsis: Small utilities written in Haskell
+dependencies:
+  - base >= 4.9 && <5
+  - rio
+  - http-client
+  - http-client-tls
+  - directory
+  - yaml
+  - aeson
+
+library:
+  source-dirs: src
+
+executables:
+  nix-prefetch-github:
+    main: app/NixPrefetchGitHub.hs
+
+ghc-options:
+  - -Wall
+  - -Wno-type-defaults
+  - -Wno-name-shadowing
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wpartial-fields
+  - -Wredundant-constraints
+
+default-extensions:
+  - AllowAmbiguousTypes
+  - ApplicativeDo
+  - BlockArguments
+  - DataKinds
+  - DeriveAnyClass
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - DerivingVia
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - ImportQualifiedPost
+  - ImpredicativeTypes
+  - InstanceSigs
+  - LambdaCase
+  - LexicalNegation
+  - MonoLocalBinds
+  - MultiWayIf
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - NumericUnderscores
+  - OverloadedStrings
+  - OverloadedRecordDot
+  - PartialTypeSignatures
+  - PatternSynonyms
+  - PolyKinds
+  - RankNTypes
+  - RecordWildCards
+  - RecursiveDo
+  - ScopedTypeVariables
+  - StandaloneDeriving
+  - StandaloneKindSignatures
+  - TypeApplications
+  - TypeFamilies
+  - ViewPatterns

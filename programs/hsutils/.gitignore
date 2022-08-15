@@ -1,0 +1,6 @@
+.stack-work/
+dist-newstyle/
+ghcid.out.txt
+stack.yaml.lock
+tags
+*.cabal
