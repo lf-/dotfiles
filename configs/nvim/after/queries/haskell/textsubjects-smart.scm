@@ -13,9 +13,13 @@
   (data_constructor)
   (record_fields)
 
+  (type_family)
+  (type_instance)
+
   (newtype)
   (instance)
   (adt)
+  (class)
   (top_splice)
  ] @_start @_end
  (#make-range! "range" @_start @_end))
