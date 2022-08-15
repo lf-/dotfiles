@@ -1,6 +1,9 @@
 local fn = vim.fn
 local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
 local packer_bootstrap
+
+-- variadic
+---@diagnostic disable-next-line: missing-parameter
 if fn.empty(fn.glob(install_path)) > 0 then
     packer_bootstrap = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
     -- https://github.com/wbthomason/packer.nvim/issues/750#issuecomment-1018881168
@@ -15,6 +18,8 @@ return require('packer').startup(function(use)
         end
         local basename = name:match('[^/]/([^/]+)')
         local S_IFDIR = 0x4000
+        -- bogus type definitions
+        ---@diagnostic disable-next-line: missing-parameter
         local coname = vim.fn.expand('$HOME') .. '/co/' .. basename
         local stat = vim.loop.fs_stat(coname)
         if stat and bit.band(stat.mode, S_IFDIR) ~= 0 then
