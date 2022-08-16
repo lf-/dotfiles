@@ -1,6 +1,7 @@
 local maps = require('maps')
 local augroups = require('augroups')
 require('commands')
+require('gist')
 local augroup = augroups.augroup
 local opt = vim.opt
 local bufopt = vim.opt_local
