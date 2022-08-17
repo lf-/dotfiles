@@ -66,14 +66,13 @@
  (exp_let_in (exp_let) (exp_in "in" (_) @_start @_end))
  (#make-range! "range" @_start @_end))
 
-; parts of a lambda definition
-(
-  ; \(a b c) -> a
-  ; both (a b c) and a
-  [(exp_lambda (_) @_start @_end)
-   (exp_lambda @_start @_end)
-  ]
- (#make-range! "range" @_start @_end))
+; FIXME: how should this work
+; ; parts of a lambda definition
+; (
+;   ; \a b c -> a
+;   ; both (a b c) and a
+;  (exp_lambda "\\" (_) @_start @_end (_) @_end . "->" (_) @_start @_end)
+;  (#make-range! "range" @_start @_end))
 
 ; one record field
 ((
