@@ -1,4 +1,5 @@
 ([
+  ; FIXME: the do block should grab the INSIDE of the do block
   (exp_do)
   (stmt)
   (exp_cond)
@@ -32,6 +33,16 @@
    "="
    (_) @_start @_end)
  (#make-range! "range" @_start @_end))
+
+; FIXME: individual constraints
+; FIXME: import-list entries
+
+; FIXME
+; ((exp_tuple
+;   (_) @_start @_end
+;   ((comma) . (_) @_start @_end))*
+;  (#make-range! "range" @_start @_end)
+; )
 
 ; signature + function
 (

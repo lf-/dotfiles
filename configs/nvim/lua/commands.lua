@@ -50,3 +50,9 @@ nvim_new_command('PrintPDF', function(args)
 end,
     { nargs = 1, complete = 'file' })
 
+
+nvim_new_command('CopyPath', function (args)
+    local fullpath = vim.fn.expand('%:p')
+    vim.fn.setreg('+', fullpath)
+end,
+    { nargs = 0 })
