@@ -2,6 +2,9 @@
 
 resources="$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 simplify_paths=true
+program="$resources/nix-path-info-graphviz.jq"
+lg=false
+
 while true ; do
     case "$1" in
         --)
@@ -12,13 +15,26 @@ while true ; do
             simplify_paths=false
             shift
             ;;
+        --lg)
+            program="$resources/nix-path-info-lg.jq"
+            lg=true
+            shift
+            ;;
         *)
             break
     esac
 done
 
+output() {
+    if [[ "$lg" == "true" ]]; then
+        cat
+    else
+        dot -Tsvg
+    fi
+}
+
 nix path-info -rsS --json "$@" \
-    | jq -r -f "$resources/nix-path-info-graphviz.jq" \
+    | jq -r -f "$program" \
         --argjson simplify_paths "$simplify_paths" \
-    | dot -Tsvg
+    | output
 
