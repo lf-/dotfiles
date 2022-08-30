@@ -96,7 +96,6 @@ require('telescope').setup {
     },
 }
 
-
 ----------------------------------------------------------------------
 -- Plugin configs
 ----------------------------------------------------------------------
@@ -469,6 +468,18 @@ augroup('titling', function (autocmd)
             bufopt.titlestring = ('%s :: %s - nvim%s'):format(dirname, filename, hostname_part)
         end
     })
+end)
+
+augroup('reload queries on query save', function(autocmd) --https://github.com/nvim-treesitter/nvim-treesitter/issues/3304
+    autocmd(
+        'BufWrite',
+        {
+            pattern = '*.scm',
+            callback = function ()
+                require'nvim-treesitter.query'.invalidate_query_cache()
+            end
+        }
+    )
 end)
 
 augroup('formatoptions', function(autocmd)

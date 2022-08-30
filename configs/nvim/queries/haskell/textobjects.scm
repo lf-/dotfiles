@@ -56,3 +56,8 @@
 (
  (instance (instance_head) (where) . (_) @_start @_end (_)? @_end .) @class.outer
  (#make-range! "class.inner" @_start @_end))
+
+(exp_apply) @call.outer
+(exp_apply (_) @call.inner)
+
+(comment) @comment.outer
