@@ -41,6 +41,8 @@ in
     graphviz
     ctags
 
+    msmtp
+
     (python3.withPackages pyPkgs)
   ];
 

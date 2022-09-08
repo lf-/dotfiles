@@ -13,9 +13,11 @@
     bigclone = clone --filter=tree:0
     amend = commit --amend --no-edit
     fix = commit --fixup
+    p = push -fu origin @
 	git = !git
 	pukk = pull
 	r = restore
+    rsw = restore --staged --worktree
 	tlog = log --graph --oneline --all
 
 [blame]
