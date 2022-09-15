@@ -4,12 +4,15 @@ import Data.ByteString.Char8 qualified as BS8
 import HsUtils.App (HasManager)
 import HsUtils.Github
 import Options.Applicative
-import RIO
-import RIO.ByteString.Lazy (putStrLn)
 import RIO.Partial (fromJust)
 import RIO.Process
 import RIO.Text qualified as T
 import qualified RIO.Char as Char
+import HsUtils.NixHash (hashFromBase32, HashWithAlgorithm (SHA256), hashToSri)
+import Import
+
+data PrefetchUrlWtf = PrefetchUrlWtf Text deriving (Show)
+instance Exception PrefetchUrlWtf
 
 prefetchUrl :: (HasProcessContext env, HasLogFunc env) => Text -> RIO env Text
 prefetchUrl url = do
@@ -95,7 +98,9 @@ getTarballMeta ::
 getTarballMeta user repo branch = do
   let userRepoUrl = "https://github.com/" <> user <> "/" <> repo
       rev = branch.target.oid
-  sha256 <- prefetchUrl (userRepoUrl <> "/archive/" <> rev <> ".tar.gz")
+  sha256_ <- prefetchUrl (userRepoUrl <> "/archive/" <> rev <> ".tar.gz")
+  -- turns the hash into a SRI so it looks like it's from a modern nix >:)
+  sha256 <- hashToSri . SHA256 <$> (hashFromBase32 $ encodeUtf8 sha256_) `orThrow` PrefetchUrlWtf "hash not decodable"
   pure $ TarballMeta {..}
 
 getBranchTip ::
@@ -129,7 +134,7 @@ runApp args = do
     formatted = case args.format of
       FetchFromGitHub -> fetchFromGitHubOutput tm
       FetchTarball -> fetchTarballOutput tm
-  putStrLn . fromStrictBytes . encodeUtf8 $ formatted
+  putStrLn formatted
  where
   parseUserRepo [user, repo] = pure (user, repo)
   parseUserRepo _ = throwString "user/repo is invalid"

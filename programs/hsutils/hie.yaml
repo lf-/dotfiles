@@ -8,6 +8,9 @@ cradle:
 
     - path: "./Paths_hsutils.hs"
       component: "hsutils:exe:nix-prefetch-github"
+
+    - path: "test"
+      component: "hsutils:test:test"
 dependencies:
   - package.yaml
   - flake.nix

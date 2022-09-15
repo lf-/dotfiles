@@ -3,7 +3,8 @@ version: 0.0.0
 synopsis: Small utilities written in Haskell
 dependencies:
   - aeson
-  - base >= 4.9 && <5
+  - base >= 4.16 && <5
+  - base64
   - bytestring
   - directory
   - generic-lens
@@ -14,6 +15,7 @@ dependencies:
   - optparse-applicative
   - raw-strings-qq
   - rio
+  - vector
   - yaml
 
 library:
@@ -25,6 +27,19 @@ executables:
     source-dirs: app
     dependencies:
       - hsutils
+
+tests:
+  test:
+    main: Spec
+    source-dirs: test
+    dependencies:
+      - hsutils
+      - hspec
+    build-tools: hspec-discover
+
+    ghc-options:
+      # people write bad pattern matches in tests lol
+      - -Wno-incomplete-uni-patterns
 
 ghc-options:
   - -Wall
