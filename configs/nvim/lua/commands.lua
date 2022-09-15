@@ -2,6 +2,7 @@
 local nvim_new_command = vim.api.nvim_create_user_command or function() end
 local uv = vim.loop
 local Path = require('plenary.path')
+local ts_configs = require('nvim-treesitter.configs')
 
 local function make_telescope_command(name, builtin_name)
     nvim_new_command(name, function(args)
@@ -54,5 +55,14 @@ end,
 nvim_new_command('CopyPath', function (args)
     local fullpath = vim.fn.expand('%:p')
     vim.fn.setreg('+', fullpath)
+end,
+    { nargs = 0 })
+
+nvim_new_command('TSClearParsers', function (args)
+    local directory = ts_configs.get_parser_install_dir()
+    if directory ~= nil then
+        print('deleted ', directory);
+        (Path:new(directory)):rm({recursive = true})
+    end
 end,
     { nargs = 0 })

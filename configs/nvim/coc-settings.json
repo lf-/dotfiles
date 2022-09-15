@@ -50,7 +50,7 @@
     },
     "prettier.tabWidth": 4,
     "codeLens.enable": true,
-    "python.pythonPath": "/home/jade/bin/_pyright_python",
+    // "python.pythonPath": "/home/jade/bin/_pyright_python",
     "python.formatting.provider": "yapf",
     "coc.preferences.rootPatterns": [
         ".python-root",
