@@ -45,7 +45,7 @@
                 "package.yaml",
                 "hie.yaml"
             ],
-            "filetypes": ["haskell", "lhaskell"],
+            "filetypes": ["haskell", "lhaskell"]
         }
     },
     "prettier.tabWidth": 4,
@@ -75,5 +75,5 @@
     "html.autoCreateQuotes": false,
 
     "suggest.noselect": true,
-    "suggest.enablePreselect": false,
+    "suggest.enablePreselect": false
 }
