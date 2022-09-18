@@ -6,9 +6,12 @@ let
       (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc924"; })
     ];
   };
+
+  inherit (pkgs.haskell.lib) justStaticExecutables;
 in
 {
   inherit (pkgs) cachix niv nix-doc nix-direnv rnix-lsp shellcheck nix-index
-    flyctl hsutils
+    flyctl nixpkgs-fmt
     ;
+  hsutils = justStaticExecutables pkgs.hsutils;
 }
