@@ -325,6 +325,7 @@ let
     "binutils"
     "cpp:gcc"
     "find:findutils"
+    "gawk"
     "gcc"
     "gdb"
     "gfortran:gcc"
@@ -410,6 +411,7 @@ rec {
 
   defaults = map defaultAutotools (
     with pkgs; [
+      gawk
       autoconf
       automake
       cflow
