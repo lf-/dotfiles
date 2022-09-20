@@ -68,7 +68,7 @@ return require('packer').startup(function(use)
     use 'nvim-treesitter/playground'
     use 'nvim-treesitter/nvim-treesitter-textobjects'
     use 'RRethy/nvim-treesitter-textsubjects'
-    useLocal {'lf-/nvim-treesitter-context', branch = 'min_window_height' }
+    use {'lf-/nvim-treesitter-context', branch = 'min_window_height' }
     useLocal 'p00f/nvim-ts-rainbow'
 
     -- File types

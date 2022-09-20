@@ -4,7 +4,8 @@
             "command": "direnv-hls",
             "settings": {
                 "haskell.formattingProvider": "fourmolu"
-            }
+            },
+            "filetypes": ["haskell"]
         }
     }
 }
