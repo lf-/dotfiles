@@ -11,6 +11,9 @@
 ; will grab the inside of the "do"
 (
  ; FIXME: the signature does not get picked up for some reason in function.outer
+ ; FIXME: multiple definitions for pattern matches are not picked up; this
+ ; might be tricky as the distinguishing feature here is that they have the
+ ; same name and I am not sure how I would express that
  (
   (signature) @_outer_start
   .
