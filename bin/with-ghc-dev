@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+dotfiles="$(realpath "$(dirname $0)")/.."
+file="${dotfiles}/configs/support/mkGhcShell.nix"
+
+nix-shell --argstr ghcVer "$1" "$file"

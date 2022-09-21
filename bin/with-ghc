@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# cribbed from https://github.com/hazelweakly/nixos-configs/blob/main/dots/zsh/fn/with-ghc
+v="$1"
+shift
+nix-shell -p "haskell.packages.ghc$v.ghc" cabal-install zlib xz "$@"
