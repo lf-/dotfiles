@@ -1,3 +1,4 @@
+;; extends
 (function_expression
   universal: (_)
   body: (_) @function.inner

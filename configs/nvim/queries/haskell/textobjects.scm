@@ -1,3 +1,5 @@
+; this is not an 'extends' query, in order to replace the stock one
+
 ; I believe that function.outer should include the signature
 ;
 ; someFunc :: a
