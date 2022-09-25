@@ -105,3 +105,8 @@ queryable
 orgs
 ad-hoc
 hardcode
+haskell
+GHC
+GHCi
+Tweag
+bazel
