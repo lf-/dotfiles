@@ -43,9 +43,9 @@
               buildInputs = with haskellPackages; [
                 haskell-language-server
                 fourmolu
-                ghcid
                 cabal-install
               ] ++ (with pkgs; [
+                nix-prefetch-git
                 sqlite
               ]);
               # Change the prompt to show that you are in a devShell

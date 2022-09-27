@@ -1,6 +1,6 @@
 module HsUtils.App where
 
-import Data.Aeson (Options (..), camelTo2, defaultOptions)
+import Data.Aeson (Options (..), camelTo2, defaultOptions, FromJSON, eitherDecode)
 import Data.Generics.Labels ()
 import Network.HTTP.Client (Manager)
 import RIO
@@ -12,6 +12,9 @@ instance Show AppException where
   show (JsonDecodeFailed msg) = "Failed to decode JSON: " <> msg
 
 instance Exception AppException
+
+decodeThrow :: (FromJSON a, MonadIO m) => LByteString -> m a
+decodeThrow = fromEither . mapLeft JsonDecodeFailed . eitherDecode
 
 class HasManager env where
   managerL :: Lens' env Manager

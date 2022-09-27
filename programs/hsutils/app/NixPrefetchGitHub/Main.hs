@@ -1,9 +1,10 @@
 module NixPrefetchGitHub.Main (main) where
 
 import Data.ByteString.Char8 qualified as BS8
-import HsUtils.App (HasManager)
+import HsUtils.App (HasManager, decodeThrow)
 import HsUtils.Github
 import HsUtils.NixHash (HashWithAlgorithm (SHA256), hashFromBase32, hashToSri)
+import HsUtils.NixPrefetchGit.Types (NixPrefetchGitOutput (..))
 import Import
 import Options.Applicative
 import RIO.Char qualified as Char
@@ -21,15 +22,30 @@ prefetchUrl shouldUnpack url = do
   theProc <-
     proc "nix-prefetch-url" args $
       \p -> pure $ setStderr closed p
-  stderr <- readProcessStdout_ theProc
-  fromEither . decodeUtf8' . BS8.strip . toStrictBytes $ stderr
+  stdout <- readProcessStdout_ theProc
+  fromEither . decodeUtf8' . BS8.strip . toStrictBytes $ stdout
  where
   args = ["--type", "sha256", "--name", "source"] <> unpackArg <> [T.unpack url]
   unpackArg = case shouldUnpack of
     Unpack -> ["--unpack"]
     DontUnpack -> []
 
-data Format = FetchFromGitHub | FetchTarball | FetchUrlZip deriving (Eq, Show)
+prefetchGit :: (HasProcessContext env, HasLogFunc env) => Text -> RIO env Text
+prefetchGit url = do
+  theProc <-
+    proc "nix-prefetch-git" args $
+      \p -> pure $ setStderr inherit p
+  stdout <- readProcessStdout_ theProc
+  (.sha256) <$> (decodeThrow @NixPrefetchGitOutput $ stdout)
+ where
+  -- due to jackage we can't specify the name, which means this doesn't work
+  -- with flakes lol
+  --
+  -- but I'd have to write a parser for base64 hashes to deal with flakes and
+  -- nix flake prefetch.
+  args = ["--hash", "sha256", T.unpack url]
+
+data Format = FetchFromGitHub | FetchTarball | FetchUrlZip | Cabal deriving (Eq, Show)
 
 parseFormat :: ReadM Format
 parseFormat = eitherReader $ parse . fmap Char.toLower
@@ -38,7 +54,9 @@ parseFormat = eitherReader $ parse . fmap Char.toLower
     "fetchfromgithub" -> Right FetchFromGitHub
     "fetchtarball" -> Right FetchTarball
     "fetchurlzip" -> Right FetchUrlZip
-    _ -> Left "unrecognized format; fetchtarball and fetchFromGitHub are supported"
+    "cabal" -> Right Cabal
+    "source-repository-package" -> Right Cabal
+    _ -> Left "unrecognized format; fetchtarball, fetchFromGitHub, fetchUrlZip, cabal are supported"
 
 data Args = Args
   { userRepo :: Text
@@ -57,7 +75,7 @@ args =
     <*> switch (long "verbose" <> short 'v' <> help "Verbose mode")
     <*> option (Just <$> str) (long "branch" <> short 'b' <> help "Branch to fetch" <> value Nothing)
     <*> (toShouldUnpack <$> switch (long "no-unpack" <> short 'n' <> help "Don't unpack the archive"))
-  where
+ where
   toShouldUnpack True = DontUnpack
   toShouldUnpack False = Unpack
 
@@ -118,6 +136,18 @@ fetchFromGitHubOutput ArchiveMeta {..} =
     , "};"
     ]
 
+cabalOutput :: ArchiveMeta -> Text
+cabalOutput ArchiveMeta {..} =
+  T.unlines
+    [ ""
+    , "source-repository-package"
+    , "  -- " <> treeUrl userRepoUrl branch.name
+    , "  type: git"
+    , "  location: " <> "https://github.com/" <> user <> "/" <> repo <> ".git"
+    , "  tag: " <> rev
+    , "  --sha256: " <> sha256
+    ]
+
 sha256ToSri :: Text -> Maybe Text
 sha256ToSri sha256 = hashToSri . SHA256 <$> (hashFromBase32 $ encodeUtf8 sha256)
 
@@ -130,17 +160,25 @@ getArchiveMeta ::
   ShouldUnpack ->
   RIO env ArchiveMeta
 getArchiveMeta archiveType user repo branch shouldUnpack = do
-  let userRepoUrl = "https://github.com/" <> user <> "/" <> repo
-      rev = branch.target.oid
-  sha256_ <- prefetchUrl shouldUnpack (url userRepoUrl rev)
+  sha256_ <- fetch archiveType
   -- turns the hash into a SRI so it looks like it's from a modern nix >:)
-  sha256 <- sha256ToSri sha256_ `orThrow` PrefetchUrlWtf "hash not decodable"
+  sha256 <-
+    if archiveType /= Git
+      then sha256ToSri sha256_ `orThrow` PrefetchUrlWtf "hash not decodable"
+      else pure sha256_
   pure $ ArchiveMeta {..}
+ where
+  userRepoUrl = "https://github.com/" <> user <> "/" <> repo
+  rev = branch.target.oid
 
-  where
-  url theUserRepoUrl rev = case archiveType of
-    Tarball -> theUserRepoUrl <> "/archive/" <> rev <> ".tar.gz"
-    Zip -> theUserRepoUrl <> "/archive/" <> rev <> ".zip"
+  fetch Tarball = prefetchUrl shouldUnpack tarballUrl
+  fetch Zip = prefetchUrl shouldUnpack zipUrl
+  fetch Git = prefetchGit gitUrl
+
+  -- FIXME: uhh what about private repos
+  gitUrl = "git@github.com:" <> user <> "/" <> repo
+  tarballUrl = userRepoUrl <> "/archive/" <> rev <> ".tar.gz"
+  zipUrl = userRepoUrl <> "/archive/" <> rev <> ".zip"
 
 getBranchTip ::
   (HasGithubToken env, HasManager env, HasLogFunc env) =>
@@ -162,12 +200,13 @@ getBranchTip owner name branch = do
         Just _ -> fromJust res.repository.ref
   pure $ whichBranch
 
-data FetchType = Zip | Tarball
+data FetchType = Zip | Tarball | Git deriving stock (Show, Eq)
 
 fetchType :: Format -> FetchType
 fetchType FetchFromGitHub = Tarball
 fetchType FetchTarball = Tarball
 fetchType FetchUrlZip = Zip
+fetchType Cabal = Git
 
 runApp :: (HasLogFunc env, HasManager env, HasGithubToken env, HasProcessContext env) => Args -> RIO env ()
 runApp args = do
@@ -181,6 +220,7 @@ runApp args = do
         FetchFromGitHub -> fetchFromGitHubOutput tm
         FetchTarball -> fetchTarballOutput tm
         FetchUrlZip -> fetchZipOutput tm
+        Cabal -> cabalOutput tm
   putStrLn formatted
  where
   parseUserRepo [user, repo] = pure (user, repo)
