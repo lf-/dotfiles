@@ -34,7 +34,7 @@ output() {
 }
 
 nix path-info -rsS --json "$@" \
-    | jq -r -f "$program" \
+    | jq -L "$resources" -r -f "$program" \
         --argjson simplify_paths "$simplify_paths" \
     | output
 
