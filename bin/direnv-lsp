@@ -1,0 +1,5 @@
+#!/bin/sh
+
+service="$1"
+shift
+direnv exec . "$service" "$@"
