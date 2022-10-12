@@ -4,19 +4,24 @@ local uv = vim.loop
 local Path = require('plenary.path')
 local ts_configs = require('nvim-treesitter.configs')
 
-local function make_telescope_command(name, builtin_name)
+local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)
-        (require 'telescope.builtin')[builtin_name]({
+        local telescope_args = vim.tbl_extend('force', {
             cwd = args.args,
-        })
+        }, extra_args or {});
+        (require 'telescope.builtin')[builtin_name](telescope_args)
     end, {
-        nargs = 1,
+        nargs = '*',
         complete = 'file',
     })
 end
 
 make_telescope_command('FindFiles', 'find_files')
 make_telescope_command('LiveGrep', 'live_grep')
+-- find-cabal
+make_telescope_command('FC', 'find_files', {
+    find_command = { "fd", "--type", "f", "--color", "never", "-e", "cabal" }
+})
 
 nvim_new_command('PrintPDF', function(args)
     local p = tostring(Path:new(vim.fn.stdpath('cache')) / 'printpdf.ps')
