@@ -8,10 +8,10 @@ in
 
   nixpkgs.system = "aarch64-linux";
 
-  jade.wireguard = {
-    enable = true;
-    upstreamInterface = "enp0s3";
-  };
+  # jade.wireguard = {
+  #   enable = true;
+  #   upstreamInterface = "enp0s3";
+  # };
 
   users.users = {
     jade = {
@@ -34,6 +34,15 @@ in
       isNormalUser = true;
       openssh.authorizedKeys.keys = creds.iris.sshKeys;
     };
+
+    alexis = {
+      isNormalUser = true;
+      openssh.authorizedKeys.keys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvdk6lW8N+r56OAG4ZUh0KDeVZTLFdnpNJNkkm6TAkH"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTZqEu22rrazapG4h1Bd6OjoBhyie45f+SFtDoscR/V"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPoVsYDfuwggQ2VL4jokep5ysFDbDXH+Pvcdl6MYhfLz"
+      ];
+    };
   };
 
   systemd.tmpfiles.rules = [
@@ -49,6 +58,10 @@ in
   security.sudo.wheelNeedsPassword = false;
 
   documentation.enable = true;
+
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
 
   nixpkgs.overlays = [
     (import ../overlays/polkadots.nix { inherit (sources) polkadots; })
