@@ -26,6 +26,13 @@
           inherit polkadots aiobspwm aiopanel;
         };
       };
+      nixosConfigurations.micro = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [ ./machines/micro ];
+        specialArgs = {
+          inherit polkadots;
+        };
+      };
 
       packages.x86_64-linux.aiopanel =
         let
