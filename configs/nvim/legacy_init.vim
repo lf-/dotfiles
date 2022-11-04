@@ -68,6 +68,8 @@ augroup spacing
   autocmd!
   " the stock html indentexpr is broken as hell
   autocmd FileType html setlocal indentexpr=
+  " likewise the nix one is worse than nothing
+  autocmd FileType nix setlocal indentexpr=
 augroup END
 
 command! -range TitleCase :s/\v<(.)(\w*)/\u\1\L\2/g
