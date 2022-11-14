@@ -19,6 +19,8 @@
     wifi.backend = "iwd";
   };
 
+  hardware.acpilight.enable = true;
+
   environment.systemPackages = with pkgs; [
     feh
     sxhkd
@@ -31,6 +33,11 @@
     pkgs.aiopanel
     lemonbar-xft
     xtitle
+
+    # FIXME: maybe convert to the service module?
+    picom
+
+    okular
 
     xdo
     xdotool
