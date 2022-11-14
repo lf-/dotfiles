@@ -19,11 +19,11 @@
     "aiopanel": {
       "flake": false,
       "locked": {
-        "lastModified": 1658122056,
-        "narHash": "sha256-eTnuk3LGv/u7dc4H+o+4pcyEE0eFQxAOqtdDbdtKPu0=",
+        "lastModified": 1668383910,
+        "narHash": "sha256-QNF9OXILipdplrxZr587odqa2xqlBMb57pqWrttNUXU=",
         "owner": "lf-",
         "repo": "aiopanel",
-        "rev": "8bdef2233751abc44500e1b87f04af61c4199d2e",
+        "rev": "1d8d0e0015b0990506213af23651edb29a09835c",
         "type": "github"
       },
       "original": {

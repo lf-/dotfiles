@@ -19,6 +19,7 @@
 
   outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils }:
     {
+      np = nixpkgs.path;
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [ ./machines/snowflake ];
