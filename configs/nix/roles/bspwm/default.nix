@@ -7,9 +7,13 @@
     displayManager.startx.enable = true;
 
     libinput.enable = true;
+    libinput.touchpad.disableWhileTyping = true;
   };
 
   services.upower.enable = true;
+  services.redshift = {
+    enable = true;
+  };
 
   nixpkgs.overlays = [ (import ../../overlays/aiopanel.nix { inherit aiobspwm aiopanel; }) ];
 

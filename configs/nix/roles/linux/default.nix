@@ -1,4 +1,4 @@
-{ config, pkgs , ... }:
+{ config, pkgs, ... }:
 let sources = import ./nix/sources.nix;
 in
 {
@@ -7,6 +7,10 @@ in
   ];
 
   time.timeZone = "America/Vancouver";
+  location = {
+    provider = "geoclue2";
+  };
+
   i18n.defaultLocale = "en_US.UTF-8";
 
   # security

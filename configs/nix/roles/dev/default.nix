@@ -29,7 +29,7 @@ in
     git-revise
     git-absorb
 
-    hsutils
+    (pkgs.haskell.lib.justStaticExecutables hsutils)
 
     ripgrep
     dtach
@@ -64,7 +64,7 @@ in
     ''
   ];
 
-  nix.trustedBinaryCaches = [
+  nix.settings.trusted-substituters = [
     "https://haskell-language-server.cachix.org"
   ];
 
