@@ -131,7 +131,7 @@ command! SyntaxQuery call <SID>syntax_query()
 " COMPLETION
 """"""""""""""""""""""""""""""""""""""
 
-let g:coc_global_extensions = ['coc-rust-analyzer', 'coc-json', 'coc-pyright', 'coc-yaml', 'coc-clangd']
+let g:coc_global_extensions = ['coc-json', 'coc-pyright', 'coc-yaml', 'coc-clangd']
 
 " Highlight symbol under cursor on CursorHold
 autocmd CursorHold * silent call CocActionAsync('highlight')

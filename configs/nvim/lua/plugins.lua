@@ -51,7 +51,7 @@ return require('packer').startup(function(use)
     use 'nvim-telescope/telescope-fzy-native.nvim'
 
     -- completion
-    use {'neoclide/coc.nvim', branch = 'release'}
+    useLocal {'neoclide/coc.nvim', branch = 'release'}
     use 'mattn/emmet-vim'
 
     -- UI
@@ -64,7 +64,7 @@ return require('packer').startup(function(use)
     use 'AndrewRadev/undoquit.vim'
     use 'MattesGroeger/vim-bookmarks'
 
-    useLocal {'nvim-treesitter/nvim-treesitter', run = ':TSUpdate'}
+    use {'nvim-treesitter/nvim-treesitter', branch = 'v0.8.0'}
     use 'nvim-treesitter/playground'
     use 'nvim-treesitter/nvim-treesitter-textobjects'
     use 'RRethy/nvim-treesitter-textsubjects'
@@ -80,6 +80,7 @@ return require('packer').startup(function(use)
     use 'editorconfig/editorconfig-vim'
     use 'tikhomirov/vim-glsl'
     use 'bfrg/vim-jq'
+    use 'vmchale/dhall-vim'
 
     -- Automatically set up your configuration after cloning packer.nvim
     -- Put this at the end after all plugins
