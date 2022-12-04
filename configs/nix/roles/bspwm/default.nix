@@ -46,5 +46,7 @@
     xdo
     xdotool
     wmctrl
+
+    catppuccin-gtk
   ];
 }

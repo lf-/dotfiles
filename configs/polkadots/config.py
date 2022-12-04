@@ -2,6 +2,9 @@ from pathlib import Path
 import subprocess
 import re
 import logging
+import subprocess
+
+hostname = subprocess.check_output('hostname').strip().decode()
 
 LAPTOP_THRESHOLD = 75000
 
@@ -83,6 +86,9 @@ dotconfigs = [
     'rofi',
     'sxhkd',
 ]
+
+if hostname == 'snowflake':
+    dotconfigs.append('gtk-3.0')
 
 alacritty_config = 'alacritty-laptop.yml' \
     if get_is_laptop() \
