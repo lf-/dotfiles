@@ -233,7 +233,7 @@ opt.joinspaces = false
 opt.list = true
 opt.listchars = 'tab:  ,trail:•'
 
-opt.guifont = 'Iosevka:h18'
+opt.guifont = 'Comic Code Ligatures,Iosevka:h16'
 
 opt.printoptions = 'paper:letter,syntax:y,number:y,left:3pc'
 opt.printfont = 'Iosevka:h10'
