@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env bash
 sed -e 's/[lr]/w/g' -e 's/[LR]/W/g' -e 's/o/owo/g' -e 's/O/OWO/g' -e 's/u/uwu/g' -e 's/U/UWU/g' -e 's/n/ny/g' -e 's/N/NY/g' -e 's/th/d/g' -e 's/TH/D/g' -e 's/package/pakidge/g' -e 's/PACKAGE/PAKIDGE/g'
