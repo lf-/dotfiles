@@ -54,7 +54,6 @@ ghc-options:
 
 default-extensions:
   - AllowAmbiguousTypes
-  - ApplicativeDo
   - BlockArguments
   - DataKinds
   - DeriveAnyClass
