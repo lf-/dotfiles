@@ -25,6 +25,9 @@
   environment.variables = {
     EDITOR = "nvim";
   };
-  #
-  # nix.registry.nixpkgs.flake = pkgs.path;
+
+  nix.registry.nixpkgs.to = {
+    type = "path";
+    path = toString pkgs.path;
+  };
 }
