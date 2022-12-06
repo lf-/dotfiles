@@ -20,3 +20,7 @@ result
 a.out
 node_modules
 .direnv/
+
+# this is obviously absurd, but it's used for doing crimes to Sapling
+.sl/
+.git/
