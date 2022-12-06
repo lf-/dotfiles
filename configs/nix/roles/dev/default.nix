@@ -43,6 +43,9 @@ in
 
     msmtp
 
+    man-pages
+    man-pages-posix
+
     (python3.withPackages pyPkgs)
   ];
 
