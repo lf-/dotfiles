@@ -1,6 +1,6 @@
 { config, pkgs, polkadots, ... }:
 {
-  nix.nixPath = [ "nixpkgs=${pkgs.path}" ];
+  nix.nixPath = [ "nixpkgs=${toString pkgs.path}" ];
 
   environment.systemPackages = with pkgs; [
     file
