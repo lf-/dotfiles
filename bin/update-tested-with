@@ -1,0 +1,77 @@
+#!/usr/bin/env sh
+set -eu
+
+# usage: update-tested-with 9.4.2 4.18 [dirs...]
+# where 9.4.2 is the new ghc version and 4.18 is the base version PLUS ONE
+
+ghc_version="$1"
+base_version_plus_one="$2"
+shift
+shift
+
+update_tested_with() {
+    f="$1"
+    echo "update_tested_with $1"
+    tested_with="$(grep 'tested-with: GHC' $f)"
+    echo "existing: ${tested_with}"
+    if [[ -z "${tested_with}" ]]; then
+        echo "no tested_with"
+    fi
+
+    if [[ "${tested_with}" == *"$ghc_version"* ]]; then
+        echo 'doing nothing, its already there'
+        return 0
+    fi
+    sed -Ei "s#^(tested-with: GHC .*)\$#\1 \|\| ==${ghc_version}#" "$f"
+}
+
+version_compare() {
+    # this is done because it is hilarious, not because it is a good idea
+    result=$(nix-instantiate --eval --argstr a "$1" --argstr b "$2" --expr '{a, b}: builtins.compareVersions a b')
+    if [[ "$result" == "-1" ]]; then
+        # first strictly less than second, good
+        return 0
+    else
+        return 1
+    fi
+}
+
+update_base() {
+    f="$1"
+    base_upper_bound="$(rg -r '$2' '\s+(,\s+)?base\s+.*&&\s+<\s+(\d+.\d+)' "$f")"
+    echo "got base version $base_upper_bound"
+    if [[ -z "${base_upper_bound}" ]]; then
+        echo "failed to 'parse' base version with a regex badly"
+        return 1
+    fi
+
+    if version_compare $base_version_plus_one $base_upper_bound; then
+        echo "lt, good"
+        return 0
+    else
+        sed -Ei "s#^(\s+(,\s*)?base\s.*&&\s*<\s*)([0-9]+\.[0-9]+)#\1${base_version_plus_one}#" "$f"
+        return 0
+    fi
+}
+
+do_updates() {
+    update_base "$1"
+    update_tested_with "$1"
+}
+
+while (($# > 0)); do
+    dir="$1"
+    echo "doing $dir"
+    shift
+    files=(${dir}/*.cabal)
+    if [[ "${files[0]}" == "${dir}"'/*.cabal' ]]; then
+        echo "WARN: $1 does not have any cabal files"
+        continue
+    fi
+    echo "files: ${files[@]}"
+
+    for f in "${files[@]}"; do
+        do_updates "$f" || echo "failed to update $f"
+    done
+    echo -e "done $dir\n"
+done
