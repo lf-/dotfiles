@@ -62,7 +62,6 @@
 [submodule]
 	fetchJobs = 8
 
-[url "git@github.com:"]
-	pushInsteadOf = git://github.com/
-	pushInsteadOf = https://github.com/
-
+# [url "git@github.com:"]
+# 	pushInsteadOf = git://github.com/
+# 	pushInsteadOf = https://github.com/

@@ -173,5 +173,6 @@
     "editor.renderFinalNewline": false,
     "files.insertFinalNewline": true,
     "extensions.ignoreRecommendations": true,
+    "haskell.manageHLS": "PATH",
     // "rust-analyzer.trace.server": "verbose"
 }
