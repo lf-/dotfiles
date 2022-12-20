@@ -17,6 +17,20 @@
 
   networking.hostName = "snowflake";
 
+  nix.buildMachines = [{
+    systems = ["x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux"];
+    sshUser = "jade";
+    sshKey = "/root/.ssh/id_rsa";
+    # weird, why does ssh-ng not work
+    protocol = "ssh";
+    maxJobs = 24;
+    supportedFeatures = [ "kvm" "big-parallel" ];
+    hostName = "192.168.0.104";
+  }];
+  # nix.distributedBuilds = true;
+  nix.settings.trusted-users = [ "@wheel" ];
+  nix.settings.builders-use-substitutes = true;
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
