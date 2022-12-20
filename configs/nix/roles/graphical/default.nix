@@ -8,6 +8,7 @@
     glxinfo
     yubikey-manager-qt
     xsel
+    xclip
     wl-clipboard
     zoom-us
     xdg-utils
