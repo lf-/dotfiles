@@ -4,6 +4,7 @@
     ../../roles/linux
     ../../roles/users
     ../../roles/bspwm
+    ../../roles/tailscale
     ./hardware-configuration.nix
   ];
 
