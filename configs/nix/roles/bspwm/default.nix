@@ -21,6 +21,11 @@
     enable = true;
     package = pkgs.connmanFull;
     wifi.backend = "iwd";
+    # Connman allows changing system hostname by default via dhcp (no thanks)
+    extraConfig = ''
+      [General]
+      AllowHostnameUpdate=false
+    '';
   };
 
   hardware.acpilight.enable = true;

@@ -4,6 +4,7 @@
     ../../roles/linux
     ../../roles/users
     ../../roles/bspwm
+    ../../roles/rr
     ../../roles/tailscale
     ./hardware-configuration.nix
   ];
@@ -20,13 +21,12 @@
 
   nix.buildMachines = [{
     systems = ["x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux"];
-    sshUser = "jade";
+    sshUser = "nix-remote-build";
     sshKey = "/root/.ssh/id_rsa";
-    # weird, why does ssh-ng not work
-    protocol = "ssh";
+    protocol = "ssh-ng";
     maxJobs = 24;
     supportedFeatures = [ "kvm" "big-parallel" ];
-    hostName = "192.168.0.104";
+    hostName = "tail-bot.hyrax-grouse.ts.net";
   }];
   # nix.distributedBuilds = true;
   nix.settings.trusted-users = [ "@wheel" ];

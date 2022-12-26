@@ -41,6 +41,9 @@ in
     graphviz
     ctags
 
+    dogdns
+    bind.dnsutils
+
     msmtp
 
     man-pages

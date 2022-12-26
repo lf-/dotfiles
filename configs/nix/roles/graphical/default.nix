@@ -19,6 +19,7 @@
     arandr
     gimp
     zeal
+    # signal-desktop
 
     vscode
 

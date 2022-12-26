@@ -6,7 +6,7 @@ in
     ../base
   ];
 
-  time.timeZone = "America/Vancouver";
+  time.timeZone = "Europe/Amsterdam";
   location = {
     provider = "geoclue2";
   };
