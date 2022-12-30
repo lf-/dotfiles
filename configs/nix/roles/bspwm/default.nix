@@ -21,12 +21,15 @@
     enable = true;
     package = pkgs.connmanFull;
     wifi.backend = "iwd";
+    extraFlags = [ "--debug=plugins/iwd.c" ];
     # Connman allows changing system hostname by default via dhcp (no thanks)
     extraConfig = ''
       [General]
-      AllowHostnameUpdate=false
+      AllowHostnameUpdates=false
     '';
   };
+
+  hardware.bluetooth.enable = true;
 
   hardware.acpilight.enable = true;
 
@@ -42,6 +45,8 @@
     pkgs.aiopanel
     lemonbar-xft
     xtitle
+
+    blueberry
 
     # FIXME: maybe convert to the service module?
     picom
