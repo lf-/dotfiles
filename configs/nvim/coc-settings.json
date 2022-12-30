@@ -81,5 +81,6 @@
     "list.normalMappings": {
         "<C-x>": "action:split",
         "<C-v>": "action:vsplit"
-    }
+    },
+    "clangd.path": "direnv-clangd"
 }
