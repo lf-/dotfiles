@@ -136,5 +136,5 @@ widgets = {
     'pulse': [aiopanel.PulseAudioWidget(pulse_template, ctx=pulse_ctx)],
     'connman': [aiopanel.ConnmanWidget(cm_template)],
     'batt': [aiopanel.UPowerWidget(upower_template, ctx=upower_ctx)],
-    'date': [aiopanel.DateTimeWidget('%b %-d %H:%M', update=2)],
+    'date': [aiopanel.DateTimeWidget('%a %b %-d %H:%M', update=2)],
 }
