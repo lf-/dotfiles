@@ -40,6 +40,7 @@ in
     jq
     graphviz
     ctags
+    reuse
 
     dogdns
     bind.dnsutils
