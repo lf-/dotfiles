@@ -6,9 +6,9 @@
 { config, pkgs, ... }: {
   systemd.oomd = {
     enable = true;
-    # not yet, since I currently don't have a properly cgroupified launching
-    # infrastructure at the user level, so it will kill off my entire session.
-    # enableRootSlice = true;
+    # why not, we have cgroups at user level now so it'll just kill the
+    # terminal
+    enableRootSlice = true;
     enableSystemSlice = true;
     enableUserServices = true;
   };

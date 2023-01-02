@@ -139,13 +139,9 @@ super + period
 super + comma
     rofimoji --files ~/.dotfiles/greek-letters/greek-letters.txt --action clipboard
 
-# run wireless login script
-super + grave
-    login.py
-
 # terminal
 super + Return
-    alacritty
+    systemd-run --user --scope --unit="app-sxhkd-alacritty-$RANDOM" alacritty
 
 # reload sxhkd configs
 super + Escape

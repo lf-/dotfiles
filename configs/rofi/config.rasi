@@ -1,5 +1,6 @@
 configuration {
 	run-shell-command: "alacritty --hold -e {cmd}";
+    run-command: "rofi-start {cmd}";
 	modi: "window,drun,combi,ss:~/.config/rofi/screenshot.sh";
 	combi-modi: "window,drun,ss";
 }

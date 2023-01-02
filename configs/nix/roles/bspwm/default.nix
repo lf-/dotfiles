@@ -33,6 +33,9 @@
 
   hardware.acpilight.enable = true;
 
+  # i was rr'ing a program and it froze x so hard you couldn't change vty
+  services.xserver.enableCtrlAltBackspace = true;
+
   environment.systemPackages = with pkgs; [
     feh
     sxhkd

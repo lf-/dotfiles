@@ -1,0 +1,5 @@
+#!/bin/sh
+
+unit_name="app-rofi-$(systemd-escape "$(basename "$1")")-$RANDOM"
+
+exec systemd-run --user --scope --unit="$unit_name" -- "$@"
