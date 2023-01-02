@@ -1,3 +1,4 @@
 #!/bin/sh
 mp="$(manpath | tr ':' ' ')"
-rg -lz "$1" $mp | perl -pe 's#.*/(.*?)(\.gz)?$#\1#'
+rg --files-with-matches --search-zip --follow "$1" $mp \
+    | perl -pe 's#.*/(.*?)(\.gz)?$#\1#'
