@@ -25,6 +25,13 @@
 
   systemd.slices.hostcritical = {
     description = "Ensures that services to keep the system alive remain alive";
+
+    unitConfig = {
+      # required to avoid a dependency cycle on systemd-oomd. systemd will
+      # actually guess this right but we should fix it anyway.
+      DefaultDependencies = false;
+    };
+
     sliceConfig = {
       CPUAccounting = true;
       ManagedOOMMemoryPressure = "kill";
@@ -41,7 +48,7 @@
   systemd.slices.system = {
     sliceConfig = {
       ManagedOOMMemoryPressure = "kill";
-      ManagedOOMPressureLimit = "50%";
+      ManagedOOMMemoryPressureLimit = "50%";
 
       IOWeight = 100;
     };
@@ -54,6 +61,12 @@
   };
 
   systemd.services.systemd-oomd = {
+    serviceConfig = {
+      Slice = "hostcritical.slice";
+    };
+  };
+
+  systemd.services.systemd-journald = {
     serviceConfig = {
       Slice = "hostcritical.slice";
     };
