@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ -z "$LC_GOOEYD_SOCK" ]]; then
     echo 'missing LC_GOOEYD_SOCK env-var'
