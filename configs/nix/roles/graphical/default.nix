@@ -22,6 +22,7 @@
     signal-desktop
 
     dfeet
+    wireshark
 
     vscode
 

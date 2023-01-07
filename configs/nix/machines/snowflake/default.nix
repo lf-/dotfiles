@@ -1,4 +1,4 @@
-{ config, lib, nixpkgs, ... }: {
+{ config, lib, nixpkgs, pkgs, ... }: {
   imports = [
     ../../roles/dev
     ../../roles/linux
@@ -18,10 +18,12 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  time.timeZone = "America/Montreal";
+
   networking.hostName = "snowflake";
 
   nix.buildMachines = [{
-    systems = ["x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux"];
+    systems = [ "x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux" ];
     sshUser = "nix-remote-build";
     sshKey = "/root/.ssh/id_rsa";
     protocol = "ssh-ng";
@@ -32,6 +34,14 @@
   # nix.distributedBuilds = true;
   nix.settings.trusted-users = [ "@wheel" ];
   nix.settings.builders-use-substitutes = true;
+
+  environment.systemPackages = with pkgs; [
+    prismlauncher
+  ];
+
+  boot.initrd.systemd = {
+    enable = true;
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

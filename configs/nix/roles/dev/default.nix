@@ -42,6 +42,9 @@ in
     ctags
     reuse
 
+    unzip
+
+    ethtool
     dogdns
     bind.dnsutils
 

@@ -15,7 +15,10 @@
     enable = true;
   };
 
-  nixpkgs.overlays = [ (import ../../overlays/aiopanel.nix { inherit aiobspwm aiopanel; }) ];
+  nixpkgs.overlays = [
+    (import ../../overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
+    (import ../../overlays/connman.nix { })
+  ];
 
   services.connman = {
     enable = true;
@@ -28,6 +31,14 @@
       AllowHostnameUpdates=false
     '';
   };
+
+  # gnome-keyring is the more standard of the options
+  services.gnome = {
+    gnome-keyring.enable = true;
+    at-spi2-core.enable = true;
+  };
+  programs.seahorse.enable = true;
+  programs.dconf.enable = true;
 
   hardware.bluetooth.enable = true;
 
@@ -49,18 +60,20 @@
     lemonbar-xft
     xtitle
 
+    libsecret
+
     blueberry
+    okular
 
     # FIXME: maybe convert to the service module?
     picom
-
-    okular
 
     xdo
     xdotool
     wmctrl
 
     maim
+    rofimoji
 
     catppuccin-gtk
   ];
