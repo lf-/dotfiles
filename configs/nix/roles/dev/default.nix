@@ -41,6 +41,7 @@ in
     graphviz
     ctags
     reuse
+    moreutils
 
     unzip
 

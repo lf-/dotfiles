@@ -1,4 +1,9 @@
-{ config, lib, nixpkgs, pkgs, ... }: {
+{ config, lib, nixpkgs, pkgs, ... }:
+let myQuartus = pkgs.quartus-prime-lite.override {
+  supportedDevices = [ "Cyclone V" ];
+};
+in
+{
   imports = [
     ../../roles/dev
     ../../roles/linux
@@ -18,9 +23,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  time.timeZone = "America/Montreal";
+  time.timeZone = "America/Vancouver";
 
   networking.hostName = "snowflake";
+
+  virtualisation.libvirtd = {
+    enable = true;
+  };
+  services.connman.extraFlags = [ "--nodevice=veth" "--nodevice=hostonly" ];
 
   nix.buildMachines = [{
     systems = [ "x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux" ];
@@ -37,11 +47,18 @@
 
   environment.systemPackages = with pkgs; [
     prismlauncher
+    virt-manager
+    # myQuartus
   ];
 
   boot.initrd.systemd = {
     enable = true;
   };
+
+  services.udev.extraRules = ''
+    # logic analyzer
+    ATTRS{idVendor} == "0925", ATTRS{idProduct} == "3881", TAG += "uaccess"
+  '';
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

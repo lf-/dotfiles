@@ -1,7 +1,7 @@
 From 34ce95a99638d708e0ab7fe3c194e07eb31d7ff9 Mon Sep 17 00:00:00 2001
 From: Jade Lovelace <lists@jade.fyi>
 Date: Sat, 7 Jan 2023 15:09:58 -0500
-Subject: [PATCH 3/3] plugins/iwd: fix iwd autoconnect being set wrongly on new
+Subject: [PATCH 3/4] plugins/iwd: fix iwd autoconnect being set wrongly on new
  connections
 
 Due to an extremely subtle bug in tracking the autoconnect state from

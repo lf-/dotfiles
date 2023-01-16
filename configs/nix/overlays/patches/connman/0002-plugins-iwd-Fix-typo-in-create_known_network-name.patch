@@ -1,7 +1,7 @@
 From 654c47ce460198e712eb8d1c34af0700e616c592 Mon Sep 17 00:00:00 2001
 From: Jade Lovelace <lists@jade.fyi>
 Date: Sat, 7 Jan 2023 09:58:26 -0500
-Subject: [PATCH 2/3] plugins/iwd: Fix typo in create_known_network name
+Subject: [PATCH 2/4] plugins/iwd: Fix typo in create_known_network name
 
 Signed-off-by: Jade Lovelace <lists@jade.fyi>
 ---
