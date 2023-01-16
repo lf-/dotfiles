@@ -48,7 +48,7 @@ in
   environment.systemPackages = with pkgs; [
     prismlauncher
     virt-manager
-    # myQuartus
+    myQuartus
   ];
 
   boot.initrd.systemd = {

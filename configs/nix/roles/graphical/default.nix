@@ -20,6 +20,7 @@
     gimp
     zeal
     signal-desktop
+    zotero
 
     dfeet
     wireshark
