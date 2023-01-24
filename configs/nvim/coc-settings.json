@@ -7,7 +7,7 @@
     "rust-analyzer.server.extraEnv": {
         "RA_LOG": "info,salsa::derived::slot=warn,chalk_recursive=warn,hir_ty::traits=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,project_model=debug,proc_macro_api=debug,hir_expand::db=error,ide_assists=debug,ide=debug"
     },
-    "rust-analyzer.updates.channel": "nightly",
+    "rust-analyzer.updates.channel": "stable",
     "coc.preferences.formatOnSaveFiletypes": ["rust", "typescript", "typescriptreact"],
     "languageserver": {
         "nix": {
@@ -82,5 +82,7 @@
         "<C-x>": "action:split",
         "<C-v>": "action:vsplit"
     },
-    "clangd.path": "direnv-clangd"
+    "clangd.path": "direnv-clangd",
+
+    "codeLens.position": "eol"
 }
