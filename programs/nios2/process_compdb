@@ -1,0 +1,3 @@
+#!/bin/sh
+selfdir="$(dirname "$0")"
+"${selfdir}/process_compdb.jq" < $1 | sponge $1
