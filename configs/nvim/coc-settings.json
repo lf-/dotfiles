@@ -20,10 +20,10 @@
             "rootPatterns": [".svls_root"],
             "filetypes": ["systemverilog", "verilog"],
             "settings": {
-                "systemverilog.includeIndexing": ["**/*.{sv,svh}"],
-                "systemverilog.excludeIndexing": ["test/**/*.sv*"],
+                "systemverilog.includeIndexing": ["*.{sv,v,svh}"],
+                "systemverilog.excludeIndexing": [],
                 "systemverilog.defines": [],
-                "systemverilog.launchConfiguration": "verilator -sv -Wall --lint-only",
+                "systemverilog.launchConfiguration": "verilator -sv -Wall --timing --lint-only",
                 "systemverilog.formatCommand": "verible-verilog-format --indentation_spaces 4"
             }
         },
