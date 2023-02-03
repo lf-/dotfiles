@@ -1,8 +1,4 @@
 { config, lib, nixpkgs, pkgs, ... }:
-let myQuartus = pkgs.quartus-prime-lite.override {
-  supportedDevices = [ "Cyclone V" ];
-};
-in
 {
   imports = [
     ../../roles/dev
@@ -48,7 +44,6 @@ in
   environment.systemPackages = with pkgs; [
     prismlauncher
     virt-manager
-    myQuartus
   ];
 
   boot.initrd.systemd = {
@@ -58,6 +53,9 @@ in
   services.udev.extraRules = ''
     # logic analyzer
     ATTRS{idVendor} == "0925", ATTRS{idProduct} == "3881", TAG += "uaccess"
+
+    # fpga
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
   '';
 
   # This value determines the NixOS release from which the default

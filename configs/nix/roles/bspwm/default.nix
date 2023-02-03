@@ -64,6 +64,8 @@
 
     blueberry
     okular
+    dolphin
+    ark
 
     # FIXME: maybe convert to the service module?
     picom
@@ -76,5 +78,6 @@
     rofimoji
 
     catppuccin-gtk
+    breeze-icons
   ];
 }
