@@ -168,11 +168,12 @@
         "RA_LOG": "info,salsa=info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,ide=debug"
     },
     "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
-    "window.zoomLevel": 1,
+    "window.zoomLevel": 2,
     "security.workspace.trust.untrustedFiles": "open",
     "editor.renderFinalNewline": false,
     "files.insertFinalNewline": true,
     "extensions.ignoreRecommendations": true,
     "haskell.manageHLS": "PATH",
+    "C_Cpp.intelliSenseEngine": "disabled",
     // "rust-analyzer.trace.server": "verbose"
 }
