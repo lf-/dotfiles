@@ -2,6 +2,8 @@ base=/opt/intelFPGA_lite/20.1
 export PS1="(quartus) ${PS1:-}"
 export SOPC_KIT_NIOS2=$base/nios2eds
 export PATH=$PATH:$base/quartus/bin:$base/modelsim_ase/bin:$base/nios2eds/bin:$SOPC_KIT_NIOS2/sdk2/bin:$SOPC_KIT_NIOS2/bin/gnu/H-x86_64-pc-linux-gnu/bin
+export QUARTUS_ROOTDIR=$base/quartus
+export QUARTUS_BINDIR=$base/quartus/linux64
 
 nios2-bsp() {
     # junk software
