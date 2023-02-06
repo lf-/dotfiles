@@ -47,6 +47,26 @@ let
     }
   );
 
+  buildEmacs = buildHtmlWith (
+    old: {
+      # package name is emacs-nox but we want it called emacs
+      docsSvcName = "emacs";
+
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+
+      installPhase = ''
+        mkdir -p $out
+        find doc -name '*.html' -exec cp '{}' $out/ ';'
+      '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
+      outputs = [ "out" ];
+    }
+  );
+
   # it's got a bunch of rubbish in tests
   buildTexinfo = buildHtmlWith (
     old: {
@@ -340,6 +360,7 @@ let
     "bfd:binutils"
     "binutils"
     "cpp:gcc"
+    "emacs"
     "find:findutils"
     "gawk"
     "gcc"
@@ -355,7 +376,7 @@ let
     "texinfo"
   ];
 
-  myGcc = pkgs.callPackage (pkgs.path + "/pkgs/development/compilers/gcc/11/default.nix") {
+  myGcc = pkgs.gcc12.cc.override (old: {
     langFortran = true;
     langAda = true;
     noSysDirs = true;
@@ -364,12 +385,13 @@ let
     profiledCompiler = false;
 
     libcCross = null;
-    threadsCross = null;
+    threadsCross = { };
     isl = null;
-  };
+  });
 
 in
 rec {
+  inherit docify;
   gcc = buildGcc myGcc;
   ed = buildEd pkgs.ed;
   ddrescue = buildDdrescue pkgs.ddrescue;
@@ -378,6 +400,7 @@ rec {
   texinfo = buildTexinfo pkgs.texinfo;
   gdb = buildGdb pkgs.gdb;
   gnuplot = buildGnuplot pkgs.gnuplot;
+  emacs = buildEmacs pkgs.emacs-nox;
 
   bash = buildBash pkgs.bash;
   screen = buildScreen pkgs.screen;
@@ -428,7 +451,6 @@ rec {
 
   defaults = map defaultAutotools (
     with pkgs; [
-      gawk
       autoconf
       automake
       cflow
@@ -436,6 +458,7 @@ rec {
       cpio
       diffutils
       flex
+      gawk
       gnufdisk
       gnumake
       gnupg
@@ -519,6 +542,7 @@ rec {
         binutils
         ddrescue
         ed
+        emacs
         findutils
         gcc
         gdb
