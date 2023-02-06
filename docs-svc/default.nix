@@ -1,10 +1,10 @@
 {}:
 let
   sources = import ./nix/sources.nix;
-  pkgs = import sources.nixpkgs {};
+  pkgs = import sources.nixpkgs { };
 
   buildHtmlWith = f: pkg: pkg.overrideAttrs (
-    old@{ nativeBuildInputs ? [], ... }: {
+    old@{ nativeBuildInputs ? [ ], ... }: {
       docsSvcName = pkgs.lib.getName old;
       installPhase = ''
         mkdir -p $out
@@ -21,7 +21,7 @@ let
   );
 
   addNativeBuildInputs = addInputs: pkg: pkg.overrideAttrs (
-    old@{ nativeBuildInputs ? [], ... }: {
+    old@{ nativeBuildInputs ? [ ], ... }: {
       nativeBuildInputs = nativeBuildInputs ++ addInputs;
     }
   );
@@ -147,26 +147,26 @@ let
   # then building the final artefact manually though.
   buildGlibc = buildHtmlWith (
     old:
-      let
-        ver = builtins.elemAt (pkgs.lib.splitString "-" old.version) 0;
-      in
-        {
-          buildPhase = ''
-            # this builds a bunch of garbage we don't want
-            make -j$NIX_BUILD_CORES html
+    let
+      ver = builtins.elemAt (pkgs.lib.splitString "-" old.version) 0;
+    in
+    {
+      buildPhase = ''
+        # this builds a bunch of garbage we don't want
+        make -j$NIX_BUILD_CORES html
 
-            echo 'Makeinfo for real'
-            makeinfo --no-split -P ./manual ../glibc-${ver}/manual/libc.texinfo -I $(realpath ../glibc-${ver}/manual) --html -o .
-          '';
-          installPhase = ''
-            mkdir -p $out
-            cp libc.html $out/glibc.html
-          '';
+        echo 'Makeinfo for real'
+        makeinfo --no-split -P ./manual ../glibc-${ver}/manual/libc.texinfo -I $(realpath ../glibc-${ver}/manual) --html -o .
+      '';
+      installPhase = ''
+        mkdir -p $out
+        cp libc.html $out/glibc.html
+      '';
 
-          # we don't have debug info just html
-          separateDebugInfo = false;
-          outputs = [ "out" ];
-        }
+      # we don't have debug info just html
+      separateDebugInfo = false;
+      outputs = [ "out" ];
+    }
   );
 
 
@@ -278,6 +278,22 @@ let
     }
   );
 
+  # gnuplot uses a custom documentation system, which makes our life a little
+  # bit difficult. However, someone wrote Emacs Lisp to convert the manual to
+  # texinfo, so we can work with that. Hard to say if it's better than what we
+  # would have otherwise, though...
+  buildGnuplot = buildHtmlWith (old: {
+    buildInputs = old.buildInputs ++ (with pkgs; [
+      emacs-nox
+    ]);
+
+    buildPhase = ''
+      cd docs
+      make gnuplot.texi
+      makeinfo --html --no-split gnuplot.texi
+    '';
+  });
+
   docify = p: pkgs.stdenv.mkDerivation {
     name = "${p.name}-htmldoc";
     phases = [ "buildPhase" ];
@@ -361,6 +377,7 @@ rec {
   m4 = buildM4 pkgs.m4;
   texinfo = buildTexinfo pkgs.texinfo;
   gdb = buildGdb pkgs.gdb;
+  gnuplot = buildGnuplot pkgs.gnuplot;
 
   bash = buildBash pkgs.bash;
   screen = buildScreen pkgs.screen;
@@ -509,6 +526,7 @@ rec {
         m4
         screen
         texinfo
+        gnuplot
       ] ++ defaults
     );
   };
