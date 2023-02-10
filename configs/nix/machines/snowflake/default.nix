@@ -2,12 +2,14 @@
 {
   imports = [
     ../../roles/dev
+    ../../roles/hacking
     ../../roles/linux
     ../../roles/users
     ../../roles/bspwm
     ../../roles/rr
     ../../roles/tailscale
     ../../roles/cgroups
+    ../../roles/rawethernet
     ./hardware-configuration.nix
   ];
 
@@ -26,7 +28,6 @@
   virtualisation.libvirtd = {
     enable = true;
   };
-  services.connman.extraFlags = [ "--nodevice=veth" "--nodevice=hostonly" ];
 
   nix.buildMachines = [{
     systems = [ "x86_64-linux" "x86_64-v1-linux" "x86_64-v2-linux" "x86_64-v3-linux" ];
@@ -44,6 +45,10 @@
   environment.systemPackages = with pkgs; [
     prismlauncher
     virt-manager
+
+    verible
+    # tcpdump
+    # iotop
   ];
 
   boot.initrd.systemd = {

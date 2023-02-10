@@ -5,5 +5,6 @@
 
   networking.firewall.checkReversePath = "loose";
 
-  services.connman.extraFlags = [ "--nodevice=${config.services.tailscale.interfaceName}" ];
+  # Moved to rawethernet role due to combining of nodevice opts being broken
+  # services.connman.extraFlags = [ "--nodevice=${config.services.tailscale.interfaceName}" ];
 }

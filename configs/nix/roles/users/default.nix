@@ -5,7 +5,7 @@ in
   users.users.jade = mkMerge [
     {
       isNormalUser = true;
-      extraGroups = [ "wheel" "video" ];
+      extraGroups = [ "wheel" "video" "dialout" ];
 
       initialPassword = "changeme";
 

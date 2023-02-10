@@ -43,11 +43,14 @@ in
     reuse
     moreutils
 
+    xxd
+
     unzip
 
     ethtool
     dogdns
     bind.dnsutils
+    tcpdump
 
     msmtp
 
