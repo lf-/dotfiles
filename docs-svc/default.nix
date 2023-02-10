@@ -38,6 +38,23 @@ let
     }
   );
 
+  buildOpenocd = buildHtmlWith (
+    old: {
+      buildPhase = ''
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+      '';
+      installPhase = ''
+        mkdir -p $out
+        cp doc/openocd.html $out/
+      '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
+      outputs = [ "out" ];
+    }
+  );
+
+
   autotoolsBuildFirst = buildHtmlWith (
     old: {
       buildPhase = ''
@@ -399,7 +416,7 @@ rec {
   m4 = buildM4 pkgs.m4;
   texinfo = buildTexinfo pkgs.texinfo;
   gdb = buildGdb pkgs.gdb;
-  gnuplot = buildGnuplot pkgs.gnuplot;
+  gnuplot = docify (buildGnuplot pkgs.gnuplot);
   emacs = buildEmacs pkgs.emacs-nox;
 
   bash = buildBash pkgs.bash;
@@ -444,6 +461,8 @@ rec {
   };
 
   postgresql = docify (buildPostgres pkgs.postgresql_14);
+
+  openocd = docify (buildOpenocd pkgs.openocd);
 
   coreutils = defaultAutotools pkgs.coreutils;
 
@@ -550,7 +569,6 @@ rec {
         m4
         screen
         texinfo
-        gnuplot
       ] ++ defaults
     );
   };
