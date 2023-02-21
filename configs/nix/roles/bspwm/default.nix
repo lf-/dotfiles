@@ -65,7 +65,11 @@
     blueberry
     okular
     dolphin
+    libsForQt5.dolphin-plugins
     ark
+    konsole
+    libsForQt5.print-manager
+    systemsettings
 
     # FIXME: maybe convert to the service module?
     picom

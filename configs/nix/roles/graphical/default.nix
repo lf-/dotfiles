@@ -36,6 +36,8 @@
   services.printing.enable = true;
   services.avahi.enable = true;
 
+  programs.kdeconnect.enable = true;
+
   # gitk
   programs.git.package = pkgs.gitFull;
 
