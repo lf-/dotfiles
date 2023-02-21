@@ -47,6 +47,8 @@ in
 
     unzip
 
+    iotop
+    nethogs
     ethtool
     dogdns
     bind.dnsutils

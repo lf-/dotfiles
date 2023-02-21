@@ -47,6 +47,7 @@
     virt-manager
 
     verible
+    verilator
     # tcpdump
     # iotop
   ];

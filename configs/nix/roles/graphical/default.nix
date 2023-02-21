@@ -18,6 +18,7 @@
     libreoffice
     arandr
     gimp
+    inkscape
     zeal
     signal-desktop
     zotero
@@ -31,6 +32,9 @@
 
     audacity
   ];
+
+  services.printing.enable = true;
+  services.avahi.enable = true;
 
   # gitk
   programs.git.package = pkgs.gitFull;
