@@ -101,5 +101,6 @@ if inf:
         gdb.execute('set disassembly-flavor intel')
 
 gdb.execute("""
-set index-cache on
+set index-cache enabled on
+set debuginfod enabled on
 """)
