@@ -33,7 +33,7 @@
             "filetypes": ["php"]
         },
         "haskell": {
-            "command": "hls-nix",
+            "command": "direnv-hls",
             "args": ["--lsp"],
             "rootPatterns": [
                 "*.cabal",

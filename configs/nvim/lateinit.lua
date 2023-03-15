@@ -240,9 +240,6 @@ opt.listchars = 'tab:  ,trail:•'
 
 opt.guifont = 'Comic Code Ligatures,Iosevka:h16'
 
-opt.printoptions = 'paper:letter,syntax:y,number:y,left:3pc'
-opt.printfont = 'Iosevka:h10'
-
 -- Don't use the funny popup menu that is bad
 opt.mousemodel = 'extend'
 
