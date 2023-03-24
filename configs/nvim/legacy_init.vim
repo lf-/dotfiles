@@ -100,6 +100,12 @@ highlight CocHintSign ctermfg=10 guifg=#586e75
 highlight! link CocCodeLens CocHintSign
 
 function! s:configure_highlights() abort
+  if g:colors_name == 'flattened_dark'
+    " someone made this the same colour as the background, which is rather
+    " objectionable if programs ever use it
+    let g:terminal_color_8 = g:terminal_color_15
+  endif
+
   let s:normal_bg = toupper(synIDattr(synIDtrans(hlID("Normal")), 'bg#'))
   exe 'highlight CocHintHighlight guibg=' . color_helper#hex_color_darken(s:normal_bg, 0.40)
 
