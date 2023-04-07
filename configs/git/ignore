@@ -20,6 +20,7 @@ result
 a.out
 node_modules
 .direnv/
+core.*
 
 # this is obviously absurd, but it's used for doing crimes to Sapling
 .sl/

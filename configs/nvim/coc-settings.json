@@ -32,6 +32,11 @@
             "port": 11111,
             "filetypes": ["php"]
         },
+        "bash": {
+            "command": "bash-language-server",
+            "args": ["start"],
+            "filetypes": ["sh"]
+        },
         "haskell": {
             "command": "direnv-hls",
             "args": ["--lsp"],

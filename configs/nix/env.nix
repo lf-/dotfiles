@@ -11,7 +11,8 @@ let
 in
 {
   inherit (pkgs) cachix niv nix-doc nix-direnv rnix-lsp shellcheck nix-index
-    flyctl nixpkgs-fmt
+    flyctl nixpkgs-fmt cmake-language-server
     ;
+  inherit (pkgs.nodePackages) bash-language-server;
   hsutils = justStaticExecutables pkgs.hsutils;
 }
