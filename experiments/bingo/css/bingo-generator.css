@@ -1,0 +1,59 @@
+h1 {
+    font-size: 2em;
+    font-weight: bold;
+    font-family: 'Comic Sans MS';
+}
+
+#bingoContainer {
+    /* 
+     * this fixes a bug where the screenshots were wide and full of pointless
+     * whitespace on the right
+     */
+    display: block;
+    width: max-content;
+}
+
+#buttonBar {
+    display: inline-block;
+}
+
+.memeTable {
+    border: 2px solid black;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.memeTable > tr {
+    display: block;
+    border-bottom: 2px solid black;
+}
+
+.memeTable > tr:last-child {
+    border-bottom: 0;
+}
+
+.memeTable > tr > td {
+    border-right: 2px solid black;
+}
+
+.memeTable > tr > td:last-child {
+    border-right: 0;
+}
+
+.memeTable > tr > td {
+    line-height: 110%;
+    font-family: 'Comic Sans MS';
+    vertical-align: middle;
+    text-align: center;
+    width: 120px;
+    height: 120px;
+}
+
+.memeTable > tr > td[struck] {
+    z-index: 100;
+    background:
+        linear-gradient(135deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 48%, #f00 50%, rgba(0,0,0,0) 52%, rgba(0,0,0,0) 100%)
+}
+

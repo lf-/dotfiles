@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="css/bingo-generator.css" />
+    <script src="js/html2canvas.js"></script>
+    <script src="js/bingo-generator.js"></script>
+  </head>
+
+  <body onload="onLoad()">
+    <div id="bingoContainer">
+      <h1 id="memeTitle" contenteditable="true">Bingo Title</h1>
+    </div>
+    <div id="buttonBar">
+      <button onclick="save()">Share Bingo (copies URL)</button>
+      <button onclick="screenshot()">Screenshot</button>
+      <label>
+        <input
+          id="editable"
+          type="checkbox"
+          onchange="updateEditable()"
+          checked="true"
+        />
+        Edit mode
+      </label>
+    </div>
+    <div id="instructions">
+      <h2>Instructions</h2>
+      <p>
+        Click any tile to cross it off. When you're done, you can click the
+        screenshot button to download a screenshot of your board to share.
+      </p>
+      <p>
+        To edit a bingo, you can enable edit mode and click on any tile or the
+        title to edit it. Click the share button to share your work as a
+        comically long URL (since nothing is stored server-side).
+      </p>
+    </div>
+  </body>
+</html>
+

@@ -1,0 +1,2 @@
+DEPLOY_HOST=abyss
+DEPLOY_DIR=/usr/share/nginx/html/lfcode.ca/experiments
