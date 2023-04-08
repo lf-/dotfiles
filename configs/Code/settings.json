@@ -175,5 +175,6 @@
     "extensions.ignoreRecommendations": true,
     "haskell.manageHLS": "PATH",
     "C_Cpp.intelliSenseEngine": "disabled",
+    "redhat.telemetry.enabled": false,
     // "rust-analyzer.trace.server": "verbose"
 }
