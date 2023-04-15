@@ -10,6 +10,7 @@
     ../../roles/tailscale
     ../../roles/cgroups
     ../../roles/rawethernet
+    ../../roles/physical
     ./hardware-configuration.nix
   ];
 
