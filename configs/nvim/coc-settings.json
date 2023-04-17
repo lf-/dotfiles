@@ -89,5 +89,8 @@
     },
     "clangd.path": "direnv-clangd",
 
-    "codeLens.position": "eol"
+    "codeLens.position": "eol",
+    "hover.floatConfig": {
+        "focusable": true
+    }
 }
