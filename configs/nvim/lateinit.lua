@@ -18,7 +18,7 @@ require 'nvim-treesitter.configs'.setup {
         enable = true,
         -- breaks if handled by anything but the delicate
         -- touch of a lesbian
-        disable = { "python" },
+        disable = { "python", "perl" },
         -- this needs to be here because the autoindent plugin is fucked on js
         -- without having vim highlighting on (typing /*<Enter> causes a spurious
         -- extra indent).
