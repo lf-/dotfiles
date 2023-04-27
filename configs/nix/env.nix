@@ -6,13 +6,12 @@ let
       (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc924"; })
     ];
   };
+  common-dev-pkgs = import ./roles/dev/common-packages.nix pkgs;
 
   inherit (pkgs.haskell.lib) justStaticExecutables;
 in
 {
-  inherit (pkgs) cachix niv nix-doc nix-direnv rnix-lsp shellcheck nix-index
-    flyctl nixpkgs-fmt cmake-language-server
-    ;
+  inherit (pkgs) librespot;
   inherit (pkgs.nodePackages) bash-language-server;
   hsutils = justStaticExecutables pkgs.hsutils;
-}
+} // builtins.listToAttrs (builtins.map (pkg: { name = pkgs.lib.getName pkg; value = pkg; }) common-dev-pkgs)

@@ -33,6 +33,13 @@ def get_is_laptop():
     return primary_sq_mm and primary_sq_mm < LAPTOP_THRESHOLD
 
 
+def when_nixos(if_yes, if_no):
+    if Path('/etc/NIXOS').exists():
+        return if_yes()
+    else:
+        return if_no()
+
+
 dotconfig = lambda n: (n, (Path('~/.config') / n))
 
 actions = [
@@ -69,7 +76,9 @@ actions = [
     SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
 
     MkdirAction('~/.config/alacritty'),
-]
+] + when_nixos(lambda: [], lambda: [
+    SymlinkAction('librespot/librespot.service', '~/.config/systemd/user')
+])
 
 dotconfigs = [
     'aiopanel',

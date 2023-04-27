@@ -16,13 +16,11 @@ let
   ];
   hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc924"; };
 
+  common-dev-pkgs = import ./common-packages.nix pkgs;
+
 in
 {
-  environment.systemPackages = with pkgs; [
-    nix-index
-    nix-doc
-    rnix-lsp
-    nix-direnv
+  environment.systemPackages = common-dev-pkgs ++ (with pkgs; [
     direnv
 
     gitAndTools.delta
@@ -40,7 +38,6 @@ in
     jq
     graphviz
     ctags
-    reuse
     moreutils
 
     xxd
@@ -60,7 +57,7 @@ in
     man-pages-posix
 
     (python3.withPackages pyPkgs)
-  ];
+  ]);
 
   nixpkgs.overlays = [
     hsutilsOverlay

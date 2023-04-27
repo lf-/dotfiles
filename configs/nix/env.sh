@@ -2,4 +2,4 @@
 
 scriptdir="$(dirname $0)"
 
-nix-env --install --remove-all --file $scriptdir/env.nix
+nix-env --install --remove-all --file $scriptdir/env.nix "$@"
