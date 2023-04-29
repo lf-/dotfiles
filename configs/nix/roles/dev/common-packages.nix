@@ -4,6 +4,7 @@
 pkgs: with pkgs; [
   cachix
   cmake-language-server
+  cntr
   flyctl
   niv
   nix-direnv
