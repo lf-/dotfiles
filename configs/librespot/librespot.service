@@ -2,14 +2,14 @@
 # to write a package
 [Unit]
 Description=User service for librespot
+After=pipewire.service
 
 [Service]
 # Disable logging on libmdns::fsm, which spams useless AddrNotAvailable errors
 # when official Spotify client is open
 Environment=RUST_LOG=libmdns::fsm=error,info
 Type=simple
-ExecStart=/usr/bin/env -- /nix/var/nix/profiles/per-user/${USER}/profile/bin/librespot -B pulseaudio -b 320 -n cat-tail-bot
-After=pipewire.service
+ExecStart=/usr/bin/env -- /nix/var/nix/profiles/per-user/${USER}/profile/bin/librespot -B pulseaudio -b 320 -n cat-tail-bot -z 3838
 
 [Install]
 WantedBy=default.target
