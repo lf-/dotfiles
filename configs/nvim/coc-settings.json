@@ -14,6 +14,10 @@
             "command": "rnix-lsp",
             "filetypes": ["nix"]
         },
+        "cmake": {
+            "command": "cmake-language-server",
+            "filetypes": ["cmake"]
+        },
         "svlangserver": {
             // npm i -g @imc-trading/svlangserver
             "module": "~/.local/share/npm-packages/lib/node_modules/@imc-trading/svlangserver/lib/svlangserver.js",
@@ -27,10 +31,10 @@
                 "systemverilog.formatCommand": "verible-verilog-format --indentation_spaces 4"
             }
         },
-        "serenata": {
-            "host": "127.0.0.1",
-            "port": 11111,
-            "filetypes": ["php"]
+        "phpactor": {
+            "command": "phpactor",
+            "args": ["language-server", "-vvv"],
+            "filetypes": ["php"],
         },
         "bash": {
             "command": "bash-language-server",

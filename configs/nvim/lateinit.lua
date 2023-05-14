@@ -22,7 +22,7 @@ require 'nvim-treesitter.configs'.setup {
         -- this needs to be here because the autoindent plugin is fucked on js
         -- without having vim highlighting on (typing /*<Enter> causes a spurious
         -- extra indent).
-        additional_vim_regex_highlighting = { "javascript" },
+        additional_vim_regex_highlighting = { "javascript", "php" },
     },
     indent = {
         enable = false, -- it's not good enough. worse than default in python,
