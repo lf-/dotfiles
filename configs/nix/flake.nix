@@ -15,9 +15,19 @@
       url = "github:lf-/aiopanel";
       flake = false;
     };
+    nixGL = {
+      url = "github:guibou/nixGL";
+      # just used to make flakes into a dep manager
+      flake = false;
+    };
+    # my displeasure is hardly measurable
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils }:
+  outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, ... }:
     {
       np = nixpkgs.path;
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
