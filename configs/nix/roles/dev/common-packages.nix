@@ -11,6 +11,8 @@ pkgs: with pkgs; [
   nix-doc
   nix-index
   nixpkgs-fmt
+  phpactor
+  phpPackages.php-cs-fixer
   reuse
   rnix-lsp
   shellcheck
