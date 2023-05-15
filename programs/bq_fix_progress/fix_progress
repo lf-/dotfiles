@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ $# != 2 ]; then
+    echo "Usage: $0 FROM_PLAYER_UUID TO_PLAYER_UUID" >&2
+    exit 1
+fi
+
+jq -f "$(realpath "$(dirname "$0")")/fix_progress.jq" --arg from_p "$1" --arg to_p "$2"
