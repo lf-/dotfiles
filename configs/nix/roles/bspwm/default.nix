@@ -70,6 +70,8 @@
     konsole
     libsForQt5.print-manager
     systemsettings
+    gwenview
+    libsForQt5.kdegraphics-thumbnailers
 
     # FIXME: maybe convert to the service module?
     picom

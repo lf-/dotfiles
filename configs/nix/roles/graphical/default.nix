@@ -27,6 +27,8 @@
 
     vscode
 
+    prusa-slicer
+
     pulseaudio
     pavucontrol
 

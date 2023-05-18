@@ -11,6 +11,7 @@
     ../../roles/cgroups
     ../../roles/rawethernet
     ../../roles/physical
+    ../../roles/usbip
     ./hardware-configuration.nix
   ];
 
