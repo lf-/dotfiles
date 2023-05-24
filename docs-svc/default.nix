@@ -38,6 +38,24 @@ let
     }
   );
 
+  buildOctave = buildHtmlWith (
+    old: {
+      postConfigure = ''
+        sed -i 's|-o \$\(OCTAVE_HTML_TMP_DIR\)|-o $(OCTAVE_HTML_TMP_DIR)/octave.html|' Makefile
+      '';
+      buildPhase = ''
+        make -j$NIX_BUILD_CORES
+        rm -rf doc/interpreter/octave.html doc/interpreter/octave.htp
+        mkdir doc/interpreter/octave.htp
+        make -j$NIX_BUILD_CORES MAKEINFOFLAGS=--no-split doc/interpreter/octave.html
+      '';
+      installPhase = ''
+        mkdir -p $out
+        cp doc/interpreter/octave.html/octave.html $out
+      '';
+    }
+  );
+
   buildOpenocd = buildHtmlWith (
     old: {
       buildPhase = ''
@@ -468,6 +486,8 @@ rec {
 
   binutils = buildBinutils pkgs.binutils-unwrapped;
 
+  octave = buildOctave pkgs.octave;
+
   defaults = map defaultAutotools (
     with pkgs; [
       autoconf
@@ -569,6 +589,7 @@ rec {
         m4
         screen
         texinfo
+        octave
       ] ++ defaults
     );
   };
