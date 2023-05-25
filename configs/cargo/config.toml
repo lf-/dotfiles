@@ -1,6 +1,9 @@
 [doc]
 browser = "_cargo_doc_open"
 
+[registries.crates-io]
+protocol = "sparse"
+
 [target.x86_64-unknown-linux-gnu]
 # gcc's driver has crap support for -fuse-ld
 # linker = "clang"
