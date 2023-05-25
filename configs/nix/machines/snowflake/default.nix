@@ -44,6 +44,13 @@
   nix.settings.trusted-users = [ "@wheel" ];
   nix.settings.builders-use-substitutes = true;
 
+  networking.firewall.allowedUDPPorts = [
+    # evdevhook
+    26760
+  ];
+
+  programs.steam.enable = true;
+
   environment.systemPackages = with pkgs; [
     prismlauncher
     virt-manager

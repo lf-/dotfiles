@@ -64,7 +64,7 @@ return require('packer').startup(function(use)
     use 'AndrewRadev/undoquit.vim'
     use 'MattesGroeger/vim-bookmarks'
 
-    use {'nvim-treesitter/nvim-treesitter', branch = 'v0.8.0'}
+    use {'nvim-treesitter/nvim-treesitter'}
     use 'nvim-treesitter/playground'
     use 'nvim-treesitter/nvim-treesitter-textobjects'
     use 'RRethy/nvim-treesitter-textsubjects'
