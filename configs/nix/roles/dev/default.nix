@@ -14,7 +14,7 @@ let
 
     numpy
   ];
-  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc927"; };
+  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc92"; };
 
   common-dev-pkgs = import ./common-packages.nix pkgs;
 
@@ -26,8 +26,6 @@ in
     gitAndTools.delta
     git-revise
     git-absorb
-
-    (pkgs.haskell.lib.justStaticExecutables hsutils)
 
     ripgrep
     dtach
@@ -61,6 +59,8 @@ in
 
   nixpkgs.overlays = [
     hsutilsOverlay
+    (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
+    (import ../../overlays/jadeware.nix)
   ];
 
   nix.extraOptions = lib.mkMerge [

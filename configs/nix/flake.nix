@@ -15,11 +15,18 @@
       url = "github:lf-/aiopanel";
       flake = false;
     };
+
     nixGL = {
       url = "github:guibou/nixGL";
-      # just used to make flakes into a dep manager
+      # I don't like their flake
       flake = false;
     };
+
+    gitignore = {
+      url = "github:hercules-ci/gitignore";
+      flake = false;
+    };
+
     # my displeasure is hardly measurable
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -27,32 +34,47 @@
     };
   };
 
-  outputs = { self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, ... }:
+  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, ... }:
+    let dep-inject = {
+      jade.dep-inject = {
+        inherit polkadots aiobspwm aiopanel;
+      };
+    };
+    in
     {
+      inherit nixpkgs inputs;
       np = nixpkgs.path;
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./machines/snowflake ];
-        specialArgs = {
-          inherit polkadots aiobspwm aiopanel;
-        };
+        modules = [
+          ./machines/snowflake
+          ./modules/dep-inject.nix
+          dep-inject
+        ];
       };
       nixosConfigurations.micro = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./machines/micro ];
-        specialArgs = {
-          inherit polkadots;
-        };
+        modules = [
+          ./machines/micro
+          ./modules/dep-inject.nix
+          dep-inject
+        ];
       };
 
-      packages.x86_64-linux.aiopanel =
+      packages.x86_64-linux =
         let
           aiopanel = /home/jade/dev/aiopanel;
           pkgs = import nixpkgs {
-            overlays = [ (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; }) ];
+            overlays = [
+              (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
+              (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
+              (import ./overlays/jadeware.nix)
+            ];
             system = "x86_64-linux";
           };
         in
-        pkgs.aiopanel;
+        {
+          inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote;
+        };
     };
 }

@@ -16,4 +16,9 @@ pkgs: with pkgs; [
   reuse
   rnix-lsp
   shellcheck
+
+  (pkgs.haskell.lib.justStaticExecutables hsutils)
+  nvimsplit
+  vim-swapfile-header
+  nvremote
 ]

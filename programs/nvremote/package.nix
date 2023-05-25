@@ -1,11 +1,12 @@
 { rustPlatform, libiconv, pkg-config, gitignoreSource }:
 rustPlatform.buildRustPackage {
-  pname   = "nvimsplit";
+  pname   = "nvremote";
   version = "0.0.0";
 
   cargoLock.lockFile = ./Cargo.lock;
 
-  src = gitignoreSource ./.;
+  src = gitignoreSource ../.;
+  sourceRoot = "source/nvremote";
 
   nativeBuildInputs = [
     pkg-config

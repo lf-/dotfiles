@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::Parser;
 use color_eyre::{eyre::eyre, eyre::Context, Result};
 use futures::future;
 use lazy_static::lazy_static;
@@ -7,18 +7,17 @@ use nvim_rs::rpc::handler::Dummy;
 use regex::Regex;
 
 use std::{
-    ffi::OsString,
     fs, io,
     path::{Path, PathBuf},
 };
 
-#[derive(Clap, Debug, Clone)]
+#[derive(clap::Parser, Debug, Clone)]
 enum EachCmd {
     /// run a command verbatim
     Run { cmd: String },
 }
 
-#[derive(Clap, Debug)]
+#[derive(clap::Parser, Debug)]
 enum SubCommand {
     /// do something on all the nvim sockets on the system
     Each {
@@ -34,10 +33,10 @@ enum SubCommand {
     },
 }
 
-#[derive(Clap, Debug)]
+#[derive(clap::Parser, Debug)]
 struct Args {
     /// level of verbosity
-    #[clap(short, long, parse(from_occurrences))]
+    #[clap(short, long, action = clap::ArgAction::Count)]
     verbose: u32,
 
     /// subcommand to run

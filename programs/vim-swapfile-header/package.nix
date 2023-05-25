@@ -1,17 +1,16 @@
-{ rustPlatform, libiconv, pkg-config, gitignoreSource }:
+# requires gitignore.nix overlay
+{ rustPlatform, gitignoreSource }:
 rustPlatform.buildRustPackage {
-  pname   = "nvimsplit";
-  version = "0.0.0";
+  pname   = "vim-swapfile-header";
+  version = "0.1.0";
 
   cargoLock.lockFile = ./Cargo.lock;
 
   src = gitignoreSource ./.;
 
   nativeBuildInputs = [
-    pkg-config
   ];
 
   buildInputs = [
-    libiconv
   ];
 }

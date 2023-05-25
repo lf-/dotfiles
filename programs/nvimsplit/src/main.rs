@@ -6,12 +6,12 @@ use color_eyre::eyre::eyre;
 use color_eyre::eyre::Result;
 use color_eyre::eyre::WrapErr;
 
-use clap::Clap;
+use clap::Parser as ClapParser;
 
 use log::LevelFilter;
 use log::{debug, warn};
 
-#[derive(Clap, Debug)]
+#[derive(clap::Parser, Debug)]
 struct Args {
     /// should nvimsplit return immediately or wait for the edit to be finished?
     #[clap(long, short = 'd')]

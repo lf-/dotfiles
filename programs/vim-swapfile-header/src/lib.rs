@@ -95,7 +95,10 @@ fn parse(header: &[u8]) -> IResult<&[u8], Header, nom::error::Error<&[u8]>> {
 
     let (header, version) = preceded(tag(b"b0"), version)(header)?;
     let (header, page_size) = u32le(header)?;
-    let (header, mtime) = map(u32le, |t| Local.timestamp(t as i64, 0))(header)?;
+    let (header, mtime) = map(u32le, |t| {
+        // u32 timestamp should never be out of range
+        Local.timestamp_opt(t as i64, 0).unwrap()
+    })(header)?;
     let (header, inode) = u32le(header)?;
     let (header, pid) = u32le(header)?;
     let (header, username) = user_host_name(header)?;

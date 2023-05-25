@@ -1,4 +1,4 @@
-{ config, pkgs, aiobspwm, aiopanel, ... }:
+{ config, pkgs, ... }:
 {
   imports = [ ../graphical ];
   services.xserver = {
@@ -16,7 +16,7 @@
   };
 
   nixpkgs.overlays = [
-    (import ../../overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
+    (import ../../overlays/aiopanel.nix { inherit (config.jade.dep-inject) aiobspwm aiopanel; })
     (import ../../overlays/connman.nix { })
   ];
 

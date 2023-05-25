@@ -3,8 +3,10 @@
 let
   pkgs = import <nixpkgs> {
     overlays = [
-      (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc927"; })
+      (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc92"; })
       (import ./overlays/xwaylandvideobridge.nix)
+      (import ./overlays/gitignore.nix { inherit (flake.inputs) gitignore; })
+      (import ./overlays/jadeware.nix)
     ];
   };
   common-dev-pkgs = import ./roles/dev/common-packages.nix pkgs;
@@ -20,8 +22,6 @@ let
     { src = ./.; }).defaultNix;
 
   nixGL = import flake.inputs.nixGL { inherit pkgs; };
-
-  inherit (pkgs.haskell.lib) justStaticExecutables;
 in
 {
   inherit (pkgs) librespot;
@@ -30,5 +30,4 @@ in
     ${nixGL.nixGLIntel}/bin/nixGLIntel ${pkgs.xwaylandvideobridge}/bin/xwaylandvideobridge
   '';
   inherit (pkgs.nodePackages) bash-language-server;
-  hsutils = justStaticExecutables pkgs.hsutils;
 } // builtins.listToAttrs (builtins.map (pkg: { name = pkgs.lib.getName pkg; value = pkg; }) common-dev-pkgs)
