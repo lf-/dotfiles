@@ -29,7 +29,9 @@ let
   defaultAutotools = buildHtmlWith (
     old: {
       buildPhase = ''
+        runHook preBuild
         make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+        runHook postBuild
       '';
 
       # we don't build execs so there will be no debuginfo
@@ -102,6 +104,15 @@ let
     }
   );
 
+  # they didn't use MAKEINFOFLAGS ;-)
+  buildGforth = p: (defaultAutotools p).overrideAttrs (old: {
+    # creates a site-lisp directory, no thanks
+    preConfigure = "true";
+    preBuild = ''
+      sed -i -e 's/--html/--html --no-split/' -e 's/-o gforth/-o gforth.html/' -e 's/--css-ref=gforth.css//' doc/Makefile doc/Makefile.in
+    '';
+  });
+
   # it's got a bunch of rubbish in tests
   buildTexinfo = buildHtmlWith (
     old: {
@@ -152,6 +163,7 @@ let
 
   buildBash = buildHtmlWith (
     old: {
+      outputs = [ "out" ];
       buildPhase = ''
         make doc
       '';
@@ -159,6 +171,9 @@ let
         mkdir -p $out
         find . -name 'bash*.html' -exec cp '{}' $out/ ';'
       '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
     }
   );
 
@@ -238,7 +253,17 @@ let
       '';
     }
   );
-  buildEd = manuallyMakeinfo "ed.texi";
+  buildEd = p: (manuallyMakeinfo "ed.texi" p).overrideAttrs (old: {
+    nativeBuildInputs = old.nativeBuildInputs or [ ] ++ [
+      pkgs.recode
+    ];
+    # my tooling does not eat iso-8859. dont do that.
+    postBuild = ''
+      recode ISO_8859-15..utf8 $out/ed.html
+      sed -i s/iso-8859-15/utf-8/ $out/ed.html
+    '';
+  });
+
   buildDdrescue = manuallyMakeinfo "ddrescue.texi";
 
   manuallyMakeinfo = name: buildHtmlWith (
@@ -246,9 +271,16 @@ let
       dontConfigure = true;
       buildPhase = ''
         makeinfo --html --no-split doc/${name} -o $out/
+        runHook postBuild
       '';
+      dontInstall = true;
     }
   );
+
+  # "We still prefer texi2html over texi2any because it includes the titlepage."
+  # we, on the other hand prefer to use the same tool for everything. thanks
+  # for the input.
+  buildGperf = manuallyMakeinfo "gperf.texi";
 
   buildZsh = buildHtmlWith (
     old: {
@@ -264,6 +296,10 @@ let
       # we completely replace the build system
       pname = "gcc";
       dontConfigure = true;
+
+      # preFixupLibGccPhase is broken
+      preFixupPhases = [ ];
+
       buildPhase = ''
         cd gcc/doc
         # see gcc/doc/install.texi2html
@@ -400,11 +436,13 @@ let
     "gawk"
     "gcc"
     "gdb"
+    "gforth"
     "gfortran:gcc"
     "gprof:binutils"
     "grub"
     "guile"
     "ld:binutils"
+    "poke"
     "nano"
     "parallel"
     "readline"
@@ -447,6 +485,7 @@ rec {
       }
     )
   );
+  gforth = buildGforth pkgs.gforth;
 
   bison = buildBison pkgs.bison;
   zsh' = docify (buildZsh pkgs.zsh);
@@ -488,6 +527,10 @@ rec {
 
   octave = buildOctave pkgs.octave;
 
+  poke = autotoolsBuildFirst pkgs.poke;
+
+  gperf = buildGperf pkgs.gperf;
+
   defaults = map defaultAutotools (
     with pkgs; [
       autoconf
@@ -498,18 +541,21 @@ rec {
       diffutils
       flex
       gawk
+      gnu-cobol
       gnufdisk
+      gnugrep
       gnumake
       gnupg
       gnused
       gnutar
-      grub
+      grub2
       guile
       gzip
       libtool
       nano
       parallel
       readline
+      time
       wget
       which
     ]
@@ -577,19 +623,21 @@ rec {
     buildInputs = map docify (
       [
         bash
-        bison
         binutils
+        bison
         ddrescue
         ed
         emacs
         findutils
         gcc
         gdb
+        gforth
         glibc
         m4
+        octave
+        poke
         screen
         texinfo
-        octave
       ] ++ defaults
     );
   };
