@@ -8,12 +8,21 @@ import argparse
 import subprocess
 from typing import Optional
 
-SWAPDIR = Path("~/.local/share/nvim/swap").expanduser()
+SWAPDIR = Path("~/.local/state/nvim/swap").expanduser()
 
 
 def swapfile_path(p: Path) -> Path:
     p = p.resolve(strict=True)
-    return SWAPDIR / str(p.with_name(p.name + ".swp")).replace("/", "%")
+    def make_path(ext):
+        return SWAPDIR / str(p.with_name(p.name + ext)).replace("/", "%")
+
+    # vim will try extensions from .swp down to .swa if there are multiple
+    # instances
+    for ch in range(ord('p'), ord('a'), -1):
+        candidate = make_path('.sw' + chr(ch))
+        if Path(candidate).exists():
+            return candidate
+    return make_path('.swp')
 
 
 def get_pid_for_file(p: Path) -> Optional[int]:
