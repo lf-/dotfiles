@@ -544,6 +544,7 @@ rec {
       gnu-cobol
       gnufdisk
       gnugrep
+      gnulib
       gnumake
       gnupg
       gnused
