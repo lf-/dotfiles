@@ -208,3 +208,6 @@ gnuplot
 NaNs
 trunnion
 EXIF
+deframer
+decrypter
+encrypter
