@@ -24,7 +24,7 @@ let
   nixGL = import flake.inputs.nixGL { inherit pkgs; };
 in
 {
-  inherit (pkgs) librespot;
+  inherit (pkgs) librespot watchman;
   inherit (nixGL) nixGLIntel;
   xwaylandvideobridge = pkgs.writeShellScriptBin "xwaylandvideobridge" ''
     ${nixGL.nixGLIntel}/bin/nixGLIntel ${pkgs.xwaylandvideobridge}/bin/xwaylandvideobridge
