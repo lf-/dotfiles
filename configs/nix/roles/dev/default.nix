@@ -24,8 +24,6 @@ in
     direnv
 
     gitAndTools.delta
-    git-revise
-    git-absorb
 
     ripgrep
     dtach

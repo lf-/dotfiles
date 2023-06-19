@@ -6,17 +6,19 @@ pkgs: with pkgs; [
   cmake-language-server
   cntr
   flyctl
+  git-absorb
+  git-revise
   niv
   nix-direnv
   nix-doc
   nix-index
   nixpkgs-fmt
-  phpactor
   phpPackages.php-cs-fixer
+  phpactor
   reuse
   rnix-lsp
-  shellcheck
   rustfilt
+  shellcheck
 
   (pkgs.haskell.lib.justStaticExecutables hsutils)
   nvimsplit
