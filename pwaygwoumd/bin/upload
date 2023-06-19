@@ -5,8 +5,8 @@ if [[ -z "${PWAYGWOUMD_DIR}" ]]; then
     exit 1
 fi
 GIST=$(gh gist create "${PWAYGWOUMD_DIR}/src/main.rs")
-
 echo "${GIST}"
-PLAYURL="https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=${GIST#https://gist.github.com/}"
+
+PLAYURL="https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=${GIST#https://gist.github.com/*/}"
 echo "${PLAYURL}"
-firefox "${PLAYURL}"
+${BROWSER:-xdg-open} "${PLAYURL}"
