@@ -23,8 +23,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  time.timeZone = "America/Vancouver";
-
   networking.hostName = "snowflake";
 
   virtualisation.libvirtd = {

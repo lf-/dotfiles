@@ -34,10 +34,10 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, ... }:
+  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, ... }:
     let dep-inject = {
       jade.dep-inject = {
-        inherit polkadots aiobspwm aiopanel;
+        inherit polkadots aiobspwm aiopanel gitignore;
       };
     };
     in
