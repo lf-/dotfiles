@@ -19,6 +19,8 @@ pkgs: with pkgs; [
   rnix-lsp
   rustfilt
   shellcheck
+  typst-lsp
+  typst
 
   (pkgs.haskell.lib.justStaticExecutables hsutils)
   nvimsplit

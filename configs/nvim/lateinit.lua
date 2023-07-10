@@ -348,7 +348,7 @@ nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])
 -- Use command ':verbose imap <tab>' to make sure tab is not mapped by other plugin.
 --
 inoremap('<TAB>',
-	[[ coc#pum#visible() ? coc#pum#next(1): luaeval("check_back_space()") ? "\<Tab>" : coc#refresh() ]],
+    [[ coc#pum#visible() ? coc#pum#next(1): luaeval("check_back_space()") ? "\<Tab>" : coc#refresh() ]],
     { expr = true })
 inoremap("<S-TAB>", [[coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"]], { expr = true })
 
@@ -387,7 +387,7 @@ _G.show_documentation = function()
     if vim.tbl_contains({ 'vim', 'help' }, bufopt.filetype) then
         nvim_exec('h ' .. nvim_eval("expand('<cword')"), false)
     else
-        nvim_call('CocAction', { 'doHover' })
+        nvim_call('CocActionAsync', { 'doHover' })
     end
 end
 
@@ -527,6 +527,9 @@ augroups.setfiletypes('filetypedetection', {
 
     -- coc-settings is actually json+comments
     {'coc-settings.json', 'jsonc'},
+
+    -- typst files are misdetected as sql
+    {'*.typ', 'typst'},
 })
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)
