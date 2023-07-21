@@ -4,5 +4,6 @@
     nmap
     binwalk
     wireshark
+    ghidra
   ];
 }

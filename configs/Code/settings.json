@@ -1,5 +1,7 @@
 {
     "telemetry.enableTelemetry": false,
+    // The default is broken for capslock = escape on linux
+    "keyboard.dispatch": "keyCode",
     "workbench.colorTheme": "One Monokai",
     "editor.fontFamily": "Iosevka",
     "editor.fontSize": 16,
@@ -168,13 +170,13 @@
         "RA_LOG": "info,salsa=info,salsa::derived::slot=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,ide=debug"
     },
     "rust-analyzer.server.path": "/home/jade/dev/rust-analyzer/target/release/rust-analyzer",
-    "window.zoomLevel": 2,
     "security.workspace.trust.untrustedFiles": "open",
-    "editor.renderFinalNewline": false,
+    "editor.renderFinalNewline": "off",
     "files.insertFinalNewline": true,
     "extensions.ignoreRecommendations": true,
     "haskell.manageHLS": "PATH",
     "C_Cpp.intelliSenseEngine": "disabled",
     "redhat.telemetry.enabled": false,
+    "window.zoomLevel": 1,
     // "rust-analyzer.trace.server": "verbose"
 }

@@ -47,6 +47,11 @@
   # i was rr'ing a program and it froze x so hard you couldn't change vty
   services.xserver.enableCtrlAltBackspace = true;
 
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [
+    pkgs.xdg-desktop-portal-gtk
+  ];
+
   environment.systemPackages = with pkgs; [
     feh
     sxhkd
