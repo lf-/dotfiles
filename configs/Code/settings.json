@@ -4,7 +4,7 @@
     "keyboard.dispatch": "keyCode",
     "workbench.colorTheme": "One Monokai",
     "editor.fontFamily": "Iosevka",
-    "editor.fontSize": 16,
+    "editor.fontSize": 18,
     "mono-debug.exceptionOptions": {
         "System.Exception": "unhandled",
         "System.SystemException": "unhandled",
@@ -33,6 +33,9 @@
         "editor.tabSize": 4,
         "editor.detectIndentation": false,
         "editor.fontLigatures": "'liga' on, 'calt' off, 'VRLG' on",
+    },
+    "[typst]": {
+        "editor.tabSize": 2,
     },
     "[dot]": {
         "editor.insertSpaces": false,
@@ -177,6 +180,6 @@
     "haskell.manageHLS": "PATH",
     "C_Cpp.intelliSenseEngine": "disabled",
     "redhat.telemetry.enabled": false,
-    "window.zoomLevel": 1,
+    "typst-lsp.exportPdf": "never",
     // "rust-analyzer.trace.server": "verbose"
 }
