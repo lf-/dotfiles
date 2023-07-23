@@ -26,6 +26,7 @@ hand = logging.StreamHandler()
 hand.setFormatter(fmt)
 log.addHandler(hand)
 
+
 def api(method, endpoint: str, json=True):
     log.info('http %s %s', method, endpoint)
     if not endpoint.startswith('https'):
@@ -38,6 +39,7 @@ def api(method, endpoint: str, json=True):
         return resp.json()
     else:
         return resp
+
 
 def paginate(method: str, url: str):
     while True:
@@ -52,11 +54,12 @@ def paginate(method: str, url: str):
 
 
 def course_modules(course_id):
-    return api('GET', f'/api/v1/courses/{course_id}/modules')
+    return paginate('GET', f'/api/v1/courses/{course_id}/modules')
 
 
 def module_items(course_id, module_id):
-    return paginate('GET', f'/api/v1/courses/{course_id}/modules/{module_id}/items')
+    return paginate('GET',
+                    f'/api/v1/courses/{course_id}/modules/{module_id}/items')
 
 
 def course_file(course_id, file_id):
@@ -95,11 +98,20 @@ class FileObj:
         with open(name, 'wb') as fh:
             fh.write(resp.content)
 
+
 @dataclasses.dataclass
 class ModuleItem:
     id: int
     title: str
     url: str
+
+
+@dataclasses.dataclass
+class Module:
+    id: int
+    name: str
+    state: str
+
 
 def do_file(url, to_dir):
     file = api('GET', url)
@@ -108,7 +120,8 @@ def do_file(url, to_dir):
     fobj.download(to_dir)
 
 
-def download_all_from_module(tpe: ThreadPoolExecutor, to_dir, course_id, module_id):
+def download_all_from_module(tpe: ThreadPoolExecutor, to_dir, course_id,
+                             module_id):
     futs = []
     for item in module_items(course_id, module_id):
         item = DataClassUnpack.instantiate(ModuleItem, item)
@@ -124,7 +137,15 @@ def download_all_from_module(tpe: ThreadPoolExecutor, to_dir, course_id, module_
 
 def cli_module(args):
     with ThreadPoolExecutor(max_workers=5) as tpe:
-        download_all_from_module(tpe, args.to_dir, args.course_id, args.module_id)
+        download_all_from_module(tpe, args.to_dir, args.course_id,
+                                 args.module_id)
+
+
+def cli_list_modules(args):
+    for mod in course_modules(args.course_id):
+        mod = DataClassUnpack.instantiate(Module, mod)
+        print(mod)
+
 
 def main():
     import argparse
@@ -134,6 +155,7 @@ def main():
     def fail(*args):
         ap.print_help()
         sys.exit(1)
+
     ap.set_defaults(cmd=fail)
 
     mod = sps.add_parser('module')
@@ -142,8 +164,13 @@ def main():
     mod.add_argument('module_id')
     mod.add_argument('--to-dir', '-o')
 
+    mod = sps.add_parser('list-modules')
+    mod.set_defaults(cmd=cli_list_modules)
+    mod.add_argument('course_id')
+
     args = ap.parse_args()
     args.cmd(args)
+
 
 if __name__ == '__main__':
     main()
