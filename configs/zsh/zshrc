@@ -9,8 +9,6 @@ if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
 fi
 
 source ${ZIM_HOME}/init.zsh
-MNML_USER_CHAR=»
-MNML_INSERT_CHAR=' '
 
 # apple ssh agent is really persistent. it doesn't do fido2, which is no good.
 # just don't use it at all tbh.
@@ -24,24 +22,6 @@ fi
 #     print -sr "${1%%$'\n'} ### ${PWD}"
 #     fc -p
 # }
-
-function mkcd() {
-    mkdir -p $1 && cd $1
-}
-
-function cdnv() {
-    pushd ~/.dotfiles/configs/nvim
-}
-
-alias gdba=/opt/gdb/bin/gdb
-
-function cdnix() {
-    pushd ~/.dotfiles/configs/nix
-}
-
-function pquartus() {
-    . ~/.dotfiles/configs/support/pquartus
-}
 
 if which direnv > /dev/null 2>&1; then
   eval "$(direnv hook zsh)"

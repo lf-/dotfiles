@@ -6,7 +6,10 @@ zmodule git-info
 zmodule input
 
 # local additions
-zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme -s keys.zsh
+zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme \
+    -s keys.zsh \
+    -s prompt_config.zsh \
+    -s aliases.zsh
 
 # completions
 zmodule zsh-users/zsh-completions --fpath src
