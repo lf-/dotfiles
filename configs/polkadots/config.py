@@ -45,7 +45,10 @@ dotconfig = lambda n: (n, (Path('~/.config') / n))
 actions = [
     MkdirAction('~/.config'),
     SymlinkAction('colors', '~/.colors'),
-    SymlinkAction('prezto', '~/.zprezto'),
+
+    MkdirAction('~/.local/share'),
+    SymlinkAction('zimfw', '~/.local/share/zim'),
+
     SymlinkAction('../bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
 
@@ -63,7 +66,7 @@ actions = [
     MkdirAction('~/.ghc'),
     SymlinkAction('ghc', '~/.ghc', dir_mode=True),
 
-    MkdirAction('~/.config/systemd'),
+    MkdirAction('~/.config/systemd/user'),
     MkdirAction('~/.cargo'),
     # this is a bad idea... but also it does not do globbing or probably dirs properly lmao
     # SymlinkAction('../docs-svc/*.service', '~/.config/systemd/user'),
@@ -124,4 +127,16 @@ if firebox.is_dir():
                 dir,
                 dir_mode=True
             ))
+
+zshs = [
+    'zshrc',
+    'zshenv',
+    'zprofile',
+    'zimrc',
+    'zlogin',
+    'zlogout',
+]
+
+for zsh in zshs:
+    actions.append(SymlinkAction(f'zsh/{zsh}', f'~/.{zsh}'))
 

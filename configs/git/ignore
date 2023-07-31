@@ -22,6 +22,9 @@ node_modules
 .direnv/
 core.[0-9]*
 
+# some zsh compiled thing
+*.zwc
+
 # this is obviously absurd, but it's used for doing crimes to Sapling
 .sl/
 .git/

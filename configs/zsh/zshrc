@@ -1,0 +1,65 @@
+export ZIM_HOME="$HOME/.local/share/zim"
+
+# don't use git if avoidable
+zstyle ':zim:zmodule' use 'degit'
+
+# Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
+  source ${ZIM_HOME}/zimfw.zsh init -q
+fi
+
+source ${ZIM_HOME}/init.zsh
+MNML_USER_CHAR=»
+MNML_INSERT_CHAR=
+
+# apple ssh agent is really persistent. it doesn't do fido2, which is no good.
+# just don't use it at all tbh.
+if [[ $SSH_AUTH_SOCK == /private/tmp/com.apple.launchd* ]]; then
+    unset SSH_AUTH_SOCK
+fi
+
+# add the pwd to the history
+# this is broken because it puts the crap in the up arrow menu. *sigh*
+# function zshaddhistory() {
+#     print -sr "${1%%$'\n'} ### ${PWD}"
+#     fc -p
+# }
+
+function mkcd() {
+    mkdir -p $1 && cd $1
+}
+
+function cdnv() {
+    pushd ~/.dotfiles/configs/nvim
+}
+
+alias gdba=/opt/gdb/bin/gdb
+
+function cdnix() {
+    pushd ~/.dotfiles/configs/nix
+}
+
+function pquartus() {
+    . ~/.dotfiles/configs/support/pquartus
+}
+
+if which direnv > /dev/null 2>&1; then
+  eval "$(direnv hook zsh)"
+fi
+
+unsetopt extendedglob
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/jade/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/jade/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/jade/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/jade/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<

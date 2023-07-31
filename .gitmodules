@@ -1,9 +1,9 @@
-[submodule "prezto"]
-	path = configs/prezto
-	url = https://github.com/lf-/prezto
 [submodule "alacritty-theme"]
 	path = configs/alacritty-theme
 	url = https://github.com/eendroroy/alacritty-theme
 [submodule "xcompose"]
 	path = configs/xcompose
 	url = https://github.com/kragen/xcompose
+[submodule "configs/zimfw"]
+	path = configs/zimfw
+	url = https://github.com/zimfw/zimfw

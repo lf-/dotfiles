@@ -1,0 +1,13 @@
+# prompt
+zmodule prompt-pwd
+zmodule git-info
+
+# local additions
+zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme
+
+# completions
+zmodule zsh-users/zsh-completions --fpath src
+zmodule completion
+
+zmodule zsh-users/zsh-syntax-highlighting
+zmodule zsh-users/zsh-autosuggestions
