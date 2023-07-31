@@ -56,4 +56,4 @@ fi
 feh --bg-scale ~/.dotfiles/wallpaper.png &
 xsetroot -cursor_name left_ptr &
 sxhkd &
-exec bspwm
+exec dbus-launch bspwm
