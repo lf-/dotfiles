@@ -1,4 +1,13 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env cabal
+{- cabal:
+build-depends: aeson
+             , vector
+             , base
+             , time
+             , containers
+             , text
+             , bytestring
+-}
 {-# LANGUAGE GHC2021 #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -9,14 +18,14 @@
 -- |
 -- Script that processes @events.json@ from @intercept(1)@ (from the @bear@
 -- package), and displays them nicely.
-module Intercept2Human where
+module Main where
 
-import Control.Error (fromMaybe)
+import Data.Maybe (fromMaybe)
 import Control.Monad (msum)
 import Data.Aeson
 import Data.Aeson.Types (parseEither)
 import Data.ByteString.Lazy.Char8 qualified as BS
-import Data.CallStack (HasCallStack)
+import GHC.Stack (HasCallStack)
 import Data.Either (fromRight)
 import Data.Fixed (showFixed)
 import Data.Map.Strict qualified as Map
