@@ -2,8 +2,11 @@
 zmodule prompt-pwd
 zmodule git-info
 
+# correct key behaviour
+zmodule input
+
 # local additions
-zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme
+zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme -s keys.zsh
 
 # completions
 zmodule zsh-users/zsh-completions --fpath src

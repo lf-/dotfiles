@@ -10,7 +10,7 @@ fi
 
 source ${ZIM_HOME}/init.zsh
 MNML_USER_CHAR=»
-MNML_INSERT_CHAR=
+MNML_INSERT_CHAR=' '
 
 # apple ssh agent is really persistent. it doesn't do fido2, which is no good.
 # just don't use it at all tbh.

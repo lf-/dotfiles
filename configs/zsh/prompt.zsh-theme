@@ -53,5 +53,5 @@ if (( ${+functions[git-info]} )); then
   autoload -Uz add-zsh-hook && add-zsh-hook precmd git-info
 fi
 
-PS1=$'$(prompt-pwd) ${VIRTUAL_ENV:+"${VIRTUAL_ENV:t} "}%(1j.%{\E[${MNML_BGJOB_MODE}m%}.)%F{%(?.${MNML_OK_COLOR}.${MNML_ERR_COLOR})}%(!.#.${MNML_USER_CHAR})%f%{\E[0m%} $(_prompt_mnml_keymap)'
+PS1=$'$(prompt-pwd) ${VIRTUAL_ENV:+"${VIRTUAL_ENV:t} "}%(1j.%{\E[${MNML_BGJOB_MODE}m%}.)%F{%(?.${MNML_OK_COLOR}.${MNML_ERR_COLOR})}%(!.#.${MNML_USER_CHAR})%f%{\E[0m%}$(_prompt_mnml_keymap)'
 RPS1='%F{244}${SSH_TTY:+"%m "}${(e)git_info[rprompt]}%f'
