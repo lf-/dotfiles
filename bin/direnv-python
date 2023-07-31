@@ -1,0 +1,2 @@
+#!/bin/sh
+direnv exec ${PYTHON_CWD:-.} python "$@"
