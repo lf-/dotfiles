@@ -1,3 +1,6 @@
 #!/usr/bin/env bash
 
-nixos-rebuild switch --flake .#snowflake -L "$@"
+cmd=${1:-switch}
+shift
+
+nixos-rebuild $cmd --flake .#snowflake -L "$@"
