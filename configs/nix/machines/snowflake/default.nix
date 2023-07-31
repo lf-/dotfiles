@@ -56,6 +56,7 @@
     verible
     verilator
     imhex
+    sysprof
     # tcpdump
     # iotop
   ];

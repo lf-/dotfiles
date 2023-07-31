@@ -29,5 +29,4 @@ in
   xwaylandvideobridge = pkgs.writeShellScriptBin "xwaylandvideobridge" ''
     ${nixGL.nixGLIntel}/bin/nixGLIntel ${pkgs.xwaylandvideobridge}/bin/xwaylandvideobridge
   '';
-  inherit (pkgs.nodePackages) bash-language-server;
 } // builtins.listToAttrs (builtins.map (pkg: { name = pkgs.lib.getName pkg; value = pkg; }) common-dev-pkgs)

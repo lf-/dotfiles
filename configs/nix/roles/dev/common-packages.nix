@@ -6,6 +6,7 @@ pkgs: with pkgs; [
   cmake-language-server
   cntr
   flyctl
+  git-credential-oauth
   git-absorb
   git-revise
   niv
@@ -13,6 +14,7 @@ pkgs: with pkgs; [
   nix-doc
   nix-index
   nixpkgs-fmt
+  nodePackages.bash-language-server
   phpPackages.php-cs-fixer
   phpactor
   reuse
