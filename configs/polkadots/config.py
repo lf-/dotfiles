@@ -47,7 +47,7 @@ actions = [
     SymlinkAction('colors', '~/.colors'),
 
     MkdirAction('~/.local/share'),
-    SymlinkAction('zimfw', '~/.local/share/zim'),
+    SymlinkAction('../vendor/zim', '~/.local/share/zim'),
 
     SymlinkAction('../bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),

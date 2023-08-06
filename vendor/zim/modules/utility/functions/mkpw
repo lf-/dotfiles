@@ -1,0 +1,2 @@
+# vim:et sts=2 sw=2 ft=zsh
+LC_CTYPE=C command tr -dc ${2:-'[:alnum:]'} < /dev/urandom | command head -c ${1:-32} && print

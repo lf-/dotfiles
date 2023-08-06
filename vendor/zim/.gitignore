@@ -1,7 +1,6 @@
 *.swp
 *.zwc
 *.zwc.old
-/modules/
 /.latest_version
 /init.zsh
 /init.zsh.old
