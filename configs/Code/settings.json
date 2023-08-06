@@ -181,5 +181,6 @@
     "C_Cpp.intelliSenseEngine": "disabled",
     "redhat.telemetry.enabled": false,
     "typst-lsp.exportPdf": "never",
+    "window.zoomLevel": 1,
     // "rust-analyzer.trace.server": "verbose"
 }
