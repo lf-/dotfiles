@@ -1,5 +1,6 @@
 alias e='${(z)VISUAL:-${(z)EDITOR}}'
 alias grep="${aliases[grep]:-grep} --color=auto"
+alias ls="${aliases[ls]:-ls} --group-directories-first --color=auto"
 
 function mkcd() {
     mkdir -p $1 && cd $1

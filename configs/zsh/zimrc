@@ -2,6 +2,9 @@
 zmodule prompt-pwd
 zmodule git-info
 
+# aliases, colours
+zmodule utility
+
 # correct key behaviour
 zmodule input
 

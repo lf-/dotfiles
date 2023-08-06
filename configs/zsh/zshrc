@@ -2,6 +2,7 @@ export ZIM_HOME="$HOME/.local/share/zim"
 
 # don't use git if avoidable
 zstyle ':zim:zmodule' use 'degit'
+zstyle ':zim' 'disable-version-check' 'true'
 
 # Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
