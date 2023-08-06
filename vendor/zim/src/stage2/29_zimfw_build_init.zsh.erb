@@ -1,0 +1,44 @@
+_zimfw_build_init() {
+  local -r ztarget=${ZIM_HOME}/init.zsh
+  # Force update of init.zsh if it's older than .zimrc
+  if [[ ${ztarget} -ot ${ZIM_CONFIG_FILE:-<%= home %>/.zimrc} ]]; then
+    command mv -f ${ztarget}{,.old} || return 1
+  fi
+  _zimfw_mv =(
+    print -R "zimfw() { source ${(q-)ZIM_HOME}/zimfw.zsh \"\${@}\" }"
+    print -R "zmodule() { source ${(q-)ZIM_HOME}/zimfw.zsh \"\${@}\" }"
+    local zroot_dir zpre
+    local -a zif_functions zif_cmds zroot_functions zroot_cmds
+    local -a zfunctions=(${_zfunctions}) zcmds=(${_zcmds})
+    # Keep fpath constant regardless of "if" root dirs, to avoid confusing compinit.
+    # Move all from zfunctions and zcmds with "if" root dirs prefixes.
+    for zroot_dir in ${_zroot_dirs}; do
+      if (( ${+_zifs[${zroot_dir}]} )); then
+        zpre=${zroot_dir}$'\0'
+        zif_functions+=(${(M)zfunctions:#${zpre}*})
+        zif_cmds+=(${(M)zcmds:#${zpre}*})
+        zfunctions=(${zfunctions:#${zpre}*})
+        zcmds=(${zcmds:#${zpre}*})
+      fi
+    done
+    zpre=$'*\0'
+    if (( ${#_zfpaths} )) print 'fpath=('${(q-)${_zfpaths#${~zpre}}:a}' ${fpath})'
+    if (( ${#zfunctions} )) print -R 'autoload -Uz -- '${zfunctions#${~zpre}}
+    for zroot_dir in ${_zroot_dirs}; do
+      zpre=${zroot_dir}$'\0'
+      if (( ${+_zifs[${zroot_dir}]} )); then
+        zroot_functions=(${${(M)zif_functions:#${zpre}*}#${zpre}})
+        zroot_cmds=(${${(M)zif_cmds:#${zpre}*}#${zpre}})
+        if (( ${#zroot_functions} || ${#zroot_cmds} )); then
+          print -R 'if '${_zifs[${zroot_dir}]}'; then'
+          if (( ${#zroot_functions} )) print -R '  autoload -Uz -- '${zroot_functions}
+          if (( ${#zroot_cmds} )) print -R ${(F):-  ${^zroot_cmds}}
+          print fi
+        fi
+      else
+        zroot_cmds=(${${(M)zcmds:#${zpre}*}#${zpre}})
+        if (( ${#zroot_cmds} )) print -R ${(F)zroot_cmds}
+      fi
+    done
+  ) ${ztarget}
+}

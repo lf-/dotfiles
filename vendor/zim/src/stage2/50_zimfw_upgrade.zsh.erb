@@ -1,0 +1,24 @@
+_zimfw_upgrade() {
+  local -r ztarget=${ZIM_HOME}/zimfw.zsh zurl=https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh.gz
+  {
+    if (( ${+commands[curl]} )); then
+      command curl -fsSL -o ${ztarget}.new.gz ${zurl} || return 1
+    else
+      local zopt
+      if (( _zprintlevel <= 1 )) zopt=-q
+      if ! command wget -nv ${zopt} -O ${ztarget}.new.gz ${zurl}; then
+        if (( _zprintlevel <= 1 )); then
+          print -u2 -PR "%F{red}<%= failed %>Failed to download %B${zurl}%b. Use %B-v%b option to see details.%f"
+        fi
+        return 1
+      fi
+    fi
+    command gunzip -f ${ztarget}.new.gz || return 1
+    # .latest_version can be outdated and will yield a false warning if zimfw is
+    # upgraded before .latest_version is refreshed. Bad thing about having a cache.
+    _zimfw_mv ${ztarget}{.new,} && command rm -f ${ZIM_HOME}/.latest_version && \
+        _zimfw_print -P '<%= done %>Done with upgrade.'
+  } always {
+    command rm -f ${ztarget}.new{,.gz}
+  }
+}

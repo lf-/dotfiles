@@ -1,0 +1,10 @@
+*.swp
+*.zwc
+*.zwc.old
+/modules/
+/.latest_version
+/init.zsh
+/init.zsh.old
+/login_init.zsh
+/login_init.zsh.old
+/zimfw.zsh.old

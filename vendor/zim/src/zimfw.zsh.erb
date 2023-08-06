@@ -1,0 +1,45 @@
+<%
+class Zim
+  attr_reader :version, :home, :min_zsh_version, :url_regex,
+      :clear_line, :ellipsis, :okay, :warn, :error, :done, :failed
+
+  def initialize
+    @version = "1.12.0"
+    @home = "${ZDOTDIR:-${HOME}}"
+    @min_zsh_version = "5.2"
+    # Matches {ssh,http,https,git}://{user@,}host/org/repo and {user@,}host:org/repo
+    # but not file:///path/to/repo or /path/to/repo
+    # ${match[3]} contains host, and ${match[4]} contains org/repo
+    @url_regex = "^([^:@/]+://)?([^@]+@)?([^:/]+)[:/]([^/]+/[^/]+)/?$"
+    @clear_line = "$'\\E[2K\\r'"
+    @ellipsis = " ..."
+    @okay = "%F{green})%f "
+    @warn = "! "
+    @error = "x "
+    @done = ""
+    @failed = ""
+  end
+
+  def render(filename)
+    ERB.new(File.read(filename)).result(binding)
+  end
+
+  def render_all(pattern)
+    Dir[pattern].sort.map { |filename| render(filename) }.join("\n")
+  end
+
+  def render_commented(filename)
+    render(filename).gsub(/^(?=.)/, "# ").gsub(/^$/, "#")
+  end
+end
+zim = Zim.new
+%># AUTOMATICALLY GENERATED FILE. EDIT ONLY THE SOURCE FILES AND THEN COMPILE.
+# DO NOT DIRECTLY EDIT THIS FILE!
+
+<%= zim.render_commented("LICENSE") %>
+<%= zim.render_all("src/stage2/*.erb") %>
+if [[ ${functrace[1]} == zmodule:* ]]; then
+  zmodule "${@}"
+else
+  zimfw "${@}"
+fi
