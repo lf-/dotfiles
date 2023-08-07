@@ -10,6 +10,7 @@ zmodule input
 
 # local additions
 zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme \
+    -s opts.zsh \
     -s completion.zsh \
     -s keys.zsh \
     -s prompt_config.zsh \
