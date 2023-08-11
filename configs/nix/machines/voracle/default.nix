@@ -1,10 +1,13 @@
 let
-  sources = import ../nix/sources.nix;
-  creds = import ../lib/creds.nix;
+  creds = import ../../lib/creds.nix;
 in
 { pkgs, lib, ... }:
 {
-  imports = [ ./hardware-configuration.nix ../roles/wireguard ];
+  imports = [
+    ./hardware-configuration.nix
+    ../../roles/base
+    ../../roles/linux
+  ];
 
   nixpkgs.system = "aarch64-linux";
 
@@ -51,25 +54,13 @@ in
 
   i18n.defaultLocale = "en_US.UTF-8";
 
-  services.openssh.enable = true;
-  services.openssh.passwordAuthentication = false;
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
-  security.sudo.wheelNeedsPassword = false;
-
-  documentation.enable = true;
-
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-  '';
-
-  nixpkgs.overlays = [
-    (import ../overlays/polkadots.nix { inherit (sources) polkadots; })
-  ];
-
-  boot.loader.grub.configurationLimit = 1;
+  boot.loader.grub.configurationLimit = 2;
 
   environment.systemPackages =
-    with (import ../packages.nix { inherit pkgs; });
+    with (import ../../packages.nix { inherit pkgs; });
     builtins.concatLists [ base dev ];
+
+  system.stateVersion = "22.11";
 }

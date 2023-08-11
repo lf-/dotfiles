@@ -15,15 +15,13 @@ in
   # security
   services.openssh = {
     enable = true;
-    permitRootLogin = "no";
+    permitRootLogin = "prohibit-password";
     passwordAuthentication = false;
     extraConfig = ''
       AcceptEnv COLORTERM LC_*
     '';
   };
-  security.sudo.extraRules = pkgs.lib.mkAfter [
-    { groups = [ "wheel" ]; commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }]; }
-  ];
+  security.sudo.wheelNeedsPassword = false;
 
   # packages
   environment.systemPackages = with pkgs; [

@@ -60,6 +60,26 @@
           dep-inject
         ];
       };
+      nixosConfigurations.voracle = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          ./machines/voracle
+          ./modules/dep-inject.nix
+          dep-inject
+        ];
+      };
+
+      devShells.x86_64-linux =
+        let
+          pkgs = import nixpkgs { system = "x86_64-linux"; };
+        in
+        {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              nixos-rebuild
+            ];
+          };
+        };
 
       packages.x86_64-linux =
         let
