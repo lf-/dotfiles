@@ -24,6 +24,8 @@
     zotero
     element-desktop
 
+    meld
+
     dfeet
 
     vscode
