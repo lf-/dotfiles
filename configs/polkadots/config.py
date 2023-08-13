@@ -85,6 +85,7 @@ actions = [
 
 dotconfigs = [
     'aiopanel',
+    'atuin',
     'bspwm',
     'direnv',
     'gdb',

@@ -41,4 +41,7 @@ in
   programs.zsh.enable = true;
 
   documentation.dev.enable = true;
+
+  # use nftables for firewall
+  networking.nftables.enable = true;
 }

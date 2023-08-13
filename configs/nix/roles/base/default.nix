@@ -1,6 +1,9 @@
 { config, pkgs, polkadots, ... }:
 {
-  nix.nixPath = [ "nixpkgs=${toString pkgs.path}" ];
+  environment.etc."nix/inputs/nixpkgs" = {
+    source = config.jade.dep-inject.nixpkgs.outPath;
+  };
+  nix.nixPath = [ "nixpkgs=/etc/nix/inputs/nixpkgs" ];
 
   environment.systemPackages = with pkgs; [
     file
@@ -28,6 +31,6 @@
 
   nix.registry.nixpkgs.to = {
     type = "path";
-    path = toString pkgs.path;
+    path = config.jade.dep-inject.nixpkgs;
   };
 }

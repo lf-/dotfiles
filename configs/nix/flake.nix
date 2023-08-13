@@ -37,13 +37,13 @@
   outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, ... }:
     let dep-inject = {
       jade.dep-inject = {
-        inherit polkadots aiobspwm aiopanel gitignore;
+        inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
       };
     };
     in
     {
       inherit nixpkgs inputs;
-      np = nixpkgs.path;
+      np = builtins.storePath nixpkgs.path;
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [

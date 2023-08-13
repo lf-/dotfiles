@@ -7,6 +7,8 @@ in
     ./hardware-configuration.nix
     ../../roles/base
     ../../roles/linux
+    ../../roles/atuin
+    ../../roles/tailscale
   ];
 
   nixpkgs.system = "aarch64-linux";
@@ -57,6 +59,8 @@ in
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
   boot.loader.grub.configurationLimit = 2;
+
+  networking.hostName = "voracle";
 
   environment.systemPackages =
     with (import ../../packages.nix { inherit pkgs; });
