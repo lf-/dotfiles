@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# *makes u a nix*
+TEMPLATE="$(cat <<EOF
+let
+  pkgs = import <nixpkgs> { };
+in
+pkgs.mkShell {
+  buildInputs = with pkgs; [
+    $@
+  ];
+}
+EOF
+)"
+
+[[ ! -f shell.nix ]] && echo "$TEMPLATE" > shell.nix
+[[ ! -f .envrc ]] && (echo 'use nix' > .envrc; direnv allow .)
+
+echo "$TEMPLATE"

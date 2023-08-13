@@ -22,6 +22,7 @@
     zeal
     signal-desktop
     zotero
+    element-desktop
 
     dfeet
 
