@@ -57,6 +57,7 @@ actions = [
 
     MkdirAction('~/.local/share'),
     SymlinkAction('kde-color-schemes', '~/.local/share/color-schemes'),
+    SymlinkAction('gtksourceview-4', '~/.local/share/gtksourceview-4'),
 
     SymlinkAction('main', '~', dir_mode=True),
 
