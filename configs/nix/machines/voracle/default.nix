@@ -9,6 +9,7 @@ in
     ../../roles/linux
     ../../roles/atuin
     ../../roles/tailscale
+    ../../roles/webdav
   ];
 
   nixpkgs.system = "aarch64-linux";
