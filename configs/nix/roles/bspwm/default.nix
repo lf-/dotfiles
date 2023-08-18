@@ -20,9 +20,14 @@
     (import ../../overlays/connman.nix { })
   ];
 
+  services.resolved.enable = true;
   services.connman = {
     enable = true;
-    package = pkgs.connmanFull;
+    package = pkgs.connmanFull.override {
+      # better behaved with respect to tailscale compared to internal caching
+      # resolver
+      dnsType = "systemd-resolved";
+    };
     wifi.backend = "iwd";
     extraFlags = [ "--debug=plugins/iwd.c" ];
     # Connman allows changing system hostname by default via dhcp (no thanks)
