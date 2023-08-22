@@ -24,6 +24,10 @@ pkgs: with pkgs; [
   typst-lsp
   typst
 
+  lieer
+  notmuch
+  notmuch-mutt
+
   (pkgs.haskell.lib.justStaticExecutables hsutils)
   nvimsplit
   vim-swapfile-header
