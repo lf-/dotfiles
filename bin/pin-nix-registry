@@ -1,0 +1,5 @@
+#!/bin/sh
+# This script pins the Nix registry nixpkgs to whatever the system nixpkgs is.
+
+rev=$(cut -d. -f2 < /nix/var/nix/profiles/per-user/root/channels/nixpkgs/svn-revision)
+nix registry pin nixpkgs github:nixos/nixpkgs/"${rev}"
