@@ -243,6 +243,9 @@ opt.guifont = 'Comic Code Ligatures,Iosevka:h16'
 -- Don't use the funny popup menu that is bad
 opt.mousemodel = 'extend'
 
+-- Also use opts-tags in nixpkgs. This solution is kinda janky but whatever.
+vim.opt.tags:append('opts-tags')
+
 -- See https://github.com/neovim/neovim/issues/10223#issuecomment-703544303
 if vim.env.WAYLAND_DISPLAY then
     -- clipboard on wayland with newline fix

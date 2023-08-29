@@ -31,6 +31,7 @@ endif
 " inside the internal terminal, stuff calling VISUAL should open in a new vim
 " tab in the existing session
 let $VISUAL = 'nvimsplit'
+let $EDITOR = 'nvimsplit'
 
 """"""""""""""""""""""""""""""""""""""
 " Mappings

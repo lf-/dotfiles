@@ -34,7 +34,8 @@ struct Args {
     debug: bool,
 
     /// filename to open
-    filename: String,
+    #[clap(num_args = 1..)]
+    parts: Vec<String>,
 }
 
 fn get_socket() -> Result<String> {
@@ -73,6 +74,26 @@ impl Mode {
     }
 }
 
+/// Splits the parts of the args into the filename and the line number
+fn split_parts(parts: &[String]) -> Result<(String, Option<u64>)> {
+    let mut plussed = None;
+    let mut nonplussed = None;
+
+    for part in parts {
+        if part.starts_with('+') {
+            plussed = Some(part);
+        } else {
+            nonplussed = Some(part);
+        }
+    }
+
+    let nonplussed = nonplussed
+        .cloned()
+        .ok_or_else(|| eyre!("missing filename"))?;
+    let plussed = plussed.and_then(|v| v.trim_start_matches('+').parse::<u64>().ok());
+    Ok((nonplussed, plussed))
+}
+
 fn main() -> Result<()> {
     let args: Args = Args::parse();
     let config = simplelog::ConfigBuilder::new()
@@ -98,8 +119,10 @@ fn main() -> Result<()> {
     let recv = sess.start_event_loop_channel();
     let mut nvim = Neovim::new(sess);
 
+    let (filename, lineno) = split_parts(&args.parts)?;
+
     let cwd = env::current_dir()?;
-    let abspath = cwd.join(&args.filename);
+    let abspath = cwd.join(&filename);
 
     let abspath_s = abspath
         .to_str()
@@ -113,7 +136,10 @@ fn main() -> Result<()> {
         .as_str()
         .ok_or_else(|| eyre!("unexpected return type for fnameescape"))?;
 
-    let cmd = format!("{} {}", cmd.to_cmd(), escaped_s);
+    // chomp only valid line numbers
+    let lineno_part = lineno.map(|l| format!("+{l} ")).unwrap_or_default();
+
+    let cmd = format!("{} {}{}", cmd.to_cmd(), lineno_part, escaped_s);
     debug!("calling nvim command {:?}", &cmd);
     nvim.command(&cmd).wrap_err("eval open command")?;
 
@@ -151,4 +177,17 @@ augroup END", id = chanid);
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn split_test() {
+        assert_eq!(
+            split_parts(&["+25".to_string(), "file.txt".to_string()]).unwrap(),
+            ("file.txt".to_string(), Some(25))
+        );
+    }
 }
