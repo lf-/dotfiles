@@ -3,7 +3,7 @@
 let
   pkgs = import <nixpkgs> {
     overlays = [
-      (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc92"; })
+      (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; })
       (import ./overlays/xwaylandvideobridge.nix)
       (import ./overlays/gitignore.nix { inherit (flake.inputs) gitignore; })
       (import ./overlays/jadeware.nix)

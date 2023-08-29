@@ -10,14 +10,15 @@ in
     ../../roles/atuin
     ../../roles/tailscale
     ../../roles/webdav
+    ../../roles/wireguard
   ];
 
   nixpkgs.system = "aarch64-linux";
 
-  # jade.wireguard = {
-  #   enable = true;
-  #   upstreamInterface = "enp0s3";
-  # };
+  jade.wireguard = {
+    enable = true;
+    upstreamInterface = "enp0s6";
+  };
 
   users.users = {
     jade = {

@@ -26,6 +26,13 @@ with lib;
         443
       ];
 
+      networking.nat = {
+        enable = true;
+        internalInterfaces = [ "wg0" ];
+        internalIPs = [ "172.31.0.0/24" ];
+        externalInterface = iface;
+      };
+
       networking.wireguard = {
         enable = true;
         interfaces = {
@@ -35,22 +42,7 @@ with lib;
             privateKeyFile = "/private/wg.key";
 
             listenPort = 443;
-            preSetup = ''
-              # verify the interface exists
-              ip link show ${iface} >/dev/null 2>&1
-            '';
 
-            postSetup = ''
-              iptables -A FORWARD -i wg0 -j ACCEPT
-              iptables -A FORWARD -o wg0 -j ACCEPT
-              iptables -t nat -A POSTROUTING -o ${iface} -j MASQUERADE
-            '';
-
-            postShutdown = ''
-              iptables -D FORWARD -i wg0 -j ACCEPT
-              iptables -D FORWARD -o wg0 -j ACCEPT
-              iptables -t nat -D POSTROUTING -o ${iface} -j MASQUERADE
-            '';
             peers = [
               # thinpad
               {
