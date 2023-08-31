@@ -76,6 +76,9 @@
     okular
     dolphin
     libsForQt5.dolphin-plugins
+    kio-admin
+    libsForQt5.kio-extras
+    ffmpegthumbs
     ark
     konsole
     libsForQt5.print-manager
