@@ -385,6 +385,15 @@ let
     '';
   });
 
+  # ironically, this is because they are being kinda extra nice and building
+  # both versions of the manual.
+  buildStow = x: (defaultAutotools x).overrideAttrs (old: {
+    installPhase = ''
+      mkdir -p $out
+      cp doc/manual-single.html $out/stow.html
+    '';
+  });
+
   docify = p: pkgs.stdenv.mkDerivation {
     name = "${p.name}-htmldoc";
     phases = [ "buildPhase" ];
@@ -531,6 +540,8 @@ rec {
 
   gperf = buildGperf pkgs.gperf;
 
+  stow = buildStow pkgs.stow;
+
   defaults = map defaultAutotools (
     with pkgs; [
       autoconf
@@ -542,6 +553,7 @@ rec {
       flex
       gawk
       gnu-cobol
+      gnu-shepherd
       gnufdisk
       gnugrep
       gnulib
@@ -553,10 +565,12 @@ rec {
       guile
       gzip
       libtool
+      mailutils
       nano
       parallel
       readline
       time
+      sharutils
       wget
       which
     ]
@@ -638,6 +652,7 @@ rec {
         octave
         poke
         screen
+        stow
         texinfo
       ] ++ defaults
     );
