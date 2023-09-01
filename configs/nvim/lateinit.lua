@@ -343,6 +343,14 @@ nnoremap("<Leader><C-p>", "<Cmd>lua find_files_relative()<cr>")
 nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
 nnoremap("<space>*", "<Cmd>Telescope grep_string<cr>")
 nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
+nnoremap("<space>t", '', {
+    callback = function ()
+        require('telescope.builtin').tags({
+            show_line = false,
+            only_sort_tags = true,
+        })
+    end
+})
 
 -- replace the word under the cursor with ,s
 nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])

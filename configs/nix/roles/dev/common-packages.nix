@@ -24,6 +24,8 @@ pkgs: with pkgs; [
   typst-lsp
   typst
 
+  simple-http-server
+
   lieer
   notmuch
   notmuch-mutt
