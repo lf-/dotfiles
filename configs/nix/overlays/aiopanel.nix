@@ -5,6 +5,7 @@ let
     pname = "aiobspwm";
     version = "0.0.0";
     doCheck = false;
+    propagatedBuildInputs = with curr.python3Packages; [ pip ];
     src = aiobspwm;
   };
 in
@@ -15,6 +16,6 @@ in
     doCheck = false;
     src = aiopanel;
     propagatedBuildInputs = (with curr.python3Packages; [ jinja2 pydbus gbulb pulsectl ])
-      ++ [aiobspwm'];
+      ++ [ aiobspwm' ];
   };
 }
