@@ -16,7 +16,7 @@
   ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_latest;
 
   # create a swap file on the encrypted partition
   #swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
