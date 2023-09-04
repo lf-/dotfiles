@@ -51,7 +51,7 @@
 
   # deal with the dbus systemd interaction bug where it will not fail things if
   # they fail in systemd
-  services.dbus.implementation = "broker";
+  # services.dbus.implementation = "broker";
 
   # gitk
   programs.git.package = pkgs.gitFull;

@@ -14,7 +14,7 @@ let
 
     numpy
   ];
-  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; };
+  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc92"; };
 
   common-dev-pkgs = import ./common-packages.nix pkgs;
 
