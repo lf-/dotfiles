@@ -16,6 +16,8 @@
   ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   # create a swap file on the encrypted partition
   #swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
 
@@ -68,6 +70,7 @@
 
   boot.initrd.systemd = {
     enable = true;
+    emergencyAccess = "$2b$05$1wdLRpAwtirLmS3VniajbOF94vTJCkzbpp4bkQPPhSnUi7ynTJsAG";
   };
 
   services.udev.extraRules = ''
