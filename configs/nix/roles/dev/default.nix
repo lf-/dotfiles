@@ -62,20 +62,20 @@ in
     (import ../../overlays/rr.nix)
   ];
 
-  nix.extraOptions = lib.mkMerge [
-    (lib.mkIf pkgs.stdenv.isLinux ''
-      plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.so
-    '')
-    (lib.mkIf pkgs.stdenv.isDarwin ''
-      plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.dylib
-    '')
-    ''
-      # nix-direnv
-      keep-outputs = true
-      keep-derivations = true
-    ''
-  ];
-
+  # nix.extraOptions = lib.mkMerge [
+  #   (lib.mkIf pkgs.stdenv.isLinux ''
+  #     plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.so
+  #   '')
+  #   (lib.mkIf pkgs.stdenv.isDarwin ''
+  #     plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.dylib
+  #   '')
+  #   ''
+  #     # nix-direnv
+  #     keep-outputs = true
+  #     keep-derivations = true
+  #   ''
+  # ];
+  #
   nix.settings.trusted-substituters = [
     "https://haskell-language-server.cachix.org"
   ];
