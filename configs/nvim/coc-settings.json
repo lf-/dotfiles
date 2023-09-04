@@ -12,7 +12,7 @@
     "coc.preferences.formatOnSaveFiletypes": ["rust", "typescript", "typescriptreact"],
     "languageserver": {
         "nix": {
-            "command": "rnix-lsp",
+            "command": "nixd",
             "filetypes": ["nix"]
         },
         "cmake": {

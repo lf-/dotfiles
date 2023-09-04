@@ -23,6 +23,11 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  jade.rawethernet = {
+    enable = false;
+    interfaceName = "enp62s0u1u3";
+  };
+
   networking.hostName = "snowflake";
 
   virtualisation.libvirtd = {

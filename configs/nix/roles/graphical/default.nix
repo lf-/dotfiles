@@ -24,6 +24,11 @@
     zotero
     element-desktop
 
+    kooha
+
+    vlc
+    mpv
+
     meld
 
     dfeet
@@ -39,9 +44,14 @@
   ];
 
   services.printing.enable = true;
+  services.printing.drivers = with pkgs; [ hplip ];
   services.avahi.enable = true;
 
   programs.kdeconnect.enable = true;
+
+  # deal with the dbus systemd interaction bug where it will not fail things if
+  # they fail in systemd
+  services.dbus.implementation = "broker";
 
   # gitk
   programs.git.package = pkgs.gitFull;

@@ -19,6 +19,7 @@ pkgs: with pkgs; [
   phpactor
   reuse
   rnix-lsp
+  nixd
   rustfilt
   shellcheck
   typst-lsp
