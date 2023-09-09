@@ -93,6 +93,7 @@ dotconfigs = [
     'gh',
     'git',
     'lolcate',
+    'mpv',
     'nvim',
     'polkadots',
     'powershell',
