@@ -68,5 +68,8 @@ in
     with (import ../../packages.nix { inherit pkgs; });
     builtins.concatLists [ base dev ];
 
+  # allow nat from tailscale
+  networking.nat.internalInterfaces = [ "tailscale0" ];
+
   system.stateVersion = "22.11";
 }
