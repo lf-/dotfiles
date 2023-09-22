@@ -37,3 +37,9 @@ nvim_new_command('TSClearParsers', function (args)
     end
 end,
     { nargs = 0 })
+
+nvim_new_command('Light', function (args)
+    vim.opt.background = 'light'
+    vim.api.nvim_exec('colorscheme PaperColor', false)
+end,
+    { nargs = 0 })

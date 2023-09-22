@@ -1,6 +1,5 @@
 { config, lib, nixpkgs, ... }: {
   imports = [
-    ../../roles/dev
     ../../roles/linux
     ../../roles/users
     ./hardware-configuration.nix

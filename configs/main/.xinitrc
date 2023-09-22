@@ -56,4 +56,15 @@ fi
 feh --bg-scale ~/.dotfiles/wallpaper.png &
 xsetroot -cursor_name left_ptr &
 sxhkd &
-exec dbus-launch --exit-with-session bspwm
+
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+    # madness
+    eval "$(dbus-launch --sh-syntax)"
+fi
+
+# workaround nixos issue: services.x11.displayManager.* does this but we don't
+# use that stuff.
+dbus-update-activation-environment DISPLAY XAUTHORITY WAYLAND_DISPLAY
+systemctl --user import-environment DBUS_SESSION_BUS_ADDRESS XAUTHORITY DISPLAY XDG_SESSION_ID
+
+exec bspwm

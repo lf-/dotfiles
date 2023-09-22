@@ -35,9 +35,11 @@ in
     graphviz
     ctags
     moreutils
+    git-lfs
 
     xxd
 
+    p7zip
     unzip
 
     iotop

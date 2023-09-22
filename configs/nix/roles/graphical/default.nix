@@ -25,6 +25,13 @@
     element-desktop
 
     kooha
+    # FIXME: kooha doesn't work on my bspwm machine
+    peek
+
+    pdfarranger
+    pdfgrep
+    # FIXME: jpdftweak
+    qpdf
 
     vlc
     mpv
@@ -46,6 +53,8 @@
   services.printing.enable = true;
   services.printing.drivers = with pkgs; [ hplip ];
   services.avahi.enable = true;
+
+  services.udisks2.enable = true;
 
   programs.kdeconnect.enable = true;
 

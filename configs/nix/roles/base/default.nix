@@ -23,6 +23,7 @@
 
   nix.extraOptions = ''
     experimental-features = nix-command flakes
+    flake-registry =
   '';
 
   environment.variables = {

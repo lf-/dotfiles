@@ -16,7 +16,8 @@
   ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
-  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_latest;
+  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_1;
+  # boot.kernelPackages = pkgs.linuxPackages_6_1;
 
   # create a swap file on the encrypted partition
   #swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
@@ -24,6 +25,15 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # this smells like bullshit because I am pretty sure it has to run on resume
+  # from sleep as well.
+  #
+  # also, is bbswitch obsolete?
+  # hardware.nvidiaOptimus.disable = true;
+
+  # for accelerated video decode. really this should be automatic.
+  # hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
 
   jade.rawethernet = {
     enable = false;
@@ -64,8 +74,8 @@
     verilator
     imhex
     sysprof
-    # tcpdump
-    # iotop
+
+    powertop
   ];
 
   boot.initrd.systemd = {

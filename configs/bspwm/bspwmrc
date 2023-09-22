@@ -11,9 +11,4 @@ AIOPANEL_LOG=aiopanel.PulseStateWatcher=debug aiopanel &
 poke-upower 5000 &
 redshift &
 
-# workaround nixos issue: services.x11.displayManager.* does this but we don't
-# use that stuff.
-dbus-update-activation-environment DISPLAY XAUTHORITY WAYLAND_DISPLAY
-systemctl --user import-environment DBUS_SESSION_BUS_ADDRESS XAUTHORITY DISPLAY XDG_SESSION_ID
-
 which picom 2>&1 > /dev/null && picom --config /dev/null --backend glx --vsync &
