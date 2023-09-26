@@ -16,7 +16,13 @@
   ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
-  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_1;
+  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+    kernel = super.kernel.override (old: {
+      kernelPatches = old.kernelPatches ++ [{ name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }];
+    });
+  });
+
+  # boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_1;
   # boot.kernelPackages = pkgs.linuxPackages_6_1;
 
   # create a swap file on the encrypted partition
