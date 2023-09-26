@@ -18,5 +18,6 @@ in {
     libertine
     open-sans
     roboto
+    comic-neue
   ];
 }
