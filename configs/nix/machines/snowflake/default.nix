@@ -27,12 +27,12 @@
         {
           name = "acpi_nonsense";
           patch = null;
-          extraConfig = ''
-            CONFIG_ACPI_DEBUGGER=y
-            CONFIG_ACPI_DEBUGGER_USER=m
-            CONFIG_STRICT_DEVMEM=n
-            CONFIG_IO_STRICT_DEVMEM=n
-          '';
+          structuredExtraConfig = with lib.kernel; {
+            ACPI_DEBUGGER = yes;
+            ACPI_DEBUGGER_USER = module;
+            STRICT_DEVMEM = no;
+            IO_STRICT_DEVMEM = no;
+          };
         }
       ];
     });
