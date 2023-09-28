@@ -16,9 +16,25 @@
   ];
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
+
+  # possibly get the TPS6598x USB PD controller to have sysfs drivers?
+  boot.initrd.kernelModules = [ "serial-multi-instantiate" ];
+
   boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
     kernel = super.kernel.override (old: {
-      kernelPatches = old.kernelPatches ++ [{ name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }];
+      kernelPatches = old.kernelPatches ++ [
+        { name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }
+        {
+          name = "acpi_nonsense";
+          patch = null;
+          extraConfig = ''
+            CONFIG_ACPI_DEBUGGER=y
+            CONFIG_ACPI_DEBUGGER_USER=m
+            CONFIG_STRICT_DEVMEM=n
+            CONFIG_IO_STRICT_DEVMEM=n
+          '';
+        }
+      ];
     });
   });
 
