@@ -25,6 +25,8 @@ pkgs: with pkgs; [
   typst-lsp
   typst
 
+  nix-output-monitor
+
   simple-http-server
 
   lieer

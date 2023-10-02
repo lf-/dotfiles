@@ -13,7 +13,9 @@
     "languageserver": {
         "nix": {
             "command": "nixd",
-            "filetypes": ["nix"]
+            "args": ["-log=debug"],
+            "filetypes": ["nix"],
+            "settings": {},
         },
         "cmake": {
             "command": "cmake-language-server",
