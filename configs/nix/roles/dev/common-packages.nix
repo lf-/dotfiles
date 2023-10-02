@@ -12,6 +12,7 @@ pkgs: with pkgs; [
   niv
   nix-direnv
   nix-doc
+  nix-eval-jobs
   nix-index
   nixpkgs-fmt
   nodePackages.bash-language-server
