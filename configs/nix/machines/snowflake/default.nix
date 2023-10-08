@@ -17,28 +17,26 @@
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
 
-  # possibly get the TPS6598x USB PD controller to have sysfs drivers?
-  boot.initrd.kernelModules = [ "serial-multi-instantiate" ];
+  # boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+  #   kernel = super.kernel.override (old: {
+  #     kernelPatches = old.kernelPatches ++ [
+  #       # { name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }
+  #       {
+  #         name = "acpi_nonsense";
+  #         patch = null;
+  #         extraStructuredConfig = with lib.kernel; {
+  #           ACPI_DEBUGGER = yes;
+  #           ACPI_DEBUGGER_USER = module;
+  #           DEVMEM = yes;
+  #           STRICT_DEVMEM = no;
+  #           IO_STRICT_DEVMEM = option no;
+  #         };
+  #       }
+  #     ];
+  #   });
+  # });
 
-  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
-    kernel = super.kernel.override (old: {
-      kernelPatches = old.kernelPatches ++ [
-        { name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }
-        {
-          name = "acpi_nonsense";
-          patch = null;
-          structuredExtraConfig = with lib.kernel; {
-            ACPI_DEBUGGER = yes;
-            ACPI_DEBUGGER_USER = module;
-            STRICT_DEVMEM = no;
-            IO_STRICT_DEVMEM = no;
-          };
-        }
-      ];
-    });
-  });
-
-  # boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_1;
+  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_5;
   # boot.kernelPackages = pkgs.linuxPackages_6_1;
 
   # create a swap file on the encrypted partition
@@ -98,6 +96,9 @@
     sysprof
 
     powertop
+
+    jetbrains.idea-community
+    kotlin-language-server
   ];
 
   boot.initrd.systemd = {

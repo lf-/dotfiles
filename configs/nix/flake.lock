@@ -113,18 +113,17 @@
     },
     "nixpkgs-bad": {
       "locked": {
-        "lastModified": 1691654369,
-        "narHash": "sha256-gSILTEx1jRaJjwZxRlnu3ZwMn1FVNk80qlwiCX8kmpo=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "ce5e4a6ef2e59d89a971bc434ca8ca222b9c7f5e",
-        "type": "github"
+        "lastModified": 1696708001,
+        "narHash": "sha256-EWCKfsI0aCgR7oM5KvaFv+qnReEgEJYoSMA5zMGhmjs=",
+        "ref": "refs/heads/update-kernels",
+        "rev": "805a45161ba78708d227d3a201f1db4d62780f80",
+        "revCount": 533263,
+        "type": "git",
+        "url": "file:///home/jade/dev/nixpkgs"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "ce5e4a6",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "git",
+        "url": "file:///home/jade/dev/nixpkgs"
       }
     },
     "polkadots": {

@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     # temporary patch due to kernel regression
-    nixpkgs-bad.url = "github:nixos/nixpkgs/ce5e4a6";
+    nixpkgs-bad.url = "/home/jade/dev/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";

@@ -50,6 +50,7 @@
     audacity
   ];
 
+  nixpkgs.config.firefox.speechSynthesisSupport = true;
   services.printing.enable = true;
   services.printing.drivers = with pkgs; [ hplip ];
   services.avahi.enable = true;

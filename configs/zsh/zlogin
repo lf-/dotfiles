@@ -1,0 +1,7 @@
+# totally heinous nonsense
+if command -v systemd-detect-virt >/dev/null 2>/dev/null; then
+    local VIRT="$(systemd-detect-virt -c)"
+    if [[ ${VIRT} == systemd-nspawn ]]; then
+        export SSH_TTY="$(tty)"
+    fi
+fi
