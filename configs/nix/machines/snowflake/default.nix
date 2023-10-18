@@ -99,7 +99,11 @@
 
     jetbrains.idea-community
     kotlin-language-server
+    ios-webkit-debug-proxy
+    libimobiledevice
   ];
+
+  services.usbmuxd.enable = true;
 
   boot.initrd.systemd = {
     enable = true;
