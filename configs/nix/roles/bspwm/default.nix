@@ -17,7 +17,6 @@
 
   nixpkgs.overlays = [
     (import ../../overlays/aiopanel.nix { inherit (config.jade.dep-inject) aiobspwm aiopanel; })
-    (import ../../overlays/connman.nix { })
   ];
 
   services.resolved.enable = true;
