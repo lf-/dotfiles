@@ -25,6 +25,7 @@ pkgs: with pkgs; [
   shellcheck
   typst-lsp
   typst
+  diffoscope
 
   nix-output-monitor
 
