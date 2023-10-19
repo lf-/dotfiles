@@ -65,3 +65,7 @@
 # [url "git@github.com:"]
 # 	pushInsteadOf = git://github.com/
 # 	pushInsteadOf = https://github.com/
+
+[sendemail.linux]
+    tocmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nol"
+    cccmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nom"
