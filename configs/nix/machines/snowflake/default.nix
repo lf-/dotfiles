@@ -5,6 +5,7 @@
     ../../roles/hacking
     ../../roles/linux
     ../../roles/users
+    ../../roles/kde
     ../../roles/bspwm
     ../../roles/rr
     ../../roles/tailscale
