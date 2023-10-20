@@ -36,8 +36,8 @@
   #   });
   # });
 
-  boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_5;
-  # boot.kernelPackages = pkgs.linuxPackages_6_1;
+  # boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_5;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # create a swap file on the encrypted partition
   #swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];

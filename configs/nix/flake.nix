@@ -2,8 +2,6 @@
   description = "Computers with the nixos";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    # temporary patch due to kernel regression
-    nixpkgs-bad.url = "/home/jade/dev/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";
@@ -36,10 +34,10 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, nixpkgs-bad, ... }:
+  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, ... }:
     let dep-inject = {
       jade.dep-inject = {
-        inherit polkadots aiobspwm aiopanel gitignore nixpkgs nixpkgs-bad;
+        inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
       };
     };
     in
