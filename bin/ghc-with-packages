@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+v="$1"
+shift
+
+ex="$(cat <<'EOF'
+{ requestedPkgs, ghcVer }:
+let
+    pkgs = import <nixpkgs> { };
+    pkgsList = builtins.filter (x: builtins.isString x && builtins.stringLength x > 0) (builtins.split " " requestedPkgs);
+    haskellPkgs = pkgs.haskell.packages.${"ghc" + ghcVer};
+in haskellPkgs.shellFor {
+    packages = p: [ ];
+    extraDependencies = hpkgs: { libraryHaskellDepends = map (e: hpkgs.${e}) pkgsList; };
+    nativeBuildInputs = (with haskellPkgs; [ haskell-language-server implicit-hie ]) ++ (with pkgs; [ cabal-install zlib xz ]);
+}
+EOF
+)"
+
+exec nix develop --impure --debugger --ignore-try --argstr requestedPkgs "$*" --argstr ghcVer "$v" --expr "$ex"
