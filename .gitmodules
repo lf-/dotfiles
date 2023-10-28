@@ -4,3 +4,6 @@
 [submodule "xcompose"]
 	path = configs/xcompose
 	url = https://github.com/kragen/xcompose
+[submodule "programs/hsutils/perfetto-proto/perfetto"]
+	path = programs/hsutils/perfetto-proto/perfetto
+	url = https://android.googlesource.com/platform/external/perfetto/

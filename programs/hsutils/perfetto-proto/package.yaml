@@ -1,0 +1,10 @@
+name: perfetto-proto
+version: 0.0.0
+synopsis: Protobufs for perfetto tracing
+dependencies:
+  - base
+  - proto-lens
+  - proto-lens-runtime
+
+library:
+  source-dirs: src

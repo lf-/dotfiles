@@ -10,7 +10,7 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      ghcVer = "ghc924";
+      ghcVer = "ghc94";
 
       out = system:
         let
@@ -24,7 +24,7 @@
         {
           packages = rec {
             default = hsutils;
-            hsutils = pkgs.haskell.packages.${ghcVer}.hsutils;
+            inherit (pkgs.haskell.packages.${ghcVer}) hsutils perfetto-proto;
           };
 
           checks = {
@@ -38,15 +38,17 @@
             let haskellPackages = pkgs.haskell.packages.${ghcVer};
             in
             haskellPackages.shellFor {
-              packages = p: [ self.packages.${system}.hsutils ];
+              packages = p: with self.packages.${system}; [ hsutils perfetto-proto ];
               withHoogle = true;
               buildInputs = with haskellPackages; [
                 haskell-language-server
                 fourmolu
                 cabal-install
+                proto-lens-protoc
               ] ++ (with pkgs; [
                 nix-prefetch-git
                 sqlite
+                protobuf
               ]);
               # Change the prompt to show that you are in a devShell
               # shellHook = "export PS1='\\e[1;34mdev > \\e[0m'";

@@ -17,9 +17,30 @@ let
       };
     };
   } // prev.lib.getAttrs exports final.haskell.packages.${ghcVer};
+
 in
 makeHaskellOverlay [ "hsutils" ] (prev: hfinal: hprev:
-  let hlib = prev.haskell.lib; in
-  {
-    hsutils = hprev.callCabal2nix "hsutils" ./. { };
-  })
+let
+  hlib = prev.haskell.lib;
+  pathFilter = path: type:
+    prev.lib.hasSuffix ".cabal" path
+    || baseNameOf path == "package.yaml"
+    || builtins.any (pat: builtins.match pat path != null)
+      [
+        ".*perfetto-proto(/package.yaml)?"
+      ];
+in
+{
+  hsutils = hprev.callCabal2nix "hsutils" ./. { };
+  # https://github.com/google/ghc-source-gen/pull/102
+  ghc-source-gen = hprev.callCabal2nix "ghc-source-gen"
+    (prev.fetchFromGitHub {
+      owner = "circuithub";
+      repo = "ghc-source-gen";
+      rev = "7a6aac047b706508e85ba2054b5bedbecfd7eb7a";
+      hash = "sha256-DZu3XAOYLKcSpOYhjpb6IuXMvRHtGohTkL0nsCb/dT0=";
+    })
+    { };
+  proto-lens-protoc = hlib.doJailbreak hprev.proto-lens-protoc;
+  perfetto-proto = hprev.callCabal2nix "perfetto-proto" (builtins.filterSource pathFilter ./perfetto-proto) { };
+})
