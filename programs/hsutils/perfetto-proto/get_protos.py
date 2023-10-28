@@ -1,7 +1,7 @@
 import os
 import re
 
-PROJECT_ROOT = './perfetto'
+PROJECT_ROOT = './'
 
 def get_transitive_imports(rel_path, visited):
   if rel_path in visited:
