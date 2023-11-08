@@ -10,6 +10,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "cube";
+  networking.hostId = "8b4498a5";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
