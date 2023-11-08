@@ -3,8 +3,8 @@ Description=Hosts developer documentation at localhost:10000
 
 [Service]
 Type=forking
-ExecStartPre=/usr/bin/mkdir -p /tmp/jade/nginx
-ExecStart=/usr/bin/nginx -p .dotfiles/docs-svc -e stderr -c nginx.conf
+ExecStartPre=@MKDIR@ -p /tmp/jade/nginx
+ExecStart=@NGINX@ -p .dotfiles/docs-svc -e stderr -c nginx.conf
 WorkingDirectory=~
 NoNewPrivileges=true
 
