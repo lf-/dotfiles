@@ -3,7 +3,6 @@
     # this is a hashed long random pw only used here. chill
     hashedPassword = "$6$xdA/r73m$B66acdvSeL/ZnkoXb0Tgb1GF0AaVeHiOXA8xyOHZ59hJDmTPQfyFZVMqeloP0y4Y.KyX1RUtsW3SUu5ECImiu/";
     sshKeys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPWTDqLxdFhYblWDNXUTkP8ElDSDeIOO8CZOhflnegU54o0ic2PlvtXya7kWNtitmo7XPxE2xRsVUmrI+03CyXs9ZPBXLN5OVzO2cLs46f1RKWn+h4lsPFzN660amQ9qNCuqyCy9fis8lDkm7t61Jxe9TikSii3HVfS4E2f/m4GxPT6aL5ZsA3390CYxjOhvQBUKj9aAU3K1pfaQeWTf/WJ+ez6iNxWJ3G5Cw9wk7zF0Tl38rZ2vHmcLZq11XzdDbZz1/cbUAw3CeJFdDQ+BMrzUoBQfGNQgXPZ68SXRjmsc0YFFo7FnEaF7/ZEXroq1rX2EcDoQ8s5qpJu5gWC5Rz lf@Calculon"
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNldAg4t13/i69TD786The+U3wbiNUdW2Kc9KNWvEhgpf4y4x4Sft0oYfkPw5cjX4H3APqfD+b7ItAG0GCbwHw6KMYPoVMNK08zBMJUqt1XExbqGeFLqBaeqDsmEAYXJRbjMTAorpOCtgQdoCKK/DvZ51zUWXxT8UBNHSl19Ryv5Ry5VVdbAE35rqs57DQ9+ma6htXnsBEmmnC+1Zv1FE956m/OpBTId50mor7nS2FguAtPZnDPpTd5zl9kZmJEuWCrmy6iinw5V4Uy1mLeZkQv+/FtozbyifCRCvps9nHpv4mBSU5ABLgnRRvXs+D41Jx7xloNADr1nNgpsNrYaTh hed-bot-ssh-tpm-rsa"
       "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIKYljH8iPMrH00lOb3ETxRrZimdKzPPEdsJQ5D5ovtOwAAAACnNzaDpzc2hrZXk= ssh:sshkey"
     ];

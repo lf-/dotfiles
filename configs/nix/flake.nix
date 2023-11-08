@@ -68,6 +68,10 @@
           dep-inject
         ];
       };
+      nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [ ./roles/iso ];
+      };
 
       devShells.x86_64-linux =
         let
@@ -95,6 +99,7 @@
         in
         {
           inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote;
+          iso = self.nixosConfigurations.iso.config.system.build.isoImage;
         };
     };
 }
