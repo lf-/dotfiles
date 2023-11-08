@@ -20,16 +20,14 @@ in
     upstreamInterface = "enp0s6";
   };
 
+  jade.rootSshKeys.enable = true;
+
   users.users = {
     jade = {
       isNormalUser = true;
       extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
       openssh.authorizedKeys.keys = creds.jade.sshKeys;
       shell = pkgs.zsh;
-    };
-
-    root = {
-      openssh.authorizedKeys.keys = creds.jade.sshKeys;
     };
 
     hexchen = {
