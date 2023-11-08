@@ -23,11 +23,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/tank" =
-    { device = "tank";
-      fsType = "zfs";
-    };
-
   fileSystems."/home" =
     { device = "zroot/data/home";
       fsType = "zfs";
