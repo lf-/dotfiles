@@ -72,6 +72,14 @@
         system = "x86_64-linux";
         modules = [ ./roles/iso ];
       };
+      nixosConfigurations.cube = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./machines/cube
+          ./modules/dep-inject.nix
+          dep-inject
+        ];
+      };
 
       devShells.x86_64-linux =
         let
