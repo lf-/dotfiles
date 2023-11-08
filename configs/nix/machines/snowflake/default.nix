@@ -21,7 +21,6 @@
   # boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
   #   kernel = super.kernel.override (old: {
   #     kernelPatches = old.kernelPatches ++ [
-  #       # { name = "dell_regression_fix"; patch = ./0001-misc-rtsx-Fix-some-platforms-can-not-boot-and-move-t.patch; }
   #       {
   #         name = "acpi_nonsense";
   #         patch = null;
@@ -37,7 +36,6 @@
   #   });
   # });
 
-  # boot.kernelPackages = (import config.jade.dep-inject.nixpkgs-bad { system = "x86_64-linux"; }).linuxPackages_6_5;
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # create a swap file on the encrypted partition
@@ -54,7 +52,7 @@
   # hardware.nvidiaOptimus.disable = true;
 
   # for accelerated video decode. really this should be automatic.
-  # hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
+  hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
 
   jade.rawethernet = {
     enable = false;
@@ -104,7 +102,10 @@
     libimobiledevice
   ];
 
+  # Apple stuff
   services.usbmuxd.enable = true;
+
+  services.fwupd.enable = true;
 
   boot.initrd.systemd = {
     enable = true;
