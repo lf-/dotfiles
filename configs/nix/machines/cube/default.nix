@@ -1,9 +1,63 @@
-{ config, lib, nixpkgs, ... }: {
+{ config, lib, pkgs, ... }: {
   imports = [
     ../../roles/linux
     ../../roles/users
+    ../../roles/tailscale
+    ../../roles/physical
     ./hardware-configuration.nix
   ];
+
+  environment.systemPackages = with pkgs; [
+    rclone
+  ];
+
+  users.groups.tank = { };
+  users.groups.tank_public = { };
+
+  users.users.jade.extraGroups = [ "tank" "tank_public" ];
+
+  users.users.smbguest = {
+    expires = "1970-01-02";
+    shell = "/run/current-system/sw/bin/nologin";
+    isNormalUser = true;
+    group = "nogroup";
+    extraGroups = [ "tank_public" ];
+  };
+
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+    enableNmbd = false;
+    shares = {
+      public = {
+        path = "/tank/public";
+        browseable = "yes";
+        "guest ok" = "yes";
+        "read only" = "no";
+        "force group" = "smbguest";
+        comment = "public share";
+      };
+    };
+    # this is hot garbage why is this not structured x_x good lord someone
+    # needs to give this module some love.
+    extraConfig = ''
+      # log to journald
+      logging = systemd
+
+      # we dont do legacy here
+      server min protocol = SMB3_00
+
+      guest account = smbguest
+      # if the evil bit is set,,, but i think this applies to when windows
+      # tries to auth as a user that doesn't exist.
+      map to guest = bad user
+
+      # make fruity devices work properly (hi im a fruity device...???)
+      vfs objects = fruit streams_xattr
+      # we have the zettabyte filesystem, why not
+      fruit:resource = xattr
+    '';
+  };
 
   jade.rootSshKeys.enable = true;
 
