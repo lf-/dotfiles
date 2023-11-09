@@ -11,6 +11,7 @@ in
     ../../roles/tailscale
     ../../roles/webdav
     ../../roles/wireguard
+    ../../roles/users
   ];
 
   nixpkgs.system = "aarch64-linux";
@@ -23,13 +24,6 @@ in
   jade.rootSshKeys.enable = true;
 
   users.users = {
-    jade = {
-      isNormalUser = true;
-      extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-      openssh.authorizedKeys.keys = creds.jade.sshKeys;
-      shell = pkgs.zsh;
-    };
-
     hexchen = {
       isNormalUser = true;
       openssh.authorizedKeys.keys = creds.hexchen.sshKeys;
