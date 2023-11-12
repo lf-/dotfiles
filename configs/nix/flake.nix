@@ -16,6 +16,13 @@
       flake = false;
     };
 
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "flake-utils";
+      inputs.darwin.follows = "flake-utils";
+    };
+
     nixGL = {
       url = "github:guibou/nixGL";
       # I don't like their flake
@@ -34,7 +41,7 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, ... }:
+  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, agenix, ... }:
     let dep-inject = {
       jade.dep-inject = {
         inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
@@ -78,17 +85,20 @@
           ./machines/cube
           ./modules/dep-inject.nix
           dep-inject
+          agenix.nixosModules.default
         ];
       };
 
       devShells.x86_64-linux =
         let
-          pkgs = import nixpkgs { system = "x86_64-linux"; };
+          system = "x86_64-linux";
+          pkgs = import nixpkgs { inherit system; };
         in
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
               nixos-rebuild
+              agenix.packages.${system}.default
             ];
           };
         };

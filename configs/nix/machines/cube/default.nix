@@ -1,9 +1,13 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }:
+let base64 = import ../../lib/base64.nix;
+in
+{
   imports = [
     ../../roles/linux
     ../../roles/users
     ../../roles/tailscale
     ../../roles/physical
+    ../../modules/caddy-wildcard.nix
     ./hardware-configuration.nix
   ];
 
@@ -29,12 +33,26 @@
     openFirewall = true;
     enableNmbd = false;
     shares = {
+      media = {
+        path = "/tank/media";
+        browseable = "yes";
+        public = "no";
+        "read only" = "no";
+        "valid users" = "@tank";
+        "force group" = "tank";
+        # mask perms with 0664
+        "create mask" = "0664";
+        # force perms to 0664
+        "force create mode" = "0664";
+        "directory mask" = "2775";
+        "force directory mode" = "2775";
+      };
       public = {
         path = "/tank/public";
         browseable = "yes";
         "guest ok" = "yes";
         "read only" = "no";
-        "force group" = "smbguest";
+        "force group" = "tank_public";
         comment = "public share";
       };
     };
@@ -43,6 +61,7 @@
     extraConfig = ''
       # log to journald
       logging = systemd
+      log level = 3
 
       # we dont do legacy here
       server min protocol = SMB3_00
@@ -57,6 +76,35 @@
       # we have the zettabyte filesystem, why not
       fruit:resource = xattr
     '';
+  };
+
+  age.secrets.acme-dns-reg.file = ../../secrets/acme-dns-reg.age;
+
+  services.jellyfin = {
+    enable = true;
+  };
+  # accelerate video encode/decode
+  hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
+
+  networking.firewall.allowedTCPPorts = [ 443 ];
+  services.caddy = {
+    enable = true;
+    acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+    email = base64.decode "YWNtZUBsZmNvZGUuY2E=";
+  };
+
+  jade.caddy-wildcard = {
+    enable = true;
+    dnsRegistrationPath = config.age.secrets.acme-dns-reg.path;
+    wildcardCertDomain = "*.h.jade.fyi";
+    hosts = {
+      "foo.h.jade.fyi" = ''
+        respond "Foo!"
+      '';
+      "bar.h.jade.fyi" = ''
+        respond "Foo!"
+      '';
+    };
   };
 
   jade.rootSshKeys.enable = true;
