@@ -86,10 +86,10 @@ in
   # accelerate video encode/decode
   hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
 
-  networking.firewall.allowedTCPPorts = [ 443 ];
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.caddy = {
     enable = true;
-    acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+    # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
     email = base64.decode "YWNtZUBsZmNvZGUuY2E=";
   };
 
@@ -98,11 +98,8 @@ in
     dnsRegistrationPath = config.age.secrets.acme-dns-reg.path;
     wildcardCertDomain = "*.h.jade.fyi";
     hosts = {
-      "foo.h.jade.fyi" = ''
-        respond "Foo!"
-      '';
-      "bar.h.jade.fyi" = ''
-        respond "Foo!"
+      "stream.h.jade.fyi" = ''
+        reverse_proxy 127.0.0.1:8096
       '';
     };
   };
