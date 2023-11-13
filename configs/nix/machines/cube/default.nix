@@ -8,12 +8,15 @@ in
     ../../roles/tailscale
     ../../roles/physical
     ../../modules/caddy-wildcard.nix
+    ./jasperlake.nix
     ./hardware-configuration.nix
   ];
 
   environment.systemPackages = with pkgs; [
     rclone
   ];
+
+  boot.zfs.extraPools = [ "tank" ];
 
   users.groups.tank = { };
   users.groups.tank_public = { };
@@ -83,8 +86,6 @@ in
   services.jellyfin = {
     enable = true;
   };
-  # accelerate video encode/decode
-  hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
 
   networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.caddy = {
