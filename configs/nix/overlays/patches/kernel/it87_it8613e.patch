@@ -1,0 +1,97 @@
+--- a/drivers/hwmon/it87.c	2020-08-26 14:43:49.315721428 +0200
++++ b/drivers/hwmon/it87.c	2020-08-27 17:16:49.184790191 +0200
+@@ -63,7 +63,7 @@
+
+ enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8732,
+ 	     it8771, it8772, it8781, it8782, it8783, it8786, it8790,
+-	     it8792, it8603, it8620, it8622, it8628 };
++	     it8792, it8603, it8613, it8620, it8622, it8628 };
+
+ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+@@ -153,6 +153,7 @@
+ #define IT8786E_DEVID 0x8786
+ #define IT8790E_DEVID 0x8790
+ #define IT8603E_DEVID 0x8603
++#define IT8613E_DEVID 0x8613
+ #define IT8620E_DEVID 0x8620
+ #define IT8622E_DEVID 0x8622
+ #define IT8623E_DEVID 0x8623
+@@ -433,6 +434,15 @@
+ 		  | FEAT_AVCC3 | FEAT_PWM_FREQ2,
+ 		.peci_mask = 0x07,
+ 	},
++	[it8613] = {
++		.name = "it8613",
++		.suffix = "E",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_PECI | FEAT_FIVE_FANS
++		  | FEAT_FIVE_PWM | FEAT_IN7_INTERNAL | FEAT_PWM_FREQ2
++		  | FEAT_AVCC3,
++		.peci_mask = 0x07,
++	},
+ 	[it8620] = {
+ 		.name = "it8620",
+ 		.suffix = "E",
+@@ -573,6 +583,8 @@
+ 		lsb = 109;
+ 	else
+ 		lsb = 160;
++	if (data->type == it8613)
++		lsb = 110;
+ 	if (data->in_scaled & BIT(nr))
+ 		lsb <<= 1;
+ 	return lsb;
+@@ -2449,6 +2461,9 @@
+ 	case IT8790E_DEVID:
+ 		sio_data->type = it8790;
+ 		break;
++	case IT8613E_DEVID:
++		sio_data->type = it8613;
++		break;
+ 	case IT8603E_DEVID:
+ 	case IT8623E_DEVID:
+ 		sio_data->type = it8603;
+@@ -2610,6 +2625,43 @@
+
+ 		sio_data->beep_pin = superio_inb(sioaddr,
+ 						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
++	} else if (sio_data->type == it8613) {
++		int reg27, reg29, reg2a;
++
++		superio_select(sioaddr, GPIO);
++
++		/* Check for pwm3, fan3, pwm5, fan5 */
++		reg27 = superio_inb(sioaddr, IT87_SIO_GPIO3_REG);
++		if (reg27 & BIT(1))
++			sio_data->skip_fan |= BIT(4);
++		if (reg27 & BIT(3))
++			sio_data->skip_pwm |= BIT(4);
++		if (reg27 & BIT(6))
++			sio_data->skip_pwm |= BIT(2);
++		if (reg27 & BIT(7))
++			sio_data->skip_fan |= BIT(2);
++
++		/* Check for pwm2, fan2 */
++		reg29 = superio_inb(sioaddr, IT87_SIO_GPIO5_REG);
++		if (reg29 & BIT(1))
++			sio_data->skip_pwm |= BIT(1);
++		if (reg29 & BIT(2))
++			sio_data->skip_fan |= BIT(1);
++
++		/* Check for pwm4, fan4 */
++		reg2a = superio_inb(sioaddr, IT87_SIO_PINX1_REG);
++		if (!(reg2a & BIT(0)) || (reg29 & BIT(7))) {
++			sio_data->skip_fan |= BIT(3);
++			sio_data->skip_pwm |= BIT(3);
++		}
++
++		sio_data->skip_pwm |= BIT(0); /* No pwm1 */
++		sio_data->skip_fan |= BIT(0); /* No fan1 */
++		sio_data->skip_in |= BIT(3);  /* No VIN3 */
++		sio_data->skip_in |= BIT(6);  /* No VIN6 */
++
++		sio_data->beep_pin = superio_inb(sioaddr,
++						 IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	} else if (sio_data->type == it8620 || sio_data->type == it8628) {
+ 		int reg;

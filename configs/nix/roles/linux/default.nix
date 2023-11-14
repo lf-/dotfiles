@@ -31,6 +31,8 @@ in
     glibcLocales
     nixos-option
 
+    iotop
+
     stdenv
 
     # FIXME: probably should be in a diff file

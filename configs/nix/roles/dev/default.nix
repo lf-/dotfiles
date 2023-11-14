@@ -42,7 +42,6 @@ in
     p7zip
     unzip
 
-    iotop
     nethogs
     ethtool
     dogdns

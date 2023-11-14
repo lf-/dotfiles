@@ -7,5 +7,7 @@
   environment.systemPackages = with pkgs; [
     nvme-cli
     smartmontools
+    lm_sensors
+    config.boot.kernelPackages.turbostat
   ];
 }

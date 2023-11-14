@@ -5,4 +5,5 @@ let
 in
 {
   "acme-dns-reg.age".publicKeys = users.jade ++ hosts.cube;
+  "local-dns.age".publicKeys = users.jade ++ hosts.cube;
 }

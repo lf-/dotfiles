@@ -12,8 +12,56 @@ in
     ./hardware-configuration.nix
   ];
 
+  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+    kernel = super.kernel.override (old: {
+      kernelPatches = old.kernelPatches ++ [
+        {
+          name = "it8613e_support";
+          patch = ../../overlays/patches/kernel/it87_it8613e.patch;
+        }
+      ];
+    });
+  });
+
+  networking.useNetworkd = true;
+
+  services.resolved.extraConfig = ''
+    DNSStubListener=no
+  '';
+
+  # holy crap this is bad code, all because no environment variables in unbound
+  # config :(
+  systemd.services.unbound.serviceConfig = {
+    ExecStartPre = [ "${pkgs.coreutils}/bin/ln -sf $CREDENTIALS_DIRECTORY /var/lib/unbound/creds"];
+    LoadCredential = "local-dns.conf:${config.age.secrets.local-dns.path}";
+  };
+
+  services.unbound = {
+    enable = true;
+    settings = {
+      server = {
+        interface = "0.0.0.0";
+        access-control = [
+          "127.0.0.0/8 allow"
+          "192.168.0.0/16 allow"
+        ];
+
+        # ughhh ugly
+        include = [ "/var/lib/unbound/creds/local-dns.conf" ];
+      };
+      forward-zone = [
+        {
+          name = ".";
+          forward-addr = [ "8.8.8.8" "8.8.4.4" ];
+        }
+      ];
+      remote-control.control-enable = true;
+    };
+  };
+
   environment.systemPackages = with pkgs; [
     rclone
+    dig
   ];
 
   boot.zfs.extraPools = [ "tank" ];
@@ -82,12 +130,14 @@ in
   };
 
   age.secrets.acme-dns-reg.file = ../../secrets/acme-dns-reg.age;
+  age.secrets.local-dns.file = ../../secrets/local-dns.age;
 
   services.jellyfin = {
     enable = true;
   };
 
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [ 53 80 443 ];
+  networking.firewall.allowedUDPPorts = [ 53 ];
   services.caddy = {
     enable = true;
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
