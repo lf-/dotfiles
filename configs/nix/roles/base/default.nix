@@ -21,10 +21,10 @@
   ];
   nixpkgs.config.allowUnfree = true;
 
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-    flake-registry =
-  '';
+  nix.settings = {
+    experimental-features = "nix-command flakes";
+    flake-registry = "";
+  };
 
   environment.variables = {
     EDITOR = "nvim";
