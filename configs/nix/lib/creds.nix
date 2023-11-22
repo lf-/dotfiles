@@ -21,4 +21,10 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMFI90Q4txCojfukgHJ8bHheeukGGVwgo0W2z2M8YNwT"
     ];
   };
+
+  machine = {
+    tail-bot.autobackup.sshKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA7VB1h/qYVrqwyEOzk+GlhgQlYFH9hgt834/QXyxklX zfsbackup@tail-bot"
+    ];
+  };
 }

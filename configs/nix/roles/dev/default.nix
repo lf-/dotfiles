@@ -20,12 +20,12 @@ let
 
 in
 {
+  imports = [ ../debug ];
   environment.systemPackages = common-dev-pkgs ++ (with pkgs; [
     direnv
 
     gitAndTools.delta
 
-    ripgrep
     dtach
     tmux
     gh
@@ -41,12 +41,6 @@ in
 
     p7zip
     unzip
-
-    nethogs
-    ethtool
-    dogdns
-    bind.dnsutils
-    tcpdump
 
     msmtp
 

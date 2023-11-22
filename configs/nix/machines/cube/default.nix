@@ -1,5 +1,8 @@
 { config, lib, pkgs, ... }:
-let base64 = import ../../lib/base64.nix;
+let
+  base64 = import ../../lib/base64.nix;
+  creds = import ../../lib/creds.nix;
+  hplip-hpijs = pkgs.callPackage ../../packages/hplip-hpijs { };
 in
 {
   imports = [
@@ -7,6 +10,7 @@ in
     ../../roles/users
     ../../roles/tailscale
     ../../roles/physical
+    ../../roles/debug
     ../../modules/caddy-wildcard.nix
     ./jasperlake.nix
     ./unbound.nix
@@ -36,6 +40,11 @@ in
   ];
 
   boot.zfs.extraPools = [ "tank" ];
+
+  users.users.autobackup_tail-bot = {
+    isNormalUser = true;
+    openssh.authorizedKeys.keys = creds.machine.tail-bot.autobackup.sshKeys;
+  };
 
   users.groups.tank = { };
   users.groups.tank_public = { };
@@ -104,14 +113,48 @@ in
     enable = true;
   };
 
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  # FIXME: replace 631 with services.printing.openFirewall after updating nixpkgs
+  networking.firewall.allowedTCPPorts = [ 80 443 631 ];
   services.caddy = {
     enable = true;
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
     email = base64.decode "YWNtZUBsZmNvZGUuY2E=";
   };
 
+  services.avahi = {
+    enable = true;
+    extraServiceFiles = {
+      pwinter = builtins.readFile ./pwinter.xml;
+    };
+    publish.enable = true;
+    publish.addresses = true;
+  };
+  services.printing = {
+    enable = true;
+    drivers = [ hplip-hpijs ];
+    listenAddresses = [ "*:631" ];
+    allowFrom = [
+      "localhost"
+      "100.64.0.0/10"
+      "cube"
+      "cube.van.lfcode.ca"
+      "@LOCAL"
+    ];
+    # Allows access via additional hostnames
+    extraConf = ''
+      ServerAlias cube
+      ServerAlias cube.van.lfcode.ca
+    '';
+    # This is required since the default PATH for running CUPS filters doesn't
+    # have a sh in it, and ghostscript tries to invoke hpijs with `sh -c`.
+    extraFilesConf = ''
+      SetEnv PATH /var/lib/cups/path/lib/cups/filter:/var/lib/cups/path/bin:/run/current-system/sw/bin
+    '';
+  };
+
   age.secrets.acme-dns-reg.file = ../../secrets/acme-dns-reg.age;
+
+  age.secrets.backups-key.file = ../../secrets/backups-key.age;
 
   jade.caddy-wildcard = {
     enable = true;

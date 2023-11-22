@@ -6,4 +6,5 @@ in
 {
   "acme-dns-reg.age".publicKeys = users.jade ++ hosts.cube;
   "local-dns.age".publicKeys = users.jade ++ hosts.cube;
+  "backups-key.age".publicKeys = users.jade ++ hosts.cube;
 }

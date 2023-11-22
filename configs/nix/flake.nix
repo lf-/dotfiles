@@ -99,6 +99,7 @@
             packages = with pkgs; [
               nixos-rebuild
               agenix.packages.${system}.default
+              rage
             ];
           };
         };
