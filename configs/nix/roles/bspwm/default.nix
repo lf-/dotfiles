@@ -95,6 +95,8 @@
     maim
     rofimoji
 
+    gnome.adwaita-icon-theme
+    gnome-icon-theme
     catppuccin-gtk
     breeze-icons
   ];

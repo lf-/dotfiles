@@ -85,6 +85,14 @@
 
   programs.steam.enable = true;
 
+  users.users.jade.extraGroups = [ "docker" ];
+  # eugh
+  virtualisation.docker = {
+    enable = true;
+
+    storageDriver = "btrfs";
+  };
+
   environment.systemPackages = with pkgs; [
     prismlauncher
     virt-manager
@@ -94,6 +102,9 @@
     imhex
     sysprof
 
+    docker-compose
+
+    iw
     powertop
 
     jetbrains.idea-community
