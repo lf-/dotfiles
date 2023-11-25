@@ -54,7 +54,6 @@ in
     hsutilsOverlay
     (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
     (import ../../overlays/jadeware.nix)
-    (import ../../overlays/rr.nix)
   ];
 
   nix.extraOptions = lib.mkMerge [

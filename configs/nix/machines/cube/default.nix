@@ -113,8 +113,7 @@ in
     enable = true;
   };
 
-  # FIXME: replace 631 with services.printing.openFirewall after updating nixpkgs
-  networking.firewall.allowedTCPPorts = [ 80 443 631 ];
+  networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.caddy = {
     enable = true;
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
@@ -133,6 +132,7 @@ in
     enable = true;
     drivers = [ hplip-hpijs ];
     listenAddresses = [ "*:631" ];
+    openFirewall = true;
     allowFrom = [
       "localhost"
       "100.64.0.0/10"
