@@ -1,0 +1,10 @@
+nnoremap ; :
+set surround
+set commentary
+let mapleader = ","
+nmap g] <Action>(GotoNextError)
+nmap <space>g <Action>(FindInPath)
+nmap gr <Action>(FindUsages)
+nmap gy <Action>(GotoTypeDeclaration)
+nmap <Leader>f <Action>(ReformatCode)
+nmap <Leader>rn <Action>(RenameElement)

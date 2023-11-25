@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+if [[ $# != 3 ]]; then
+    echo "Usage: $0 groupId artifactId version" >&2
+    exit 1
+fi
+
+groupId="${1}"
+newGroupId="${1/\.//}"
+artifactId="${2}"
+version="${3}"
+url="https://repo1.maven.org/maven2/$newGroupId/$artifactId/$version/$artifactId-$version.jar"
+filename="$artifactId-$version.jar"
+
+hash="$(nix store prefetch-file "$url" --hash-type sha256 --name "$filename" --json | jq -r .hash)"
+cat <<-EOF
+fetchMavenArtifact {
+  groupId = "${groupId}";
+  artifactId = "${artifactId}";
+  version = "${version}";
+  hash = "${hash}";
+}
+EOF

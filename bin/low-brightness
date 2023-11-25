@@ -1,0 +1,2 @@
+#!/bin/sh
+busctl --user call org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/BrightnessControl org.kde.Solid.PowerManagement.Actions.BrightnessControl setBrightness i 1
