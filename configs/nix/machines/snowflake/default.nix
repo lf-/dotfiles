@@ -38,8 +38,8 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # create a swap file on the encrypted partition
-  #swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
+  # create a swap file on a subvol on the encrypted partition
+  swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 {
-  boot.supportedFilesystems = [ "ntfs" ];
+  boot.supportedFilesystems = [ "ntfs" "ext4" ];
 
   services.fwupd.enable = true;
 
