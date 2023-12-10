@@ -5,15 +5,16 @@ import requests
 import subprocess
 import dataclasses
 import sys
+import os
 from pathlib import Path
 import logging
 
-cred = subprocess.check_output(
-    ['kwallet-query', '-r', 'apikey', 'kdewallet', '-f',
-     'canvas']).strip().decode()
-api_base = subprocess.check_output(
-    ['kwallet-query', '-r', 'api_base', 'kdewallet', '-f',
-     'canvas']).strip().decode()
+cred = os.environ.get('CANVAS_API_KEY') or subprocess.check_output([
+    'kwallet-query', '-r', 'apikey', 'kdewallet', '-f', 'canvas'
+]).strip().decode()
+api_base = os.environ.get('CANVAS_API_BASE') or subprocess.check_output([
+    'kwallet-query', '-r', 'api_base', 'kdewallet', '-f', 'canvas'
+]).strip().decode()
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -27,13 +28,14 @@ hand.setFormatter(fmt)
 log.addHandler(hand)
 
 
-def api(method, endpoint: str, json=True):
+def api(method, endpoint: str, json=True, **kwargs):
     log.info('http %s %s', method, endpoint)
     if not endpoint.startswith('https'):
         endpoint = api_base + endpoint
     resp = requests.request(method,
                             endpoint,
-                            headers={'Authorization': f'Bearer {cred}'})
+                            headers={'Authorization': f'Bearer {cred}'},
+                            **kwargs)
     resp.raise_for_status()
     if json:
         return resp.json()
@@ -94,9 +96,11 @@ class FileObj:
         name = to_dir / self.display_name.replace('/', '%')
         if name.exists():
             return
-        resp = api('GET', self.url, json=False)
-        with open(name, 'wb') as fh:
-            fh.write(resp.content)
+        # streaming download
+        with api('GET', self.url, json=False, stream=True) as resp:
+            with open(name, 'wb') as fh:
+                for chunk in resp.iter_content(chunk_size=32 * 1024):
+                    fh.write(chunk)
 
 
 @dataclasses.dataclass
@@ -147,6 +151,13 @@ def cli_list_modules(args):
         print(mod)
 
 
+def cli_download_file(args):
+    file = course_file(args.course_id, args.file_id)
+    fobj = DataClassUnpack.instantiate(FileObj, file)
+
+    fobj.download(args.to_dir)
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser()
@@ -167,6 +178,15 @@ def main():
     mod = sps.add_parser('list-modules')
     mod.set_defaults(cmd=cli_list_modules)
     mod.add_argument('course_id')
+
+    file = sps.add_parser('download-file')
+    file.set_defaults(cmd=cli_download_file)
+    file.add_argument('course_id')
+    file.add_argument('file_id')
+    file.add_argument('--to-dir',
+                      '-o',
+                      help='Directory to download the file to',
+                      required=True)
 
     args = ap.parse_args()
     args.cmd(args)

@@ -73,6 +73,7 @@ data AsyncEventMeta = AsyncEventMeta
 instance A.ToJSON AsyncEventMeta where
   toJSON AsyncEventMeta {..} = A.object ["id" .= id]
 
+-- | <https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview>
 data TraceEvent a = TraceEvent
   { name :: Maybe Text,
     cat :: Maybe Text,
