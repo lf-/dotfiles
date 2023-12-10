@@ -6,6 +6,7 @@ dependencies:
   - base >= 4.16 && <5
   - base64
   - bytestring
+  - containers
   - directory
   - generic-lens
   - http-client
@@ -13,9 +14,12 @@ dependencies:
   - http-types
   - microlens
   - optparse-applicative
+  - perfetto-proto
   - proto-lens
   - raw-strings-qq
   - rio
+  - text
+  - time
   - vector
   - yaml
 
@@ -23,8 +27,13 @@ library:
   source-dirs: src
 
 executables:
-  nix-prefetch-github:
+  nix-prefetch-github2:
     main: NixPrefetchGitHub.Main
+    source-dirs: app
+    dependencies:
+      - hsutils
+  intercept2perfetto:
+    main: Intercept2Perfetto.Main
     source-dirs: app
     dependencies:
       - hsutils
