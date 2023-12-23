@@ -40,6 +40,21 @@ let
     }
   );
 
+  buildGuile3 = buildHtmlWith (
+    old: {
+      docsSvcName = "guile3";
+      buildPhase = ''
+        runHook preBuild
+        make html -j$NIX_BUILD_CORES MAKEINFO=makeinfo MAKEINFOFLAGS='--no-split'
+        runHook postBuild
+      '';
+
+      # we don't build execs so there will be no debuginfo
+      separateDebugInfo = false;
+      outputs = [ "out" ];
+    }
+  );
+
   buildOctave = buildHtmlWith (
     old: {
       postConfigure = ''
@@ -542,6 +557,8 @@ rec {
 
   stow = buildStow pkgs.stow;
 
+  guile3 = buildGuile3 pkgs.guile_3_0;
+
   defaults = map defaultAutotools (
     with pkgs; [
       autoconf
@@ -624,6 +641,9 @@ rec {
           if [[ "$expectSc" == "findutils.html" ]] ; then
             continue
           fi
+          if [[ "$expectSc" == "guile3.html" ]] ; then
+            continue
+          fi
 
           shouldFail=1
           echo "!! missing shortcut: $out/$expectSc" >&2
@@ -644,6 +664,7 @@ rec {
         ed
         emacs
         findutils
+        guile3
         gcc
         gdb
         gforth
