@@ -2,7 +2,7 @@
   # holy crap this is bad code, all because no environment variables in unbound
   # config :(
   systemd.services.unbound.serviceConfig = {
-    ExecStartPre = [ "${pkgs.coreutils}/bin/ln -sf $CREDENTIALS_DIRECTORY /var/lib/unbound/creds"];
+    ExecStartPre = [ "${pkgs.coreutils}/bin/ln -Tsf $CREDENTIALS_DIRECTORY /var/lib/unbound/creds"];
     LoadCredential = "local-dns.conf:${config.age.secrets.local-dns.path}";
   };
 
