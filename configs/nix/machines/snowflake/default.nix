@@ -36,10 +36,10 @@
   #   });
   # });
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # create a swap file on a subvol on the encrypted partition
-  swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
+  # swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -111,7 +111,12 @@
     kotlin-language-server
     ios-webkit-debug-proxy
     libimobiledevice
+    ifuse
+    kio-fuse
   ];
+
+  # fixme: this is in closure from somewhere else and must be removed
+  # nixpkgs.overlays = [ (import ../../overlays/kio-extras.nix) ];
 
   # Apple stuff
   services.usbmuxd.enable = true;

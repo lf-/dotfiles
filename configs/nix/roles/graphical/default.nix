@@ -1,6 +1,6 @@
 { config, pkgs, lib, ... }:
 {
-  imports = [ ../fonts ];
+  imports = [ ../fonts ../avahi ];
   environment.systemPackages = with pkgs; [
     firefox-wayland
     chromium
@@ -23,6 +23,8 @@
     signal-desktop
     zotero
     element-desktop
+
+    alsa-utils
 
     kooha
     # FIXME: kooha doesn't work on my bspwm machine

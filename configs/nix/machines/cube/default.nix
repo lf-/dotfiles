@@ -11,6 +11,7 @@ in
     ../../roles/tailscale
     ../../roles/physical
     ../../roles/debug
+    ../../roles/avahi
     ../../modules/caddy-wildcard.nix
     ./jasperlake.nix
     ./unbound.nix
@@ -121,12 +122,9 @@ in
   };
 
   services.avahi = {
-    enable = true;
     extraServiceFiles = {
       pwinter = builtins.readFile ./pwinter.xml;
     };
-    publish.enable = true;
-    publish.addresses = true;
   };
   services.printing = {
     enable = true;
