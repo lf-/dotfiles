@@ -15,8 +15,8 @@ in
   # security
   services.openssh = {
     enable = true;
-    permitRootLogin = "prohibit-password";
-    passwordAuthentication = false;
+    settings.PermitRootLogin = "prohibit-password";
+    settings.PasswordAuthentication = false;
     extraConfig = ''
       AcceptEnv COLORTERM LC_*
     '';
