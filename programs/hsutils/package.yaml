@@ -32,11 +32,11 @@ executables:
     source-dirs: app
     dependencies:
       - hsutils
-  intercept2perfetto:
-    main: Intercept2Perfetto.Main
-    source-dirs: app
-    dependencies:
-      - hsutils
+  # intercept2perfetto:
+  #   main: Intercept2Perfetto.Main
+  #   source-dirs: app
+  #   dependencies:
+  #     - hsutils
 
 tests:
   test:
