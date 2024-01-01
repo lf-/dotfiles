@@ -15,6 +15,7 @@ in
     ../../modules/caddy-wildcard.nix
     ./jasperlake.nix
     ./unbound.nix
+    ./zfs.nix
     ./hardware-configuration.nix
   ];
 
