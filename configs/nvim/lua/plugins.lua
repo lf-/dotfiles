@@ -51,7 +51,7 @@ return require('packer').startup(function(use)
     use 'nvim-telescope/telescope-fzy-native.nvim'
 
     -- completion
-    use {'neoclide/coc.nvim', branch = 'release'}
+    useLocal {'neoclide/coc.nvim', branch = 'release'}
     use 'mattn/emmet-vim'
 
     -- UI

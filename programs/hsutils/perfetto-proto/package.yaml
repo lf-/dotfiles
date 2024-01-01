@@ -6,5 +6,8 @@ dependencies:
   - proto-lens
   - proto-lens-runtime
 
+ghc-options:
+  - -j
+
 library:
   source-dirs: src

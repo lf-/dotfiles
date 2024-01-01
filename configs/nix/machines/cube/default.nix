@@ -18,6 +18,8 @@ in
     ./hardware-configuration.nix
   ];
 
+  boot.supportedFilesystems = [ "btrfs" ];
+
   boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
     kernel = super.kernel.override (old: {
       kernelPatches = old.kernelPatches ++ [
