@@ -16,3 +16,4 @@ aliases:
     repoDelete: 'api -X DELETE repos/$1'
     fork: repo fork --remote-name lf- --remote
     my-prs: pr list -A @me
+version: "1"
