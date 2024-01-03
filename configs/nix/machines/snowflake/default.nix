@@ -95,6 +95,7 @@
 
   environment.systemPackages = with pkgs; [
     prismlauncher
+    openttd
     virt-manager
 
     verible

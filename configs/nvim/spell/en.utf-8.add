@@ -246,3 +246,6 @@ WebAssembly
 memoized
 execve
 hypervisor
+dotfile
+retrocomputing
+callPackage
