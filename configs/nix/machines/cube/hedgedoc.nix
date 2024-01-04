@@ -20,6 +20,7 @@ in
 
   systemd.tmpfiles.rules = [
     "d /tank/srv/hedgedoc 0770 hedgedoc hedgedoc"
+    "d /tank/srv/hedgedoc/uploads 0770 hedgedoc hedgedoc"
   ];
 
   jade.caddy-wildcard.hosts.${domain} = ''
