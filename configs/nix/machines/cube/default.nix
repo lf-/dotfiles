@@ -13,6 +13,7 @@ in
     ../../roles/debug
     ../../roles/avahi
     ../../modules/caddy-wildcard.nix
+    ./hedgedoc.nix
     ./jasperlake.nix
     ./unbound.nix
     ./zfs.nix
