@@ -17,6 +17,10 @@ in
       };
       allowEmailRegister = false;
       allowGravatar = false;
+      allowAnonymous = false;
+      # bizarre name, but we think it should be sufficient to make it
+      # impossible to create guest notes.
+      allowAnonymousEdits = true;
     };
   };
 
