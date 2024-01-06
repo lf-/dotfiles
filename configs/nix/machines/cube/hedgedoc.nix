@@ -34,6 +34,6 @@ in
   ];
 
   jade.caddy-wildcard.hosts.${domain} = ''
-    reverse_proxy 127.0.0.1:${toString port}
+    reverse_proxy localhost:${toString port}
   '';
 }
