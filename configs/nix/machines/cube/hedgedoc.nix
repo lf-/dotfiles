@@ -19,6 +19,12 @@ in
     };
   };
 
+  systemd.services.hedgedoc = {
+    serviceConfig = {
+      ReadWritePaths = [ "-/tank/srv/hedgedoc" ];
+    };
+  };
+
   systemd.tmpfiles.rules = [
     "d /tank/srv/hedgedoc 0770 hedgedoc hedgedoc"
     # required because *these* are the readwritepaths of the service, not the
