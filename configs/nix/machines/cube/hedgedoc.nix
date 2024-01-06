@@ -15,6 +15,7 @@ in
         dialect = "sqlite";
         storage = dbPath;
       };
+      allowEmailRegister = false;
       allowGravatar = false;
     };
   };
