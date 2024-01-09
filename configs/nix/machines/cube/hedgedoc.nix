@@ -38,7 +38,10 @@ in
     "f ${dbPath} 0660 hedgedoc hedgedoc"
   ];
 
-  jade.caddy-wildcard.hosts.${domain} = ''
-    reverse_proxy localhost:${toString port}
-  '';
+  jade.caddy-wildcard.hosts.${domain} = {
+    action = ''
+      reverse_proxy localhost:${toString port}
+    '';
+    publicAccess = true;
+  };
 }

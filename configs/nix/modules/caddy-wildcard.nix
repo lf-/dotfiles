@@ -3,14 +3,39 @@ let
   cfg = config.jade.caddy-wildcard;
   firstComponent = x: builtins.head (builtins.split "\\." x);
 
-  genClause = hostname: hostCfg:
+  genClause = hostname: hostOptions:
     let label = firstComponent hostname;
     in ''
-      @${label} host ${hostname}
+      @${label} {
+          host ${hostname}
+          ${lib.optionalString (!hostOptions.publicAccess) ''
+            remote_ip private_ranges 100.64.0.0/10
+          ''}
+      }
       handle @${label} {
-          ${hostCfg}
+          ${hostOptions.action}
       }
     '';
+
+  hostOptionsType = lib.types.submodule {
+    options = {
+      action = lib.mkOption {
+        description = lib.mdDoc "Hostname -> action block mapping";
+        example = ''
+          {
+            "foo.example.com" = "respond \"Foo!\"";
+          }
+        '';
+        type = lib.types.str;
+      };
+
+      publicAccess = lib.mkOption {
+        description = lib.mdDoc "whether to not restrict to the private ip ranges";
+        default = false;
+        type = lib.types.bool;
+      };
+    };
+  };
 in
 {
   options.jade.caddy-wildcard = {
@@ -28,13 +53,7 @@ in
     };
 
     hosts = lib.mkOption {
-      description = lib.mdDoc "Hostname -> action block mapping";
-      example = ''
-        {
-          "foo.example.com" = "respond \"Foo!\"";
-        }
-      '';
-      type = with lib.types; attrsOf str;
+      type = with lib.types; attrsOf hostOptionsType;
       default = { };
     };
   };
@@ -54,7 +73,7 @@ in
         ];
         vendorHash = "sha256-+jLJAFIH+BA8kCcw0cKo+nZMXX5FyIzl1b9nI6k+suo=";
       };
-      virtualHosts."*.h.jade.fyi" = {
+      virtualHosts.${cfg.wildcardCertDomain} = {
         logFormat = "output stderr";
         extraConfig = ''
           tls {

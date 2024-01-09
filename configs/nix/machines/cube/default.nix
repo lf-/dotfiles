@@ -163,9 +163,11 @@ in
     dnsRegistrationPath = config.age.secrets.acme-dns-reg.path;
     wildcardCertDomain = "*.h.jade.fyi";
     hosts = {
-      "stream.h.jade.fyi" = ''
-        reverse_proxy 127.0.0.1:8096
-      '';
+      "stream.h.jade.fyi" = {
+        action = ''
+          reverse_proxy 127.0.0.1:8096
+        '';
+      };
     };
   };
 
