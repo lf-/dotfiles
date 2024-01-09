@@ -23,6 +23,13 @@
       inputs.darwin.follows = "flake-utils";
     };
 
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.flake-compat.follows = "flake-compat";
+    };
+
     nixGL = {
       url = "github:guibou/nixGL";
       # I don't like their flake
@@ -41,12 +48,25 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, polkadots, aiobspwm, aiopanel, flake-utils, gitignore, agenix, ... }:
-    let dep-inject = {
-      jade.dep-inject = {
-        inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
+  outputs =
+    inputs@{ self
+    , nixpkgs
+    , polkadots
+    , aiobspwm
+    , aiopanel
+    , flake-utils
+    , gitignore
+    , agenix
+    , lanzaboote
+    , ...
+    }:
+    let
+      dep-inject = {
+        imports = [ lanzaboote.nixosModules.lanzaboote ];
+        jade.dep-inject = {
+          inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
+        };
       };
-    };
     in
     {
       inherit nixpkgs inputs;

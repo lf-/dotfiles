@@ -13,6 +13,7 @@
     ../../roles/rawethernet
     ../../roles/physical
     ../../roles/usbip
+    ../../roles/secureboot
     ./hardware-configuration.nix
   ];
 
