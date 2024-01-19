@@ -148,6 +148,7 @@
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
           profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs nixGL; };
+          system-profile = import ./system-profile.nix { inherit pkgs flakey-profile; };
         };
     };
 }
