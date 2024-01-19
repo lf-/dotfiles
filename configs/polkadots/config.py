@@ -105,9 +105,9 @@ dotconfigs = [
 if hostname == 'snowflake':
     dotconfigs.append('gtk-3.0')
 
-alacritty_config = 'alacritty-laptop.yml' \
+alacritty_config = 'alacritty-laptop.toml' \
     if get_is_laptop() \
-    else 'alacritty-desktop.yml'
+    else 'alacritty-desktop.toml'
 
 for dc in dotconfigs:
     actions.append(SymlinkAction(*dotconfig(dc)))
@@ -115,8 +115,8 @@ for dc in dotconfigs:
 alacritty = Path('~/.dotfiles/configs/alacritty')
 dc_alacritty = Path('~/.config/alacritty')
 actions.append(CatAction(
-    dc_alacritty / 'alacritty.yml',
-    alacritty / 'alacritty-base.yml',
+    dc_alacritty / 'alacritty.toml',
+    alacritty / 'alacritty-base.toml',
     alacritty / alacritty_config
 ))
 

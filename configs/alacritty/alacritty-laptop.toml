@@ -1,0 +1,14 @@
+[font]
+size = 7.5
+
+[font.glyph_offset]
+x = 0
+y = 0
+
+[font.normal]
+family = "Source Code Pro"
+
+[font.offset]
+x = 0
+y = 0
+
