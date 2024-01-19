@@ -131,6 +131,21 @@
         "type": "github"
       }
     },
+    "flakey-profile": {
+      "locked": {
+        "lastModified": 1699916496,
+        "narHash": "sha256-MqoCrg4c3Xwf0YImsTGInyeV46eoFNVD2n313sKPfb0=",
+        "owner": "lf-",
+        "repo": "flakey-profile",
+        "rev": "5babe533ba05234b9627bb695a1f540b360ef521",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lf-",
+        "repo": "flakey-profile",
+        "type": "github"
+      }
+    },
     "gitignore": {
       "flake": false,
       "locked": {
@@ -301,6 +316,7 @@
         "aiopanel": "aiopanel",
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
+        "flakey-profile": "flakey-profile",
         "gitignore": "gitignore",
         "lanzaboote": "lanzaboote",
         "nixGL": "nixGL",

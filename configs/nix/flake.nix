@@ -36,6 +36,10 @@
       flake = false;
     };
 
+    flakey-profile = {
+      url = "github:lf-/flakey-profile";
+    };
+
     gitignore = {
       url = "github:hercules-ci/gitignore";
       flake = false;
@@ -58,6 +62,8 @@
     , gitignore
     , agenix
     , lanzaboote
+    , flakey-profile
+    , nixGL
     , ...
     }:
     let
@@ -131,6 +137,7 @@
             overlays = [
               (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
               (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
+              (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; })
               (import ./overlays/jadeware.nix)
             ];
             system = "x86_64-linux";
@@ -139,6 +146,8 @@
         {
           inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
+
+          profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs nixGL; };
         };
     };
 }

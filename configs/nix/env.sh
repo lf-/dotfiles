@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
-scriptdir="$(dirname $0)"
-
-nix-env --log-format bar-with-logs --install --remove-all --file $scriptdir/env.nix "$@"
+nix run .#profile.switch
+sudo nix run .#profile.pin
