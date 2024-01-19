@@ -1,4 +1,3 @@
-enable_experimental_conpty_backend = false
 live_config_reload = true
 working_directory = "None"
 
@@ -42,7 +41,6 @@ unfocused_hollow = true
 log_level = "Warn"
 persistent_logging = false
 print_events = false
-ref_test = false
 render_timer = false
 
 [[keyboard.bindings]]
@@ -568,15 +566,6 @@ hide_when_typing = false
 action = "PasteSelection"
 mouse = "Middle"
 
-[mouse.double_click]
-threshold = 300
-
-[mouse.hints]
-modifiers = "None"
-
-[mouse.triple_click]
-threshold = 300
-
 [scrolling]
 history = 10000
 multiplier = 3
@@ -599,18 +588,3 @@ lines = 0
 [window.padding]
 x = 0
 y = 0
-
-[font]
-size = 11.0
-
-[font.glyph_offset]
-x = 0
-y = 0
-
-[font.normal]
-family = "Iosevka Term"
-
-[font.offset]
-x = 0
-y = 0
-
