@@ -30,12 +30,6 @@
       inputs.flake-compat.follows = "flake-compat";
     };
 
-    nixGL = {
-      url = "github:guibou/nixGL";
-      # I don't like their flake
-      flake = false;
-    };
-
     flakey-profile = {
       url = "github:lf-/flakey-profile";
     };
@@ -63,7 +57,6 @@
     , agenix
     , lanzaboote
     , flakey-profile
-    , nixGL
     , ...
     }:
     let
@@ -147,7 +140,7 @@
           inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
-          profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs nixGL; };
+          profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs; };
           system-profile = import ./system-profile.nix { inherit pkgs flakey-profile; };
         };
     };

@@ -214,22 +214,6 @@
         "type": "github"
       }
     },
-    "nixGL": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1676383589,
-        "narHash": "sha256-KCkWZXCjH+C4Kn7fUGSrEl5btk+sERHhZueSsvVbPWc=",
-        "owner": "guibou",
-        "repo": "nixGL",
-        "rev": "c917918ab9ebeee27b0dd657263d3f57ba6bb8ad",
-        "type": "github"
-      },
-      "original": {
-        "owner": "guibou",
-        "repo": "nixGL",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1703637592,
@@ -319,7 +303,6 @@
         "flakey-profile": "flakey-profile",
         "gitignore": "gitignore",
         "lanzaboote": "lanzaboote",
-        "nixGL": "nixGL",
         "nixpkgs": "nixpkgs",
         "polkadots": "polkadots"
       }

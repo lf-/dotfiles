@@ -1,14 +1,14 @@
-{ pkgs, nixpkgs, flakey-profile, nixGL }:
+{ pkgs, nixpkgs, flakey-profile }:
 let
+  nixYuriPkg = pkgs.callPackage ./packages/nixYuri/package.nix { };
   xwaylandvideobridge = pkgs.writeShellScriptBin "xwaylandvideobridge" ''
-    ${nixGL'.nixGLIntel}/bin/nixGLIntel ${pkgs.xwaylandvideobridge}/bin/xwaylandvideobridge
+    ${nixYuriPkg.nixYuriIntel}/bin/nixYuri ${pkgs.xwaylandvideobridge}/bin/xwaylandvideobridge
   '';
-  nixGL' = import nixGL { inherit pkgs; };
 in
 flakey-profile.lib.mkProfile {
   inherit pkgs;
   paths = with pkgs; [
-    nixGL'.nixGLIntel
+    nixYuriPkg.nixYuriIntel
     xwaylandvideobridge
     librespot
     watchman
