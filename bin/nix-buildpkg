@@ -1,0 +1,2 @@
+#!/bin/sh
+exec nix build --impure --expr "with import <nixpkgs> {}; callPackage $1 {}"
