@@ -1,7 +1,8 @@
-{ config, lib, nixpkgs, ... }: {
+{ config, lib, pkgs, ... }: {
   imports = [
     ../../roles/linux
     ../../roles/users
+    ../../roles/authoritative-dns
     ./hardware-configuration.nix
   ];
 
@@ -14,6 +15,18 @@
       }
     ];
   };
+
+  jade.authoritative-dns = {
+    enable = true;
+    acme-dns = {
+      domain = "acme.lfcode.ca";
+      external-ip = "50.116.18.138";
+      email = "acmespam.lfcode.ca";
+    };
+  };
+  environment.systemPackages = with pkgs; [
+    dig
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
