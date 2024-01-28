@@ -27,6 +27,10 @@ pkgs: with pkgs; [
   typst
   diffoscope
 
+  rage
+  age-plugin-yubikey
+  age-plugin-tpm
+
   nix-output-monitor
 
   simple-http-server
