@@ -1,0 +1,42 @@
+From af663f0cf56aabb9d9fd872f553a02d4433815ff Mon Sep 17 00:00:00 2001
+From: Jade Lovelace <software@lfcode.ca>
+Date: Fri, 26 Jan 2024 20:09:58 -0800
+Subject: [PATCH] hack: two uarts in the virt machine
+
+---
+ hw/arm/virt.c | 9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/hw/arm/virt.c b/hw/arm/virt.c
+index 5cbc69dff8..cbff5c098f 100644
+--- a/hw/arm/virt.c
++++ b/hw/arm/virt.c
+@@ -863,13 +863,6 @@ static void create_uart(const VirtMachineState *vms, int uart,
+
+     if (uart == VIRT_UART) {
+         qemu_fdt_setprop_string(ms->fdt, "/chosen", "stdout-path", nodename);
+-    } else {
+-        /* Mark as not usable by the normal world */
+-        qemu_fdt_setprop_string(ms->fdt, nodename, "status", "disabled");
+-        qemu_fdt_setprop_string(ms->fdt, nodename, "secure-status", "okay");
+-
+-        qemu_fdt_setprop_string(ms->fdt, "/secure-chosen", "stdout-path",
+-                                nodename);
+     }
+
+     g_free(nodename);
+@@ -2236,10 +2229,10 @@ static void machvirt_init(MachineState *machine)
+     fdt_add_pmu_nodes(vms);
+
+     create_uart(vms, VIRT_UART, sysmem, serial_hd(0));
++    create_uart(vms, VIRT_SECURE_UART, secure_sysmem, serial_hd(1));
+
+     if (vms->secure) {
+         create_secure_ram(vms, secure_sysmem, secure_tag_sysmem);
+-        create_uart(vms, VIRT_SECURE_UART, secure_sysmem, serial_hd(1));
+     }
+
+     if (tag_sysmem) {
+--
+2.43.0
+
