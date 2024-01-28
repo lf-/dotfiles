@@ -19,6 +19,7 @@
 	r = restore
     rsw = restore --staged --worktree
 	tlog = log --graph --oneline --all
+	leash = push --force-with-lease
 
 [blame]
 	coloring = highlightRecent

@@ -43,7 +43,7 @@
         "editor.detectIndentation": false,
     },
     "[latex]": {
-        "editor.wordBasedSuggestions": false,
+        "editor.wordBasedSuggestions": "off",
     },
     "editor.fontLigatures": true,
     "files.eol": "\n",

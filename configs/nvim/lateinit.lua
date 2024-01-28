@@ -13,7 +13,7 @@ local nvim_call = vim.api.nvim_call_function
 
 require 'nvim-treesitter.configs'.setup {
     ensure_installed = "all", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
-    -- ignore_install = { "javascript" }, -- List of parsers to ignore installing
+    ignore_install = { "scfg", "smali" }, -- List of parsers to ignore installing
     highlight = {
         enable = true,
         -- breaks if handled by anything but the delicate
