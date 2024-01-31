@@ -7,8 +7,9 @@
 
   # take a backup daily
   systemd.timers.autobackup_tail-bot = {
+    wantedBy = [ "multi-user.target" ];
     timerConfig = {
-      OnCalendar = "*-*-* 02:00";
+      OnCalendar = "*-*-* 02:00 America/Vancouver";
     };
   };
 
