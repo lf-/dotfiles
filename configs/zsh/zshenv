@@ -1,7 +1,8 @@
 export BROWSER="xdg-open"
 export RUST_BACKTRACE=1
 
-if [[ -z "$SSH_AUTH_SOCK" ]]; then
+# dirty hacks
+if [[ -z "$SSH_AUTH_SOCK" && $HOST == "tail-bot" ]]; then
     export SSH_AUTH_SOCK=/tmp/$USER/ssh-agent.sock
 fi
 
