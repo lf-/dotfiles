@@ -249,3 +249,7 @@ hypervisor
 dotfile
 retrocomputing
 callPackage
+cgroup
+BPF
+btrfs
+xfs
