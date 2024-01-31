@@ -123,6 +123,10 @@
   # Apple stuff
   services.usbmuxd.enable = true;
 
+  # I don't really like this but I am not exactly sure why.
+  # Maybe it enables on users I don't like it to?
+  services.yubikey-agent.enable = true;
+
   boot.initrd.systemd = {
     enable = true;
     emergencyAccess = "$2b$05$1wdLRpAwtirLmS3VniajbOF94vTJCkzbpp4bkQPPhSnUi7ynTJsAG";
