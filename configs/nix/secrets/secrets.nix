@@ -11,4 +11,6 @@ in
   "acme-dns-reg.age".publicKeys = users.jade ++ hosts.cube;
   "local-dns.age".publicKeys = users.jade ++ hosts.cube;
   "backups-key.age".publicKeys = users.jade ++ hosts.cube;
+  # ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGqSQJ9cahTI2UMLIJgV0OMmfecnqNwXuoYe/aX6ekCt
+  "autobackup_tail-bot.age".publicKeys = users.jade ++ hosts.cube;
 }

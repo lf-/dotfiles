@@ -17,6 +17,7 @@ in
     ./jasperlake.nix
     ./unbound.nix
     ./zfs.nix
+    ./autobackup.nix
     ./hardware-configuration.nix
   ];
 
@@ -45,11 +46,6 @@ in
   ];
 
   boot.zfs.extraPools = [ "tank" ];
-
-  users.users.autobackup_tail-bot = {
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = creds.machine.tail-bot.autobackup.sshKeys;
-  };
 
   users.groups.tank = { };
   users.groups.tank_public = { };
