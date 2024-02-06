@@ -28,6 +28,7 @@ import qualified Data.ProtoLens.Runtime.Data.Vector.Generic as Data.Vector.Gener
 import qualified Data.ProtoLens.Runtime.Data.Vector.Unboxed as Data.Vector.Unboxed
 import qualified Data.ProtoLens.Runtime.Text.Read as Text.Read
 import qualified Proto.Protos.Perfetto.Common.TraceStats
+import qualified Proto.Protos.Perfetto.Trace.Android.AndroidLog
 import qualified Proto.Protos.Perfetto.Trace.ClockSnapshot
 import qualified Proto.Protos.Perfetto.Trace.ExtensionDescriptor
 import qualified Proto.Protos.Perfetto.Trace.Filesystem.InodeFileMap
@@ -42,6 +43,12 @@ import qualified Proto.Protos.Perfetto.Trace.TracePacketDefaults
 import qualified Proto.Protos.Perfetto.Trace.TraceUuid
 import qualified Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor
 import qualified Proto.Protos.Perfetto.Trace.TrackEvent.TrackEvent
+androidLog ::
+  forall f s a.
+  (Prelude.Functor f,
+   Data.ProtoLens.Field.HasField s "androidLog" a) =>
+  Lens.Family2.LensLike' f s a
+androidLog = Data.ProtoLens.Field.field @"androidLog"
 clockSnapshot ::
   forall f s a.
   (Prelude.Functor f,
@@ -105,6 +112,12 @@ internedData ::
    Data.ProtoLens.Field.HasField s "internedData" a) =>
   Lens.Family2.LensLike' f s a
 internedData = Data.ProtoLens.Field.field @"internedData"
+maybe'androidLog ::
+  forall f s a.
+  (Prelude.Functor f,
+   Data.ProtoLens.Field.HasField s "maybe'androidLog" a) =>
+  Lens.Family2.LensLike' f s a
+maybe'androidLog = Data.ProtoLens.Field.field @"maybe'androidLog"
 maybe'clockSnapshot ::
   forall f s a.
   (Prelude.Functor f,

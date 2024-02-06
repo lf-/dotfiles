@@ -11,11 +11,11 @@ module Proto.Protos.Perfetto.Trace.TracePacket (
         _TracePacket'InodeFileMap, _TracePacket'ClockSnapshot,
         _TracePacket'SysStats, _TracePacket'TrackEvent,
         _TracePacket'TraceUuid, _TracePacket'FtraceStats,
-        _TracePacket'TraceStats, _TracePacket'TrackDescriptor,
-        _TracePacket'FtraceEvents, _TracePacket'SynchronizationMarker,
-        _TracePacket'CompressedPackets, _TracePacket'ExtensionDescriptor,
-        _TracePacket'ForTesting, _TracePacket'TrustedUid,
-        _TracePacket'TrustedPacketSequenceId,
+        _TracePacket'TraceStats, _TracePacket'AndroidLog,
+        _TracePacket'TrackDescriptor, _TracePacket'FtraceEvents,
+        _TracePacket'SynchronizationMarker, _TracePacket'CompressedPackets,
+        _TracePacket'ExtensionDescriptor, _TracePacket'ForTesting,
+        _TracePacket'TrustedUid, _TracePacket'TrustedPacketSequenceId,
         TracePacket'SequenceFlags(..), TracePacket'SequenceFlags()
     ) where
 import qualified Data.ProtoLens.Runtime.Control.DeepSeq as Control.DeepSeq
@@ -44,6 +44,7 @@ import qualified Data.ProtoLens.Runtime.Data.Vector.Generic as Data.Vector.Gener
 import qualified Data.ProtoLens.Runtime.Data.Vector.Unboxed as Data.Vector.Unboxed
 import qualified Data.ProtoLens.Runtime.Text.Read as Text.Read
 import qualified Proto.Protos.Perfetto.Common.TraceStats
+import qualified Proto.Protos.Perfetto.Trace.Android.AndroidLog
 import qualified Proto.Protos.Perfetto.Trace.ClockSnapshot
 import qualified Proto.Protos.Perfetto.Trace.ExtensionDescriptor
 import qualified Proto.Protos.Perfetto.Trace.Filesystem.InodeFileMap
@@ -97,6 +98,8 @@ import qualified Proto.Protos.Perfetto.Trace.TrackEvent.TrackEvent
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.ftraceStats' @:: Lens' TracePacket Proto.Protos.Perfetto.Trace.Ftrace.FtraceStats.FtraceStats@
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.maybe'traceStats' @:: Lens' TracePacket (Prelude.Maybe Proto.Protos.Perfetto.Common.TraceStats.TraceStats)@
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.traceStats' @:: Lens' TracePacket Proto.Protos.Perfetto.Common.TraceStats.TraceStats@
+         * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.maybe'androidLog' @:: Lens' TracePacket (Prelude.Maybe Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket)@
+         * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.androidLog' @:: Lens' TracePacket Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket@
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.maybe'trackDescriptor' @:: Lens' TracePacket (Prelude.Maybe Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor.TrackDescriptor)@
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.trackDescriptor' @:: Lens' TracePacket Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor.TrackDescriptor@
          * 'Proto.Protos.Perfetto.Trace.TracePacket_Fields.maybe'ftraceEvents' @:: Lens' TracePacket (Prelude.Maybe Proto.Protos.Perfetto.Trace.Ftrace.FtraceEventBundle.FtraceEventBundle)@
@@ -146,6 +149,7 @@ data TracePacket'Data
     TracePacket'TraceUuid !Proto.Protos.Perfetto.Trace.TraceUuid.TraceUuid |
     TracePacket'FtraceStats !Proto.Protos.Perfetto.Trace.Ftrace.FtraceStats.FtraceStats |
     TracePacket'TraceStats !Proto.Protos.Perfetto.Common.TraceStats.TraceStats |
+    TracePacket'AndroidLog !Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket |
     TracePacket'TrackDescriptor !Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor.TrackDescriptor |
     TracePacket'FtraceEvents !Proto.Protos.Perfetto.Trace.Ftrace.FtraceEventBundle.FtraceEventBundle |
     TracePacket'SynchronizationMarker !Data.ByteString.ByteString |
@@ -523,6 +527,32 @@ instance Data.ProtoLens.Field.HasField TracePacket "traceStats" Proto.Protos.Per
                       _otherwise -> Prelude.Nothing)
               (\ _ y__ -> Prelude.fmap TracePacket'TraceStats y__))
            (Data.ProtoLens.maybeLens Data.ProtoLens.defMessage))
+instance Data.ProtoLens.Field.HasField TracePacket "maybe'androidLog" (Prelude.Maybe Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket) where
+  fieldOf _
+    = (Prelude..)
+        (Lens.Family2.Unchecked.lens
+           _TracePacket'data' (\ x__ y__ -> x__ {_TracePacket'data' = y__}))
+        (Lens.Family2.Unchecked.lens
+           (\ x__
+              -> case x__ of
+                   (Prelude.Just (TracePacket'AndroidLog x__val))
+                     -> Prelude.Just x__val
+                   _otherwise -> Prelude.Nothing)
+           (\ _ y__ -> Prelude.fmap TracePacket'AndroidLog y__))
+instance Data.ProtoLens.Field.HasField TracePacket "androidLog" Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket where
+  fieldOf _
+    = (Prelude..)
+        (Lens.Family2.Unchecked.lens
+           _TracePacket'data' (\ x__ y__ -> x__ {_TracePacket'data' = y__}))
+        ((Prelude..)
+           (Lens.Family2.Unchecked.lens
+              (\ x__
+                 -> case x__ of
+                      (Prelude.Just (TracePacket'AndroidLog x__val))
+                        -> Prelude.Just x__val
+                      _otherwise -> Prelude.Nothing)
+              (\ _ y__ -> Prelude.fmap TracePacket'AndroidLog y__))
+           (Data.ProtoLens.maybeLens Data.ProtoLens.defMessage))
 instance Data.ProtoLens.Field.HasField TracePacket "maybe'trackDescriptor" (Prelude.Maybe Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor.TrackDescriptor) where
   fieldOf _
     = (Prelude..)
@@ -770,7 +800,9 @@ instance Data.ProtoLens.Message TracePacket where
       \trace_uuid\CANY \SOH(\v2\SUB.perfetto.protos.TraceUuidH\NULR\ttraceUuid\DC2A\n\
       \\fftrace_stats\CAN\" \SOH(\v2\FS.perfetto.protos.FtraceStatsH\NULR\vftraceStats\DC2>\n\
       \\vtrace_stats\CAN# \SOH(\v2\ESC.perfetto.protos.TraceStatsH\NULR\n\
-      \traceStats\DC2M\n\
+      \traceStats\DC2D\n\
+      \\vandroid_log\CAN' \SOH(\v2!.perfetto.protos.AndroidLogPacketH\NULR\n\
+      \androidLog\DC2M\n\
       \\DLEtrack_descriptor\CAN< \SOH(\v2 .perfetto.protos.TrackDescriptorH\NULR\SItrackDescriptor\DC2I\n\
       \\rftrace_events\CAN\SOH \SOH(\v2\".perfetto.protos.FtraceEventBundleH\NULR\fftraceEvents\DC27\n\
       \\SYNsynchronization_marker\CAN$ \SOH(\fH\NULR\NAKsynchronizationMarker\DC2/\n\
@@ -944,6 +976,14 @@ instance Data.ProtoLens.Message TracePacket where
               (Data.ProtoLens.OptionalField
                  (Data.ProtoLens.Field.field @"maybe'traceStats")) ::
               Data.ProtoLens.FieldDescriptor TracePacket
+        androidLog__field_descriptor
+          = Data.ProtoLens.FieldDescriptor
+              "android_log"
+              (Data.ProtoLens.MessageField Data.ProtoLens.MessageType ::
+                 Data.ProtoLens.FieldTypeDescriptor Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket)
+              (Data.ProtoLens.OptionalField
+                 (Data.ProtoLens.Field.field @"maybe'androidLog")) ::
+              Data.ProtoLens.FieldDescriptor TracePacket
         trackDescriptor__field_descriptor
           = Data.ProtoLens.FieldDescriptor
               "track_descriptor"
@@ -1028,6 +1068,7 @@ instance Data.ProtoLens.Message TracePacket where
            (Data.ProtoLens.Tag 89, traceUuid__field_descriptor),
            (Data.ProtoLens.Tag 34, ftraceStats__field_descriptor),
            (Data.ProtoLens.Tag 35, traceStats__field_descriptor),
+           (Data.ProtoLens.Tag 39, androidLog__field_descriptor),
            (Data.ProtoLens.Tag 60, trackDescriptor__field_descriptor),
            (Data.ProtoLens.Tag 1, ftraceEvents__field_descriptor),
            (Data.ProtoLens.Tag 36, synchronizationMarker__field_descriptor),
@@ -1225,6 +1266,14 @@ instance Data.ProtoLens.Message TracePacket where
                                        "trace_stats"
                                 loop
                                   (Lens.Family2.set (Data.ProtoLens.Field.field @"traceStats") y x)
+                        314
+                          -> do y <- (Data.ProtoLens.Encoding.Bytes.<?>)
+                                       (do len <- Data.ProtoLens.Encoding.Bytes.getVarInt
+                                           Data.ProtoLens.Encoding.Bytes.isolate
+                                             (Prelude.fromIntegral len) Data.ProtoLens.parseMessage)
+                                       "android_log"
+                                loop
+                                  (Lens.Family2.set (Data.ProtoLens.Field.field @"androidLog") y x)
                         482
                           -> do y <- (Data.ProtoLens.Encoding.Bytes.<?>)
                                        (do len <- Data.ProtoLens.Encoding.Bytes.getVarInt
@@ -1536,6 +1585,18 @@ instance Data.ProtoLens.Message TracePacket where
                                                              (Data.ProtoLens.Encoding.Bytes.putBytes
                                                                 bs))
                                                      Data.ProtoLens.encodeMessage v)
+                                           (Prelude.Just (TracePacket'AndroidLog v))
+                                             -> (Data.Monoid.<>)
+                                                  (Data.ProtoLens.Encoding.Bytes.putVarInt 314)
+                                                  ((Prelude..)
+                                                     (\ bs
+                                                        -> (Data.Monoid.<>)
+                                                             (Data.ProtoLens.Encoding.Bytes.putVarInt
+                                                                (Prelude.fromIntegral
+                                                                   (Data.ByteString.length bs)))
+                                                             (Data.ProtoLens.Encoding.Bytes.putBytes
+                                                                bs))
+                                                     Data.ProtoLens.encodeMessage v)
                                            (Prelude.Just (TracePacket'TrackDescriptor v))
                                              -> (Data.Monoid.<>)
                                                   (Data.ProtoLens.Encoding.Bytes.putVarInt 482)
@@ -1677,6 +1738,7 @@ instance Control.DeepSeq.NFData TracePacket'Data where
   rnf (TracePacket'TraceUuid x__) = Control.DeepSeq.rnf x__
   rnf (TracePacket'FtraceStats x__) = Control.DeepSeq.rnf x__
   rnf (TracePacket'TraceStats x__) = Control.DeepSeq.rnf x__
+  rnf (TracePacket'AndroidLog x__) = Control.DeepSeq.rnf x__
   rnf (TracePacket'TrackDescriptor x__) = Control.DeepSeq.rnf x__
   rnf (TracePacket'FtraceEvents x__) = Control.DeepSeq.rnf x__
   rnf (TracePacket'SynchronizationMarker x__)
@@ -1769,6 +1831,15 @@ _TracePacket'TraceStats
       (\ p__
          -> case p__ of
               (TracePacket'TraceStats p__val) -> Prelude.Just p__val
+              _otherwise -> Prelude.Nothing)
+_TracePacket'AndroidLog ::
+  Data.ProtoLens.Prism.Prism' TracePacket'Data Proto.Protos.Perfetto.Trace.Android.AndroidLog.AndroidLogPacket
+_TracePacket'AndroidLog
+  = Data.ProtoLens.Prism.prism'
+      TracePacket'AndroidLog
+      (\ p__
+         -> case p__ of
+              (TracePacket'AndroidLog p__val) -> Prelude.Just p__val
               _otherwise -> Prelude.Nothing)
 _TracePacket'TrackDescriptor ::
   Data.ProtoLens.Prism.Prism' TracePacket'Data Proto.Protos.Perfetto.Trace.TrackEvent.TrackDescriptor.TrackDescriptor
@@ -1906,7 +1977,7 @@ instance Control.DeepSeq.NFData TracePacket'SequenceFlags where
 packedFileDescriptor :: Data.ByteString.ByteString
 packedFileDescriptor
   = "\n\
-    \(protos/perfetto/trace/trace_packet.proto\DC2\SIperfetto.protos\SUB(protos/perfetto/common/trace_stats.proto\SUB0protos/perfetto/trace/extension_descriptor.proto\SUB*protos/perfetto/trace/clock_snapshot.proto\SUB5protos/perfetto/trace/filesystem/inode_file_map.proto\SUB6protos/perfetto/trace/ftrace/ftrace_event_bundle.proto\SUB/protos/perfetto/trace/ftrace/ftrace_stats.proto\SUB7protos/perfetto/trace/interned_data/interned_data.proto\SUB,protos/perfetto/trace/ps/process_stats.proto\SUB+protos/perfetto/trace/ps/process_tree.proto\SUB/protos/perfetto/trace/sys_stats/sys_stats.proto\SUB1protos/perfetto/trace/trace_packet_defaults.proto\SUB8protos/perfetto/trace/track_event/track_descriptor.proto\SUB3protos/perfetto/trace/track_event/track_event.proto\SUB&protos/perfetto/trace/trace_uuid.proto\SUB&protos/perfetto/trace/test_event.proto\"\241\r\n\
+    \(protos/perfetto/trace/trace_packet.proto\DC2\SIperfetto.protos\SUB(protos/perfetto/common/trace_stats.proto\SUB0protos/perfetto/trace/extension_descriptor.proto\SUB/protos/perfetto/trace/android/android_log.proto\SUB*protos/perfetto/trace/clock_snapshot.proto\SUB5protos/perfetto/trace/filesystem/inode_file_map.proto\SUB6protos/perfetto/trace/ftrace/ftrace_event_bundle.proto\SUB/protos/perfetto/trace/ftrace/ftrace_stats.proto\SUB7protos/perfetto/trace/interned_data/interned_data.proto\SUB,protos/perfetto/trace/ps/process_stats.proto\SUB+protos/perfetto/trace/ps/process_tree.proto\SUB/protos/perfetto/trace/sys_stats/sys_stats.proto\SUB1protos/perfetto/trace/trace_packet_defaults.proto\SUB8protos/perfetto/trace/track_event/track_descriptor.proto\SUB3protos/perfetto/trace/track_event/track_event.proto\SUB&protos/perfetto/trace/trace_uuid.proto\SUB&protos/perfetto/trace/test_event.proto\"\183\SO\n\
     \\vTracePacket\DC2\FS\n\
     \\ttimestamp\CAN\b \SOH(\EOTR\ttimestamp\DC2,\n\
     \\DC2timestamp_clock_id\CAN: \SOH(\rR\DLEtimestampClockId\DC2A\n\
@@ -1921,7 +1992,9 @@ packedFileDescriptor
     \trace_uuid\CANY \SOH(\v2\SUB.perfetto.protos.TraceUuidH\NULR\ttraceUuid\DC2A\n\
     \\fftrace_stats\CAN\" \SOH(\v2\FS.perfetto.protos.FtraceStatsH\NULR\vftraceStats\DC2>\n\
     \\vtrace_stats\CAN# \SOH(\v2\ESC.perfetto.protos.TraceStatsH\NULR\n\
-    \traceStats\DC2M\n\
+    \traceStats\DC2D\n\
+    \\vandroid_log\CAN' \SOH(\v2!.perfetto.protos.AndroidLogPacketH\NULR\n\
+    \androidLog\DC2M\n\
     \\DLEtrack_descriptor\CAN< \SOH(\v2 .perfetto.protos.TrackDescriptorH\NULR\SItrackDescriptor\DC2I\n\
     \\rftrace_events\CAN\SOH \SOH(\v2\".perfetto.protos.FtraceEventBundleH\NULR\fftraceEvents\DC27\n\
     \\SYNsynchronization_marker\CAN$ \SOH(\fH\NULR\NAKsynchronizationMarker\DC2/\n\
@@ -1947,7 +2020,7 @@ packedFileDescriptor
     \\ESCSEQ_NEEDS_INCREMENTAL_STATE\DLE\STXB\ACK\n\
     \\EOTdataB\SYN\n\
     \\DC4optional_trusted_uidB%\n\
-    \#optional_trusted_packet_sequence_idJ\168s\n\
+    \#optional_trusted_packet_sequence_idJ\148s\n\
     \\a\DC2\ENQ\DLE\NUL\197\STX\SOH\n\
     \\215\EOT\n\
     \\SOH\f\DC2\ETX\DLE\NUL\DC22\204\EOT\n\
@@ -1970,10 +2043,11 @@ packedFileDescriptor
     \@\n\
     \\STX\ETX\SOH\DC2\ETX\DC4\NUL:\SUB5 import \"protos/perfetto/config/trace_config.proto\";\n\
     \\n\
-    \\243\a\n\
-    \\STX\ETX\STX\DC2\ETX$\NUL4\SUB\231\a import \"protos/perfetto/trace/android/android_game_intervention_list.proto\";\n\
-    \ import \"protos/perfetto/trace/android/android_log.proto\";\n\
-    \ import \"protos/perfetto/trace/android/android_system_property.proto\";\n\
+    \Y\n\
+    \\STX\ETX\STX\DC2\ETX\SYN\NUL9\SUBN import \"protos/perfetto/trace/android/android_game_intervention_list.proto\";\n\
+    \\n\
+    \\234\ACK\n\
+    \\STX\ETX\ETX\DC2\ETX$\NUL4\SUB\222\ACK import \"protos/perfetto/trace/android/android_system_property.proto\";\n\
     \ import \"protos/perfetto/trace/android/camera_event.proto\";\n\
     \ import \"protos/perfetto/trace/android/frame_timeline_event.proto\";\n\
     \ import \"protos/perfetto/trace/android/gpu_mem_event.proto\";\n\
@@ -1988,21 +2062,21 @@ packedFileDescriptor
     \ import \"protos/perfetto/trace/chrome/chrome_trace_event.proto\";\n\
     \\n\
     \G\n\
-    \\STX\ETX\ETX\DC2\ETX&\NUL?\SUB< import \"protos/perfetto/trace/etw/etw_event_bundle.proto\";\n\
+    \\STX\ETX\EOT\DC2\ETX&\NUL?\SUB< import \"protos/perfetto/trace/etw/etw_event_bundle.proto\";\n\
     \\n\
     \\t\n\
-    \\STX\ETX\EOT\DC2\ETX'\NUL@\n\
+    \\STX\ETX\ENQ\DC2\ETX'\NUL@\n\
     \\t\n\
-    \\STX\ETX\ENQ\DC2\ETX(\NUL9\n\
+    \\STX\ETX\ACK\DC2\ETX(\NUL9\n\
     \\185\STX\n\
-    \\STX\ETX\ACK\DC2\ETX.\NULA\SUB\173\STX import \"protos/perfetto/trace/gpu/gpu_counter_event.proto\";\n\
+    \\STX\ETX\a\DC2\ETX.\NULA\SUB\173\STX import \"protos/perfetto/trace/gpu/gpu_counter_event.proto\";\n\
     \ import \"protos/perfetto/trace/gpu/gpu_log.proto\";\n\
     \ import \"protos/perfetto/trace/gpu/gpu_render_stage_event.proto\";\n\
     \ import \"protos/perfetto/trace/gpu/vulkan_memory_event.proto\";\n\
     \ import \"protos/perfetto/trace/gpu/vulkan_api_event.proto\";\n\
     \\n\
     \\201\ACK\n\
-    \\STX\ETX\a\DC2\ETX<\NUL6\SUB\189\ACK import \"protos/perfetto/trace/memory_graph.proto\";\n\
+    \\STX\ETX\b\DC2\ETX<\NUL6\SUB\189\ACK import \"protos/perfetto/trace/memory_graph.proto\";\n\
     \ import \"protos/perfetto/trace/perfetto/perfetto_metatrace.proto\";\n\
     \ import \"protos/perfetto/trace/perfetto/tracing_service_event.proto\";\n\
     \ import \"protos/perfetto/trace/power/android_energy_estimation_breakdown.proto\";\n\
@@ -2017,26 +2091,26 @@ packedFileDescriptor
     \ import \"protos/perfetto/trace/profiling/smaps.proto\";\n\
     \\n\
     \\t\n\
-    \\STX\ETX\b\DC2\ETX=\NUL5\n\
+    \\STX\ETX\t\DC2\ETX=\NUL5\n\
     \\t\n\
-    \\STX\ETX\t\DC2\ETX>\NUL9\n\
-    \z\n\
     \\STX\ETX\n\
-    \\DC2\ETXA\NUL;\SUBo import \"protos/perfetto/trace/system_info.proto\";\n\
+    \\DC2\ETX>\NUL9\n\
+    \z\n\
+    \\STX\ETX\v\DC2\ETXA\NUL;\SUBo import \"protos/perfetto/trace/system_info.proto\";\n\
     \ import \"protos/perfetto/trace/system_info/cpu_info.proto\";\n\
     \\n\
     \\220\SOH\n\
-    \\STX\ETX\v\DC2\ETXE\NULB\SUB\208\SOH import \"protos/perfetto/trace/track_event/process_descriptor.proto\";\n\
+    \\STX\ETX\f\DC2\ETXE\NULB\SUB\208\SOH import \"protos/perfetto/trace/track_event/process_descriptor.proto\";\n\
     \ import \"protos/perfetto/trace/track_event/range_of_interest.proto\";\n\
     \ import \"protos/perfetto/trace/track_event/thread_descriptor.proto\";\n\
     \\n\
     \\t\n\
-    \\STX\ETX\f\DC2\ETXF\NUL=\n\
+    \\STX\ETX\r\DC2\ETXF\NUL=\n\
     \P\n\
-    \\STX\ETX\r\DC2\ETXH\NUL0\SUBE import \"protos/perfetto/trace/translation/translation_table.proto\";\n\
+    \\STX\ETX\SO\DC2\ETXH\NUL0\SUBE import \"protos/perfetto/trace/translation/translation_table.proto\";\n\
     \\n\
     \l\n\
-    \\STX\ETX\SO\DC2\ETXJ\NUL0\SUB/ import \"protos/perfetto/trace/trigger.proto\";\n\
+    \\STX\ETX\SI\DC2\ETXJ\NUL0\SUB/ import \"protos/perfetto/trace/trigger.proto\";\n\
     \\"0 import \"protos/perfetto/trace/ui_state.proto\";\n\
     \\n\
     \\b\n\
@@ -2172,14 +2246,25 @@ packedFileDescriptor
     \\ENQ\EOT\NUL\STX\t\SOH\DC2\EOT\130\SOH\DLE\FS\n\
     \\r\n\
     \\ENQ\EOT\NUL\STX\t\ETX\DC2\EOT\130\SOH\US!\n\
-    \\165\f\n\
+    \\f\n\
     \\EOT\EOT\NUL\STX\n\
-    \\DC2\EOT\131\SOH\EOT \"\150\f ProfilePacket profile_packet = 37;\n\
+    \\DC2\EOT\131\SOH\EOT \n\
+    \\r\n\
+    \\ENQ\EOT\NUL\STX\n\
+    \\ACK\DC2\EOT\131\SOH\EOT\SO\n\
+    \\r\n\
+    \\ENQ\EOT\NUL\STX\n\
+    \\SOH\DC2\EOT\131\SOH\SI\SUB\n\
+    \\r\n\
+    \\ENQ\EOT\NUL\STX\n\
+    \\ETX\DC2\EOT\131\SOH\GS\US\n\
+    \\132\f\n\
+    \\EOT\EOT\NUL\STX\v\DC2\EOT\137\SOH\EOT&\SUB\181\SOH ProfilePacket profile_packet = 37;\n\
     \ StreamingAllocation streaming_allocation = 74;\n\
     \ StreamingFree streaming_free = 75;\n\
     \ BatteryCounters battery = 38;\n\
     \ PowerRails power_rails = 40;\n\
-    \ AndroidLogPacket android_log = 39;\n\
+    \\"\189\n\
     \ SystemInfo system_info = 45;\n\
     \ Trigger trigger = 46;\n\
     \ PackagesList packages_list = 47;\n\
@@ -2213,80 +2298,77 @@ packedFileDescriptor
     \ EntityStateResidency entity_state_residency = 91;\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\n\
-    \\ACK\DC2\EOT\131\SOH\EOT\SO\n\
+    \\ENQ\EOT\NUL\STX\v\ACK\DC2\EOT\137\SOH\EOT\DC4\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\n\
-    \\SOH\DC2\EOT\131\SOH\SI\SUB\n\
+    \\ENQ\EOT\NUL\STX\v\SOH\DC2\EOT\137\SOH\NAK \n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\n\
-    \\ETX\DC2\EOT\131\SOH\GS\US\n\
+    \\ENQ\EOT\NUL\STX\v\ETX\DC2\EOT\137\SOH#%\n\
     \\211\SOH\n\
-    \\EOT\EOT\NUL\STX\v\DC2\EOT\176\SOH\EOT*\SUB\SUB Only used by TrackEvent.\n\
+    \\EOT\EOT\NUL\STX\f\DC2\EOT\176\SOH\EOT*\SUB\SUB Only used by TrackEvent.\n\
     \2\168\SOH Only used in profile packets.\n\
     \ ProfiledFrameSymbols profiled_frame_symbols = 55;\n\
     \ ModuleSymbols module_symbols = 61;\n\
     \ DeobfuscationMapping deobfuscation_mapping = 64;\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\v\ACK\DC2\EOT\176\SOH\EOT\DC3\n\
+    \\ENQ\EOT\NUL\STX\f\ACK\DC2\EOT\176\SOH\EOT\DC3\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\v\SOH\DC2\EOT\176\SOH\DC4$\n\
+    \\ENQ\EOT\NUL\STX\f\SOH\DC2\EOT\176\SOH\DC4$\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\v\ETX\DC2\EOT\176\SOH')\n\
+    \\ENQ\EOT\NUL\STX\f\ETX\DC2\EOT\176\SOH')\n\
     \\241\SOH\n\
-    \\EOT\EOT\NUL\STX\f\DC2\EOT\185\SOH\EOT(\SUB5 Events from the Linux kernel ftrace infrastructure.\n\
+    \\EOT\EOT\NUL\STX\r\DC2\EOT\185\SOH\EOT(\SUB5 Events from the Linux kernel ftrace infrastructure.\n\
     \2V Deprecated, use TrackDescriptor instead.\n\
     \ ProcessDescriptor process_descriptor = 43;\n\
     \2T Deprecated, use TrackDescriptor instead.\n\
     \ ThreadDescriptor thread_descriptor = 44;\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\f\ACK\DC2\EOT\185\SOH\EOT\NAK\n\
+    \\ENQ\EOT\NUL\STX\r\ACK\DC2\EOT\185\SOH\EOT\NAK\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\f\SOH\DC2\EOT\185\SOH\SYN#\n\
+    \\ENQ\EOT\NUL\STX\r\SOH\DC2\EOT\185\SOH\SYN#\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\f\ETX\DC2\EOT\185\SOH&'\n\
+    \\ENQ\EOT\NUL\STX\r\ETX\DC2\EOT\185\SOH&'\n\
     \\137\STX\n\
-    \\EOT\EOT\NUL\STX\r\DC2\EOT\191\SOH\EOT&\SUB\250\SOH This field is emitted at periodic intervals (~10s) and\n\
+    \\EOT\EOT\NUL\STX\SO\DC2\EOT\191\SOH\EOT&\SUB\250\SOH This field is emitted at periodic intervals (~10s) and\n\
     \ contains always the binary representation of the UUID\n\
     \ {82477a76-b28d-42ba-81dc-33326d57a079}. This is used to be able to\n\
     \ efficiently partition long traces without having to fully parse them.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\r\ENQ\DC2\EOT\191\SOH\EOT\t\n\
+    \\ENQ\EOT\NUL\STX\SO\ENQ\DC2\EOT\191\SOH\EOT\t\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\r\SOH\DC2\EOT\191\SOH\n\
+    \\ENQ\EOT\NUL\STX\SO\SOH\DC2\EOT\191\SOH\n\
     \ \n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\r\ETX\DC2\EOT\191\SOH#%\n\
+    \\ENQ\EOT\NUL\STX\SO\ETX\DC2\EOT\191\SOH#%\n\
     \\188\SOH\n\
-    \\EOT\EOT\NUL\STX\SO\DC2\EOT\196\SOH\EOT\"\SUB\173\SOH Zero or more proto encoded trace packets compressed using deflate.\n\
+    \\EOT\EOT\NUL\STX\SI\DC2\EOT\196\SOH\EOT\"\SUB\173\SOH Zero or more proto encoded trace packets compressed using deflate.\n\
     \ Each compressed_packets TracePacket (including the two field ids and\n\
     \ sizes) should be less than 512KB.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SO\ENQ\DC2\EOT\196\SOH\EOT\t\n\
+    \\ENQ\EOT\NUL\STX\SI\ENQ\DC2\EOT\196\SOH\EOT\t\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SO\SOH\DC2\EOT\196\SOH\n\
+    \\ENQ\EOT\NUL\STX\SI\SOH\DC2\EOT\196\SOH\n\
     \\FS\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SO\ETX\DC2\EOT\196\SOH\US!\n\
+    \\ENQ\EOT\NUL\STX\SI\ETX\DC2\EOT\196\SOH\US!\n\
     \\242\STX\n\
-    \\EOT\EOT\NUL\STX\SI\DC2\EOT\203\SOH\EOT2\SUB\227\STX Data sources can extend the trace proto with custom extension protos (see\n\
+    \\EOT\EOT\NUL\STX\DLE\DC2\EOT\203\SOH\EOT2\SUB\227\STX Data sources can extend the trace proto with custom extension protos (see\n\
     \ docs/design-docs/extensions.md). When they do that, the descriptor of\n\
     \ their extension proto descriptor is serialized in this packet. This\n\
     \ allows trace_processor to deserialize extended messages using reflection\n\
     \ even if the extension proto is not checked in the Perfetto repo.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SI\ACK\DC2\EOT\203\SOH\EOT\ETB\n\
+    \\ENQ\EOT\NUL\STX\DLE\ACK\DC2\EOT\203\SOH\EOT\ETB\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SI\SOH\DC2\EOT\203\SOH\CAN,\n\
+    \\ENQ\EOT\NUL\STX\DLE\SOH\DC2\EOT\203\SOH\CAN,\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SI\ETX\DC2\EOT\203\SOH/1\n\
+    \\ENQ\EOT\NUL\STX\DLE\ETX\DC2\EOT\203\SOH/1\n\
     \\154\a\n\
-    \\EOT\EOT\NUL\STX\DLE\DC2\EOT\228\SOH\EOT \SUB\175\STX This field is only used for testing.\n\
+    \\EOT\EOT\NUL\STX\DC1\DC2\EOT\228\SOH\EOT \SUB\175\STX This field is only used for testing.\n\
     \ In previous versions of this proto this field had the id 268435455\n\
     \ This caused many problems:\n\
     \ - protozero decoder does not handle field ids larger than 999.\n\
@@ -2306,11 +2388,11 @@ packedFileDescriptor
     \ EtwTraceEventBundle etw_events = 95;\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DLE\ACK\DC2\EOT\228\SOH\EOT\r\n\
+    \\ENQ\EOT\NUL\STX\DC1\ACK\DC2\EOT\228\SOH\EOT\r\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DLE\SOH\DC2\EOT\228\SOH\SO\EM\n\
+    \\ENQ\EOT\NUL\STX\DC1\SOH\DC2\EOT\228\SOH\SO\EM\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DLE\ETX\DC2\EOT\228\SOH\FS\US\n\
+    \\ENQ\EOT\NUL\STX\DC1\ETX\DC2\EOT\228\SOH\FS\US\n\
     \\205\SOH\n\
     \\EOT\EOT\NUL\b\SOH\DC2\EOT\236\SOH\STX7\SUB\190\SOH Trusted user id of the producer which generated this packet. Keep in sync\n\
     \ with TrustedPacket.trusted_uid.\n\
@@ -2321,13 +2403,13 @@ packedFileDescriptor
     \\r\n\
     \\ENQ\EOT\NUL\b\SOH\SOH\DC2\EOT\236\SOH\b\FS\n\
     \\f\n\
-    \\EOT\EOT\NUL\STX\DC1\DC2\EOT\236\SOH\US5\n\
+    \\EOT\EOT\NUL\STX\DC2\DC2\EOT\236\SOH\US5\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC1\ENQ\DC2\EOT\236\SOH\US$\n\
+    \\ENQ\EOT\NUL\STX\DC2\ENQ\DC2\EOT\236\SOH\US$\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC1\SOH\DC2\EOT\236\SOH%0\n\
+    \\ENQ\EOT\NUL\STX\DC2\SOH\DC2\EOT\236\SOH%0\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC1\ETX\DC2\EOT\236\SOH34\n\
+    \\ENQ\EOT\NUL\STX\DC2\ETX\DC2\EOT\236\SOH34\n\
     \\140\STX\n\
     \\EOT\EOT\NUL\b\STX\DC2\ACK\242\SOH\STX\244\SOH\ETX\SUB\251\SOH Service-assigned identifier of the packet sequence this packet belongs to.\n\
     \ Uniquely identifies a producer + writer pair within the tracing session. A\n\
@@ -2337,43 +2419,43 @@ packedFileDescriptor
     \\r\n\
     \\ENQ\EOT\NUL\b\STX\SOH\DC2\EOT\242\SOH\b+\n\
     \\f\n\
-    \\EOT\EOT\NUL\STX\DC2\DC2\EOT\243\SOH\EOT+\n\
+    \\EOT\EOT\NUL\STX\DC3\DC2\EOT\243\SOH\EOT+\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC2\ENQ\DC2\EOT\243\SOH\EOT\n\
+    \\ENQ\EOT\NUL\STX\DC3\ENQ\DC2\EOT\243\SOH\EOT\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC2\SOH\DC2\EOT\243\SOH\v%\n\
+    \\ENQ\EOT\NUL\STX\DC3\SOH\DC2\EOT\243\SOH\v%\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC2\ETX\DC2\EOT\243\SOH(*\n\
+    \\ENQ\EOT\NUL\STX\DC3\ETX\DC2\EOT\243\SOH(*\n\
     \h\n\
-    \\EOT\EOT\NUL\STX\DC3\DC2\EOT\248\SOH\STX\"\SUBZ Trusted process id of the producer which generated this packet, written by\n\
+    \\EOT\EOT\NUL\STX\DC4\DC2\EOT\248\SOH\STX\"\SUBZ Trusted process id of the producer which generated this packet, written by\n\
     \ the service.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC3\EOT\DC2\EOT\248\SOH\STX\n\
+    \\ENQ\EOT\NUL\STX\DC4\EOT\DC2\EOT\248\SOH\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC3\ENQ\DC2\EOT\248\SOH\v\DLE\n\
+    \\ENQ\EOT\NUL\STX\DC4\ENQ\DC2\EOT\248\SOH\v\DLE\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC3\SOH\DC2\EOT\248\SOH\DC1\FS\n\
+    \\ENQ\EOT\NUL\STX\DC4\SOH\DC2\EOT\248\SOH\DC1\FS\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC3\ETX\DC2\EOT\248\SOH\US!\n\
+    \\ENQ\EOT\NUL\STX\DC4\ETX\DC2\EOT\248\SOH\US!\n\
     \\242\STX\n\
-    \\EOT\EOT\NUL\STX\DC4\DC2\EOT\255\SOH\STX+\SUB\227\STX Incrementally emitted interned data, valid only on the packet's sequence\n\
+    \\EOT\EOT\NUL\STX\NAK\DC2\EOT\255\SOH\STX+\SUB\227\STX Incrementally emitted interned data, valid only on the packet's sequence\n\
     \ (packets with the same |trusted_packet_sequence_id|). The writer will\n\
     \ usually emit new interned data in the same TracePacket that first refers to\n\
     \ it (since the last reset of interning state). It may also be emitted\n\
     \ proactively in advance of referring to them in later packets.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC4\EOT\DC2\EOT\255\SOH\STX\n\
+    \\ENQ\EOT\NUL\STX\NAK\EOT\DC2\EOT\255\SOH\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC4\ACK\DC2\EOT\255\SOH\v\ETB\n\
+    \\ENQ\EOT\NUL\STX\NAK\ACK\DC2\EOT\255\SOH\v\ETB\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC4\SOH\DC2\EOT\255\SOH\CAN%\n\
+    \\ENQ\EOT\NUL\STX\NAK\SOH\DC2\EOT\255\SOH\CAN%\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\DC4\ETX\DC2\EOT\255\SOH(*\n\
+    \\ENQ\EOT\NUL\STX\NAK\ETX\DC2\EOT\255\SOH(*\n\
     \\SO\n\
     \\EOT\EOT\NUL\EOT\NUL\DC2\ACK\129\STX\STX\154\STX\ETX\n\
     \\r\n\
@@ -2416,30 +2498,30 @@ packedFileDescriptor
     \\SI\n\
     \\a\EOT\NUL\EOT\NUL\STX\STX\STX\DC2\EOT\153\STX\"#\n\
     \\f\n\
-    \\EOT\EOT\NUL\STX\NAK\DC2\EOT\155\STX\STX&\n\
+    \\EOT\EOT\NUL\STX\SYN\DC2\EOT\155\STX\STX&\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\NAK\EOT\DC2\EOT\155\STX\STX\n\
+    \\ENQ\EOT\NUL\STX\SYN\EOT\DC2\EOT\155\STX\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\NAK\ENQ\DC2\EOT\155\STX\v\DC1\n\
+    \\ENQ\EOT\NUL\STX\SYN\ENQ\DC2\EOT\155\STX\v\DC1\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\NAK\SOH\DC2\EOT\155\STX\DC2 \n\
+    \\ENQ\EOT\NUL\STX\SYN\SOH\DC2\EOT\155\STX\DC2 \n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\NAK\ETX\DC2\EOT\155\STX#%\n\
+    \\ENQ\EOT\NUL\STX\SYN\ETX\DC2\EOT\155\STX#%\n\
     \R\n\
-    \\EOT\EOT\NUL\STX\SYN\DC2\EOT\158\STX\STX/\SUBD DEPRECATED. Moved to SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED.\n\
+    \\EOT\EOT\NUL\STX\ETB\DC2\EOT\158\STX\STX/\SUBD DEPRECATED. Moved to SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SYN\EOT\DC2\EOT\158\STX\STX\n\
+    \\ENQ\EOT\NUL\STX\ETB\EOT\DC2\EOT\158\STX\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SYN\ENQ\DC2\EOT\158\STX\v\SI\n\
+    \\ENQ\EOT\NUL\STX\ETB\ENQ\DC2\EOT\158\STX\v\SI\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SYN\SOH\DC2\EOT\158\STX\DLE)\n\
+    \\ENQ\EOT\NUL\STX\ETB\SOH\DC2\EOT\158\STX\DLE)\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\SYN\ETX\DC2\EOT\158\STX,.\n\
+    \\ENQ\EOT\NUL\STX\ETB\ETX\DC2\EOT\158\STX,.\n\
     \\247\ETX\n\
-    \\EOT\EOT\NUL\STX\ETB\DC2\EOT\168\STX\STX:\SUB\232\ETX Default values for fields of later TracePackets emitted on this packet's\n\
+    \\EOT\EOT\NUL\STX\CAN\DC2\EOT\168\STX\STX:\SUB\232\ETX Default values for fields of later TracePackets emitted on this packet's\n\
     \ sequence (TracePackets with the same |trusted_packet_sequence_id|).\n\
     \ It must be reemitted when incremental state is cleared (see\n\
     \ |incremental_state_cleared|).\n\
@@ -2449,16 +2531,16 @@ packedFileDescriptor
     \ packet on this sequence (regardless of SEQ_NEEDS_INCREMENTAL_STATE).\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\ETB\EOT\DC2\EOT\168\STX\STX\n\
+    \\ENQ\EOT\NUL\STX\CAN\EOT\DC2\EOT\168\STX\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\ETB\ACK\DC2\EOT\168\STX\v\RS\n\
+    \\ENQ\EOT\NUL\STX\CAN\ACK\DC2\EOT\168\STX\v\RS\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\ETB\SOH\DC2\EOT\168\STX\US4\n\
+    \\ENQ\EOT\NUL\STX\CAN\SOH\DC2\EOT\168\STX\US4\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\ETB\ETX\DC2\EOT\168\STX79\n\
+    \\ENQ\EOT\NUL\STX\CAN\ETX\DC2\EOT\168\STX79\n\
     \\221\EOT\n\
-    \\EOT\EOT\NUL\STX\CAN\DC2\EOT\181\STX\STX-\SUB\206\EOT Flag set by the service if, for the current packet sequence (see\n\
+    \\EOT\EOT\NUL\STX\EM\DC2\EOT\181\STX\STX-\SUB\206\EOT Flag set by the service if, for the current packet sequence (see\n\
     \ |trusted_packet_sequence_id|), either:\n\
     \ * this is the first packet, or\n\
     \ * one or multiple packets were dropped since the last packet that the\n\
@@ -2471,16 +2553,16 @@ packedFileDescriptor
     \ with SEQ_INCREMENTAL_STATE_CLEARED set.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\CAN\EOT\DC2\EOT\181\STX\STX\n\
+    \\ENQ\EOT\NUL\STX\EM\EOT\DC2\EOT\181\STX\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\CAN\ENQ\DC2\EOT\181\STX\v\SI\n\
+    \\ENQ\EOT\NUL\STX\EM\ENQ\DC2\EOT\181\STX\v\SI\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\CAN\SOH\DC2\EOT\181\STX\DLE'\n\
+    \\ENQ\EOT\NUL\STX\EM\SOH\DC2\EOT\181\STX\DLE'\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\CAN\ETX\DC2\EOT\181\STX*,\n\
+    \\ENQ\EOT\NUL\STX\EM\ETX\DC2\EOT\181\STX*,\n\
     \\141\ENQ\n\
-    \\EOT\EOT\NUL\STX\EM\DC2\EOT\196\STX\STX.\SUB\254\EOT Flag set by a producer (starting from SDK v29) if, for the current packet\n\
+    \\EOT\EOT\NUL\STX\SUB\DC2\EOT\196\STX\STX.\SUB\254\EOT Flag set by a producer (starting from SDK v29) if, for the current packet\n\
     \ sequence (see |trusted_packet_sequence_id|), this is the first packet.\n\
     \\n\
     \ This flag can be used for distinguishing the two situations when\n\
@@ -2495,11 +2577,11 @@ packedFileDescriptor
     \ loss.\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\EM\EOT\DC2\EOT\196\STX\STX\n\
+    \\ENQ\EOT\NUL\STX\SUB\EOT\DC2\EOT\196\STX\STX\n\
     \\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\EM\ENQ\DC2\EOT\196\STX\v\SI\n\
+    \\ENQ\EOT\NUL\STX\SUB\ENQ\DC2\EOT\196\STX\v\SI\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\EM\SOH\DC2\EOT\196\STX\DLE(\n\
+    \\ENQ\EOT\NUL\STX\SUB\SOH\DC2\EOT\196\STX\DLE(\n\
     \\r\n\
-    \\ENQ\EOT\NUL\STX\EM\ETX\DC2\EOT\196\STX+-"
+    \\ENQ\EOT\NUL\STX\SUB\ETX\DC2\EOT\196\STX+-"

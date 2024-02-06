@@ -20,7 +20,7 @@ import "protos/perfetto/common/trace_stats.proto";
 // import "protos/perfetto/config/trace_config.proto";
 import "protos/perfetto/trace/extension_descriptor.proto";
 // import "protos/perfetto/trace/android/android_game_intervention_list.proto";
-// import "protos/perfetto/trace/android/android_log.proto";
+import "protos/perfetto/trace/android/android_log.proto";
 // import "protos/perfetto/trace/android/android_system_property.proto";
 // import "protos/perfetto/trace/android/camera_event.proto";
 // import "protos/perfetto/trace/android/frame_timeline_event.proto";
@@ -135,7 +135,7 @@ message TracePacket {
     // StreamingFree streaming_free = 75;
     // BatteryCounters battery = 38;
     // PowerRails power_rails = 40;
-    // AndroidLogPacket android_log = 39;
+    AndroidLogPacket android_log = 39;
     // SystemInfo system_info = 45;
     // Trigger trigger = 46;
     // PackagesList packages_list = 47;
