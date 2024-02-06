@@ -1,16 +1,31 @@
 cradle:
   cabal:
-    - path: "src"
+    - path: "./src"
       component: "lib:hsutils"
 
-    - path: "./app/NixPrefetchGitHub"
-      component: "hsutils:exe:nix-prefetch-github"
+    - path: "./app/JournaldToPerfetto/Main.hs"
+      component: "hsutils:exe:journal2perfetto"
 
-    - path: "./Paths_hsutils.hs"
-      component: "hsutils:exe:nix-prefetch-github"
+    - path: "./app/NixPrefetchGitHub/Main.hs"
+      component: "hsutils:exe:journal2perfetto"
 
-    - path: "test"
+    - path: "./app/Paths_hsutils.hs"
+      component: "hsutils:exe:journal2perfetto"
+
+    - path: "./app/NixPrefetchGitHub/Main.hs"
+      component: "hsutils:exe:nix-prefetch-github2"
+
+    - path: "./app/JournaldToPerfetto/Main.hs"
+      component: "hsutils:exe:nix-prefetch-github2"
+
+    - path: "./app/Paths_hsutils.hs"
+      component: "hsutils:exe:nix-prefetch-github2"
+
+    - path: "./test"
       component: "hsutils:test:test"
+
+    - path: "perfetto-proto/src"
+      component: "lib:perfetto-proto"
 dependencies:
   - package.yaml
   - flake.nix

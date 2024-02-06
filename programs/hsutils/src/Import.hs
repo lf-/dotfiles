@@ -24,4 +24,4 @@ val `orThrow` exc = case val of
   Nothing -> throwM exc
 
 -- slightly higher precedence than ($)
-infix 1 `orThrow`
+infix 2 `orThrow`

@@ -46,6 +46,7 @@
                 cabal-install
                 proto-lens-protoc
               ] ++ (with pkgs; [
+                bashInteractive
                 nix-prefetch-git
                 sqlite
                 protobuf

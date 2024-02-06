@@ -14,6 +14,7 @@ dependencies:
   - http-types
   - microlens
   - optparse-applicative
+  - megaparsec
   - perfetto-proto
   - proto-lens
   - raw-strings-qq
@@ -32,6 +33,11 @@ executables:
     source-dirs: app
     dependencies:
       - hsutils
+  journal2perfetto:
+    main: JournaldToPerfetto.Main
+    source-dirs: app
+    dependencies:
+      - hsutils
   # intercept2perfetto:
   #   main: Intercept2Perfetto.Main
   #   source-dirs: app
@@ -45,6 +51,9 @@ tests:
     dependencies:
       - hsutils
       - hspec
+      - hspec-core
+      - hspec-golden
+      - pretty-simple
     build-tools: hspec-discover
 
     ghc-options:
