@@ -2,7 +2,6 @@ module HsUtils.Tracing.JournalParserSpec where
 
 import TestImport hiding (many)
 
-import Data.ByteString qualified as LBS
 import HsUtils.Tracing.JournalParser
 import JSONGolden (oneGoldenTest, typeName)
 import Text.Megaparsec
@@ -10,17 +9,17 @@ import Text.Megaparsec
 testCase ::
   (Show p, Eq p) =>
   Parser p ->
-  ByteString ->
-  Either (ParseErrorBundle ByteString Void) p ->
+  LByteString ->
+  Either (ParseErrorBundle LByteString Void) p ->
   Expectation
 testCase p s v = parse p "test case" s `shouldBe` v
 
-succeed :: Either (ParseErrorBundle ByteString Void) a -> a
+succeed :: Either (ParseErrorBundle LByteString Void) a -> a
 succeed (Left errs) = error $ errorBundlePretty errs
 succeed (Right r) = r
 
 golden :: forall a. (Show a, Typeable a) => Parser a -> Text -> Spec
-golden parser = oneGoldenTest ".txt" (typeName @a) (succeed . parse parser "test case" . LBS.toStrict)
+golden parser = oneGoldenTest ".txt" (typeName @a) (succeed . parse parser "test case")
 
 newtype Entries = Entries [Entry]
   deriving stock (Show)

@@ -1,15 +1,18 @@
 module JournaldToPerfetto.Main (main) where
 
+import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as LBS
+import Data.List.NonEmpty qualified as NE
+import Data.ProtoLens (Message (..))
+import Data.ProtoLens.Encoding.Bytes (runBuilder)
 import HsUtils.Tracing.JournalParser (parseJournal)
 import HsUtils.Tracing.JournalToPerfetto
-import Import
+import HsUtils.Tracing.LogEvent
 import HsUtils.Tracing.Perfetto
-import Data.ProtoLens (Message(..))
-import Data.ProtoLens.Encoding.Bytes (runBuilder)
-import qualified Data.ByteString as BS
+import Import
+import RIO.NonEmpty (nonEmpty)
 
-data JournalParseFailed = JournalParseFailed String | LogConvertFailed ConvertError
+data JournalParseFailed = JournalParseFailed String | LogConvertFailed ConvertError | NoEvents
   deriving stock (Show)
   deriving anyclass (Exception)
 
@@ -23,7 +26,9 @@ main = do
   -- FIXME: allow multiple errors
   logEvents <- throwEither LogConvertFailed $ traverse toLogEvent parsed
 
-  let perfettod = runBuilder . buildMessage . tracePackets $ initialPacket : (serializeTraceEvent <$> logEvents)
+  evs <- nonEmpty logEvents `orThrow` NoEvents
+
+  let perfettod = runBuilder . buildMessage . tracePackets $ [initialPacket (NE.head evs).timestampRealtime, serializeTraceEvent evs]
 
   BS.writeFile "meow.pb" perfettod
 

@@ -3,7 +3,7 @@
         "haskell": {
             "command": "direnv-hls",
             "settings": {
-                "haskell.formattingProvider": "fourmolu"
+                "haskell": { "formattingProvider": "fourmolu" },
             },
             "filetypes": ["haskell"]
         }
