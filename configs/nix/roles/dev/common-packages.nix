@@ -21,11 +21,14 @@ pkgs: with pkgs; [
   reuse
   rnix-lsp
   nixd
+  nil
   rustfilt
   shellcheck
   typst-lsp
   typst
   diffoscope
+  ruby-lsp
+  rufo
 
   rage
   age-plugin-yubikey

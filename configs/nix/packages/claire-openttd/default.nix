@@ -3,7 +3,7 @@ openttd.overrideAttrs (old: {
   src = fetchFromGitHub {
     owner = "jgrennison";
     repo = "openttd-patches";
-    rev = "jgrpp-0.56.2";
-    sha256 = "sha256-87MquPFoFz6LFlwBTDrFNO11UYCtZUzdZYR1YttkDF8=";
+    rev = "jgrpp-0.57.1";
+    sha256 = "sha256-mQy+QdhEXoM9wIWvSkMgRVBXJO1ugXWS3lduccez1PQ=";
   };
 })
