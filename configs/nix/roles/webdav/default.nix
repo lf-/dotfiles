@@ -12,7 +12,7 @@
       address = "0.0.0.0";
       # FIXME: should reverse-proxy this, really. ugh.
       port = 9999;
-      scope = "/srv/webdav";
+      scope = "/data/webdav";
       modify = true;
       auth = true;
       debug = true;
@@ -23,10 +23,12 @@
         }
       ];
     };
-    environmentFile = "/etc/default/webdav";
+    environmentFile = config.age.secrets.webdav-creds.path;
   };
+  # this is definitely sketchy to hard code, we should really do this way better
+  age.secrets.webdav-creds.file = ../../secrets/webdav-creds.age;
 
   systemd.tmpfiles.rules = [
-    "d /srv/webdav 0770 root webdav"
+    "d /data/webdav 0770 root webdav"
   ];
 }

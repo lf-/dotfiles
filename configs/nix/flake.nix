@@ -92,6 +92,7 @@
           ./machines/voracle
           ./modules/dep-inject.nix
           dep-inject
+          agenix.nixosModules.default
         ];
       };
       nixosConfigurations.iso = nixpkgs.lib.nixosSystem {

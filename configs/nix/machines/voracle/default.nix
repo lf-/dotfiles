@@ -14,6 +14,10 @@ in
     ../../roles/users
   ];
 
+  boot.supportedFilesystems = [ "zfs" ];
+  networking.hostId = "4b247ece";
+  boot.zfs.extraPools = [ "zdata" ];
+
   nixpkgs.system = "aarch64-linux";
 
   jade.wireguard = {
@@ -29,18 +33,10 @@ in
       openssh.authorizedKeys.keys = creds.hexchen.sshKeys;
     };
 
-    Lunaphied = {
+    lunaphied = {
+      description = "Lunaphied";
       isNormalUser = true;
-      openssh.authorizedKeys.keys = creds.Lunaphied.sshKeys;
-    };
-
-    alexis = {
-      isNormalUser = true;
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINvdk6lW8N+r56OAG4ZUh0KDeVZTLFdnpNJNkkm6TAkH"
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOTZqEu22rrazapG4h1Bd6OjoBhyie45f+SFtDoscR/V"
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPoVsYDfuwggQ2VL4jokep5ysFDbDXH+Pvcdl6MYhfLz"
-      ];
+      openssh.authorizedKeys.keys = creds.lunaphied.sshKeys;
     };
   };
 
@@ -52,7 +48,10 @@ in
 
   networking.firewall.allowedTCPPorts = [ 80 443 ];
 
-  boot.loader.grub.configurationLimit = 2;
+  # Use the systemd-boot EFI boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.configurationLimit = 2;
 
   networking.hostName = "voracle";
 

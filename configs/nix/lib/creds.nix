@@ -16,7 +16,7 @@
     ];
   };
 
-  Lunaphied = {
+  lunaphied = {
     sshKeys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFJlKTwO+iJuMkoJVqK6Gn4JfGHJEQWbXleRkshpVY9i irides@Mira.lan"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOmpR8V9YzyYTgXZsKy0yIJk4fRMMP3waZ785eWECu0v lunaphied@Ran"
