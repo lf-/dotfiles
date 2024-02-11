@@ -1,7 +1,7 @@
 let
   creds = import ../../lib/creds.nix;
 in
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix
@@ -29,9 +29,9 @@ in
       openssh.authorizedKeys.keys = creds.hexchen.sshKeys;
     };
 
-    iris = {
+    Lunaphied = {
       isNormalUser = true;
-      openssh.authorizedKeys.keys = creds.iris.sshKeys;
+      openssh.authorizedKeys.keys = creds.Lunaphied.sshKeys;
     };
 
     alexis = {
