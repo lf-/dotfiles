@@ -1,7 +1,7 @@
 # dev packages that are common between nixos and "env.nix" setups on non-nixos
 #
 # This includes everything that one would want that's not in Arch repos e.g.
-pkgs: with pkgs; [
+{ pkgs, withHsutils }: with pkgs; [
   cachix
   cmake-language-server
   cntr
@@ -42,8 +42,9 @@ pkgs: with pkgs; [
   notmuch
   notmuch-mutt
 
-  (pkgs.haskell.lib.justStaticExecutables hsutils)
   nvimsplit
   vim-swapfile-header
   nvremote
+] ++ lib.optional withHsutils [
+  (pkgs.haskell.lib.justStaticExecutables hsutils)
 ]

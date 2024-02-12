@@ -12,6 +12,6 @@ flakey-profile.lib.mkProfile {
     xwaylandvideobridge
     librespot
     watchman
-  ] ++ import ./roles/dev/common-packages.nix pkgs;
+  ] ++ import ./roles/dev/common-packages.nix { inherit pkgs; withHsutils = true; };
   pinned = { nixpkgs = nixpkgs; };
 }

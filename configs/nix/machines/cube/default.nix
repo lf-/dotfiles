@@ -1,8 +1,7 @@
-{ config, lib, pkgs, ... }:
+{ config, pkgs, ... }:
 let
-  base64 = import ../../lib/base64.nix;
-  creds = import ../../lib/creds.nix;
   hplip-hpijs = pkgs.callPackage ../../packages/hplip-hpijs { };
+  creds = import ../../lib/creds.nix;
 in
 {
   imports = [
@@ -13,7 +12,6 @@ in
     ../../roles/debug
     ../../roles/avahi
     ../../modules/caddy-wildcard.nix
-    ./hedgedoc.nix
     ./jasperlake.nix
     ./unbound.nix
     ./zfs.nix
@@ -124,7 +122,7 @@ in
   services.caddy = {
     enable = true;
     # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
-    email = base64.decode "YWNtZUBsZmNvZGUuY2E=";
+    email = creds.data.acmeEmail;
   };
 
   services.avahi = {

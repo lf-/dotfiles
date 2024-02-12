@@ -12,10 +12,16 @@
     "coc.preferences.formatOnSaveFiletypes": ["rust", "typescript", "typescriptreact"],
     "languageserver": {
         "nix": {
-            "command": "nixd",
-            "args": ["-log=debug"],
+            "command": "nil",
+            "args": [],
             "filetypes": ["nix"],
-            "settings": {},
+            "settings": {
+                "nil": {
+                    "formatting": {
+                        "command": ["nixpkgs-fmt"],
+                    },
+                },
+            },
         },
         "cmake": {
             "command": "cmake-language-server",
@@ -54,7 +60,14 @@
                 "package.yaml",
                 "hie.yaml"
             ],
-            "filetypes": ["haskell", "lhaskell"]
+            "filetypes": ["haskell", "lhaskell"],
+            "settings": {
+                "haskell": {
+                    "formattingProvider": "fourmolu",
+                },
+            },
+            "trace.server": "verbose",
+            "trace.server.verbosity": "verbose",
         },
         "typst": {
             "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
@@ -102,6 +115,7 @@
         "<C-v>": "action:vsplit"
     },
     "clangd.path": "direnv-clangd",
+    "clangd.enabled": true,
 
     "codeLens.position": "eol",
     "hover.floatConfig": {

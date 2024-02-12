@@ -1,9 +1,10 @@
-{ pkgs, lib, ... }:
+{ ... }:
 let
-  domain = "pad.h.jade.fyi";
+  domain = "pad.jade.fyi";
   port = 17490;
-  dbPath = "/tank/srv/hedgedoc/db.sqlite";
-  uploadsPath = "/tank/srv/hedgedoc/uploads";
+  basePath = "/data/hedgedoc";
+  dbPath = "${basePath}/db.sqlite";
+  uploadsPath = "${basePath}/uploads";
 in
 {
   services.hedgedoc = {
@@ -26,12 +27,12 @@ in
 
   systemd.services.hedgedoc = {
     serviceConfig = {
-      ReadWritePaths = [ "-/tank/srv/hedgedoc" ];
+      ReadWritePaths = [ "-${basePath}" ];
     };
   };
 
   systemd.tmpfiles.rules = [
-    "d /tank/srv/hedgedoc 0770 hedgedoc hedgedoc"
+    "d ${basePath} 0770 hedgedoc hedgedoc"
     # required because *these* are the readwritepaths of the service, not the
     # parent directory, so it cannot create these files itself.
     "d ${uploadsPath} 0770 hedgedoc hedgedoc"

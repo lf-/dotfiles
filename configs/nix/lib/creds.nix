@@ -1,3 +1,5 @@
+let base64 = import ./base64.nix;
+in
 {
   jade = {
     # this is a hashed long random pw only used here. chill
@@ -31,6 +33,10 @@
     voracle.sshKeys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAav+bdQWpnBPxTPnlPPSucyFTNzXOVw4t14M4LV2dZR"
     ];
+  };
+
+  data = {
+    acmeEmail = base64.decode "YWNtZUBsZmNvZGUuY2E=";
   };
 
   machine = {

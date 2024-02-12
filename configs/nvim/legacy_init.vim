@@ -1,7 +1,7 @@
 filetype plugin indent on
 
 if $COC_DEBUG == '1'
-  let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '-r', expand('~/.config/yarn/global/node_modules/source-map-support/register')]
+  let g:coc_node_args = ['--nolazy', '--inspect-brk=6045', '--enable-source-maps']
 endif
 
 " use chromium on all platforms to open all urls

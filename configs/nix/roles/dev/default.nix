@@ -16,65 +16,77 @@ let
   ];
   hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; };
 
-  common-dev-pkgs = import ./common-packages.nix pkgs;
+  common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils; };
 
+  cfg = config.jade.dev;
+  inherit (lib) mkOption;
 in
 {
   imports = [ ../debug ];
-  environment.systemPackages = common-dev-pkgs ++ (with pkgs; [
-    direnv
+  options = {
+    jade.dev.withHsutils = mkOption {
+      default = true;
+      type = lib.types.bool;
+      description = ''Include hsutils (mildly expensive to build) in the closure'';
+    };
+  };
 
-    gitAndTools.delta
+  config = {
+    environment.systemPackages = common-dev-pkgs ++ (with pkgs; [
+      direnv
 
-    dtach
-    tmux
-    gh
-    fd
-    gdb
-    jq
-    graphviz
-    ctags
-    moreutils
-    git-lfs
+      gitAndTools.delta
 
-    xxd
+      dtach
+      tmux
+      gh
+      fd
+      gdb
+      jq
+      graphviz
+      ctags
+      moreutils
+      git-lfs
 
-    p7zip
-    unzip
+      xxd
 
-    msmtp
+      p7zip
+      unzip
 
-    man-pages
-    man-pages-posix
+      msmtp
 
-    (python3.withPackages pyPkgs)
-  ]);
+      man-pages
+      man-pages-posix
 
-  nixpkgs.overlays = [
-    hsutilsOverlay
-    (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
-    (import ../../overlays/jadeware.nix)
-  ];
+      (python3.withPackages pyPkgs)
+    ]);
 
-  nix.extraOptions = lib.mkMerge [
-    (lib.mkIf pkgs.stdenv.isLinux ''
-      plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.so
-    '')
-    (lib.mkIf pkgs.stdenv.isDarwin ''
-      plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.dylib
-    '')
-    ''
-      # nix-direnv
-      keep-outputs = true
-      keep-derivations = true
-    ''
-  ];
+    nixpkgs.overlays = [
+      hsutilsOverlay
+      (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
+      (import ../../overlays/jadeware.nix)
+    ];
 
-  nix.settings.trusted-substituters = [
-    "https://haskell-language-server.cachix.org"
-  ];
+    nix.extraOptions = lib.mkMerge [
+      (lib.mkIf pkgs.stdenv.isLinux ''
+        plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.so
+      '')
+      (lib.mkIf pkgs.stdenv.isDarwin ''
+        plugin-files = ${pkgs.nix-doc}/lib/libnix_doc_plugin.dylib
+      '')
+      ''
+        # nix-direnv
+        keep-outputs = true
+        keep-derivations = true
+      ''
+    ];
 
-  environment.pathsToLink = [
-    "/share/nix-direnv"
-  ];
+    nix.settings.trusted-substituters = [
+      "https://haskell-language-server.cachix.org"
+    ];
+
+    environment.pathsToLink = [
+      "/share/nix-direnv"
+    ];
+  };
 }
