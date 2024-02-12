@@ -12,6 +12,7 @@ in
     ../../roles/webdav
     ../../roles/wireguard
     ../../roles/users
+    ../../roles/autobackup-source
   ];
 
   boot.supportedFilesystems = [ "zfs" ];

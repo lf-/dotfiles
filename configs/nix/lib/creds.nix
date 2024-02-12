@@ -23,9 +23,34 @@
     ];
   };
 
-  machine = {
-    tail-bot.autobackup.sshKeys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA7VB1h/qYVrqwyEOzk+GlhgQlYFH9hgt834/QXyxklX zfsbackup@tail-bot"
+  # backup-target owned ssh keys
+  autobackup = {
+    tail-bot.sshKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGqSQJ9cahTI2UMLIJgV0OMmfecnqNwXuoYe/aX6ekCt"
     ];
+    voracle.sshKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAav+bdQWpnBPxTPnlPPSucyFTNzXOVw4t14M4LV2dZR"
+    ];
+  };
+
+  machine = {
+    tail-bot = {
+      fqdn = "tail-bot.van.lfcode.ca";
+      hostKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFTjOijbFfQQpoGlbku4C2dFVYBx7S03cbkXsjSmU6hh"
+      ];
+    };
+    voracle = {
+      fqdn = "voracle.jade.fyi";
+      hostKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBgYhRTgvfLnG0tzyTBsxwBf2+BGPGQaOWHcg8HJPnS9"
+      ];
+    };
+    cube = {
+      fqdn = "cube.van.lfcode.ca";
+      hostKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBwAQnKgoThFVYC4mjFHLWVcQzlu4d6k3Blu4UDrFh/I"
+      ];
+    };
   };
 }

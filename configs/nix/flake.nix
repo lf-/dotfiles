@@ -120,6 +120,7 @@
               nixos-rebuild
               agenix.packages.${system}.default
               rage
+              bashInteractive
             ];
           };
         };

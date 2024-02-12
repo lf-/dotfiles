@@ -23,6 +23,8 @@ in
 
   boot.supportedFilesystems = [ "btrfs" ];
 
+  # unused since we just haven't done the userspace for it and it's Fine
+  /*
   boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
     kernel = super.kernel.override (old: {
       kernelPatches = old.kernelPatches ++ [
@@ -33,6 +35,7 @@ in
       ];
     });
   });
+  */
 
   networking.useNetworkd = true;
 
@@ -49,8 +52,11 @@ in
 
   users.groups.tank = { };
   users.groups.tank_public = { };
+  # group of /tank/backup/zfs, which allows seeing what's in there but nothing
+  # more
+  users.groups.autobackup = { };
 
-  users.users.jade.extraGroups = [ "tank" "tank_public" ];
+  users.users.jade.extraGroups = [ "tank" "tank_public" "autobackup" ];
 
   users.users.smbguest = {
     expires = "1970-01-02";

@@ -71,7 +71,7 @@ in
         externalPlugins = [
           { name = "acmedns"; repo = "github.com/caddy-dns/acmedns"; version = "v0.3.0"; }
         ];
-        vendorHash = "sha256-+jLJAFIH+BA8kCcw0cKo+nZMXX5FyIzl1b9nI6k+suo=";
+        vendorHash = "sha256-Qw4QDXtapWYIklvpeEpXCtCqNeFOU8XvqeJE/9REzQE=";
       };
       virtualHosts.${cfg.wildcardCertDomain} = {
         logFormat = "output stderr";
