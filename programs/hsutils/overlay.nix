@@ -29,6 +29,13 @@ let
       [
         ".*perfetto-proto(/package.yaml)?"
       ];
+  replaceSrc = src: hlib.compose.overrideCabal (orig: {
+    inherit src;
+  });
+  # makes the IFD use a filtered source, then replaces it with the real source
+  # afterwards.
+  callCabal2nixWithPathFilter = name: src: args:
+    replaceSrc src (hprev.callCabal2nix name (builtins.filterSource pathFilter src) {});
 in
 {
   hsutils = hprev.callCabal2nix "hsutils" ./. { };
@@ -42,5 +49,5 @@ in
     })
     { };
   proto-lens-protoc = hlib.doJailbreak hprev.proto-lens-protoc;
-  perfetto-proto = hprev.callCabal2nix "perfetto-proto" (builtins.filterSource pathFilter ./perfetto-proto) { };
+  perfetto-proto = callCabal2nixWithPathFilter "perfetto-proto" ./perfetto-proto { };
 })
