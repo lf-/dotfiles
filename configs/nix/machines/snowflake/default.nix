@@ -14,6 +14,7 @@
     ../../roles/physical
     ../../roles/usbip
     ../../roles/secureboot
+    ../../roles/autologin
     ./hardware-configuration.nix
   ];
 
@@ -110,7 +111,6 @@
     powertop
 
     jetbrains.idea-community
-    kotlin-language-server
     ios-webkit-debug-proxy
     libimobiledevice
     ifuse
