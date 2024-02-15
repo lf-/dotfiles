@@ -45,6 +45,6 @@
   nvimsplit
   vim-swapfile-header
   nvremote
-] ++ lib.optional withHsutils [
+] ++ lib.optionals withHsutils [
   (pkgs.haskell.lib.justStaticExecutables hsutils)
 ]

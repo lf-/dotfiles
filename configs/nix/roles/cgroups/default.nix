@@ -10,7 +10,7 @@
     # terminal
     enableRootSlice = true;
     enableSystemSlice = true;
-    enableUserServices = true;
+    enableUserSlices = true;
   };
 
   systemd.enableCgroupAccounting = true;
@@ -47,8 +47,8 @@
 
   systemd.slices.system = {
     sliceConfig = {
-      ManagedOOMMemoryPressure = "kill";
-      ManagedOOMMemoryPressureLimit = "50%";
+      # ManagedOOMMemoryPressure = "kill";
+      # ManagedOOMMemoryPressureLimit = "50%";
 
       IOWeight = 100;
     };

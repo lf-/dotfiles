@@ -141,6 +141,7 @@
         in
         {
           inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote openttd-claire spr-sunshowers;
+          hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
           profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs; };
