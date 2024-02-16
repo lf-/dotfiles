@@ -119,7 +119,7 @@
             packages = with pkgs; [
               nixos-rebuild
               agenix.packages.${system}.default
-              rage
+              age
               bashInteractive
             ];
           };
@@ -141,6 +141,7 @@
         in
         {
           inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote openttd-claire spr-sunshowers;
+          caddy-acmedns = pkgs.callPackage ./packages/caddy-acmedns/package.nix { };
           hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
