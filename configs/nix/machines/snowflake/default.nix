@@ -15,6 +15,7 @@
     ../../roles/usbip
     ../../roles/secureboot
     ../../roles/autologin
+    ../../roles/tpm
     ./hardware-configuration.nix
   ];
 
