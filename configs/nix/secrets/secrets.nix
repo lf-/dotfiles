@@ -10,7 +10,8 @@ let
 in
 {
   "acme-dns-reg.age".publicKeys = users.jade ++ hosts.cube;
-  "acme-dns-reg-voracle.age".publicKeys = users.jade ++ hosts.voracle;
+  # jade.fyi acme dns registration
+  "acme-dns-reg-voracle.age".publicKeys = users.jade ++ hosts.voracle ++ hosts.cube;
   "local-dns.age".publicKeys = users.jade ++ hosts.cube;
   "backups-key.age".publicKeys = users.jade ++ hosts.cube;
 
