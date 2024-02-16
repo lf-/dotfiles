@@ -62,17 +62,12 @@ in
     # load the dns registration as a systemd secret
     systemd.services.caddy = {
       serviceConfig = {
-        LoadCredential = "acme-dns-reg:${cfg.dnsRegistrationPath}";
+        LoadCredential = [ "acme-dns-reg:${cfg.dnsRegistrationPath}" ];
       };
     };
 
     services.caddy = {
-      package = pkgs.callPackage ../packages/caddy-with-plugins/package.nix {
-        externalPlugins = [
-          { name = "acmedns"; repo = "github.com/caddy-dns/acmedns"; version = "v0.3.0"; }
-        ];
-        vendorHash = "sha256-Qw4QDXtapWYIklvpeEpXCtCqNeFOU8XvqeJE/9REzQE=";
-      };
+      package = pkgs.callPackage ../packages/caddy-acmedns/package.nix { };
       virtualHosts.${cfg.wildcardCertDomain} = {
         logFormat = "output stderr";
         extraConfig = ''

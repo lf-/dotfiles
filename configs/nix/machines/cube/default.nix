@@ -11,6 +11,7 @@ in
     ../../roles/physical
     ../../roles/debug
     ../../roles/avahi
+    ../../roles/kanidm
     ../../modules/caddy-wildcard.nix
     ./jasperlake.nix
     ./unbound.nix
@@ -40,6 +41,11 @@ in
   services.resolved.extraConfig = ''
     DNSStubListener=no
   '';
+
+  jade.kanidm = {
+    enable = true;
+    dataDir = "/tank/srv/kanidm";
+  };
 
   environment.systemPackages = with pkgs; [
     rclone
