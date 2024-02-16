@@ -1,10 +1,14 @@
-{ ... }:
+{ config, ... }:
 let
   domain = "pad.jade.fyi";
   port = 17490;
   basePath = "/data/hedgedoc";
   dbPath = "${basePath}/db.sqlite";
   uploadsPath = "${basePath}/uploads";
+
+  idpBase = "https://id.jade.fyi";
+  idpConsts = import ../../lib/idp.nix { baseUrl = idpBase; clientId = idpClientId; };
+  idpClientId = "hedgedoc_oauth";
 in
 {
   services.hedgedoc = {
@@ -22,12 +26,28 @@ in
       # bizarre name, but we think it should be sufficient to make it
       # impossible to create guest notes.
       allowAnonymousEdits = true;
+
+      oauth2 = {
+        clientId = idpClientId;
+        userProfileURL = idpConsts.oidcUserInfo;
+        baseURL = idpBase;
+        tokenURL = idpConsts.tokenUrl;
+        authorizationURL = idpConsts.apiAuthUrl;
+        userProfileEmailAttr = "email";
+        userProfileUsernameAttr = "preferred_username";
+        userProfileDisplayNameAttr = "name";
+        userProfileIdAttr = "sub";
+        scope = "openid email profile";
+      };
     };
   };
+
+  age.secrets.hedgedoc-oauth.file = ../../secrets/hedgedoc-oauth.age;
 
   systemd.services.hedgedoc = {
     serviceConfig = {
       ReadWritePaths = [ "-${basePath}" ];
+      EnvironmentFile = config.age.secrets.hedgedoc-oauth.path;
     };
   };
 

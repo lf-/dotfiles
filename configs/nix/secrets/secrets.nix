@@ -21,4 +21,5 @@ in
   "autobackup_voracle.age".publicKeys = users.jade ++ hosts.cube;
 
   "webdav-creds.age".publicKeys = users.jade ++ hosts.voracle;
+  "hedgedoc-oauth.age".publicKeys = users.jade ++ hosts.voracle;
 }

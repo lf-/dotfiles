@@ -55,6 +55,16 @@ in
         # tls_key = "/var/lib/caddy/certs-export/${thisMachine}/${thisMachine}.key";
         tls_chain = "/dev/null";
         tls_key = "/dev/null";
+
+        # remember to zfs set recordsize=64k on the dataset
+        db_fs_type = "zfs";
+        # kanidm is behind a proxy
+        trust_x_forward_for = true;
+
+        online_backup = {
+          path = "/var/lib/kanidm/backups";
+          schedule = "00 22 * * *";
+        };
       };
     };
 
@@ -80,14 +90,21 @@ in
       };
     };
 
+    environment.systemPackages = [ package ];
+
     services.caddy = {
       virtualHosts.${thisMachine} = {
+        serverAliases = [ baseDomain ];
         extraConfig = ''
           tls {
             dns acmedns {$CREDENTIALS_DIRECTORY}/kanidm-acme-dns-reg
           }
 
-          reverse_proxy [::1]:${toString port}
+          reverse_proxy https://[::1]:${toString port} {
+            transport http {
+              tls_server_name ${thisMachine}
+            }
+          }
         '';
       };
       globalConfig = ''
