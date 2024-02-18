@@ -27,12 +27,18 @@ in
       # impossible to create guest notes.
       allowAnonymousEdits = true;
 
+      # sso only, :)))
+      email = false;
+      allowFreeURL = true;
+      requireFreeURLAuthentication = true;
+
       oauth2 = {
-        clientId = idpClientId;
+        providerName = "sso";
+        clientID = idpClientId;
         userProfileURL = idpConsts.oidcUserInfo;
         baseURL = idpBase;
         tokenURL = idpConsts.tokenUrl;
-        authorizationURL = idpConsts.apiAuthUrl;
+        authorizationURL = idpConsts.userAuthUrl;
         userProfileEmailAttr = "email";
         userProfileUsernameAttr = "preferred_username";
         userProfileDisplayNameAttr = "name";
