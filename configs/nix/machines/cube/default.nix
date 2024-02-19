@@ -17,6 +17,7 @@ in
     ./unbound.nix
     ./zfs.nix
     ./autobackup.nix
+    ./jellyfin.nix
     ./hardware-configuration.nix
   ];
 
@@ -120,10 +121,6 @@ in
     '';
   };
 
-  services.jellyfin = {
-    enable = true;
-  };
-
   networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.caddy = {
     enable = true;
@@ -168,13 +165,6 @@ in
     enable = true;
     dnsRegistrationPath = config.age.secrets.acme-dns-reg.path;
     wildcardCertDomain = "*.h.jade.fyi";
-    hosts = {
-      "stream.h.jade.fyi" = {
-        action = ''
-          reverse_proxy 127.0.0.1:8096
-        '';
-      };
-    };
   };
 
   jade.rootSshKeys.enable = true;

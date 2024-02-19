@@ -22,6 +22,7 @@ in
 makeHaskellOverlay [ "hsutils" ] (prev: hfinal: hprev:
 let
   hlib = prev.haskell.lib;
+  inherit (hlib) disableLibraryProfiling;
   pathFilter = path: type:
     prev.lib.hasSuffix ".cabal" path
     || baseNameOf path == "package.yaml"
@@ -49,5 +50,5 @@ in
     })
     { };
   proto-lens-protoc = hlib.doJailbreak hprev.proto-lens-protoc;
-  perfetto-proto = callCabal2nixWithPathFilter "perfetto-proto" ./perfetto-proto { };
+  perfetto-proto = disableLibraryProfiling (callCabal2nixWithPathFilter "perfetto-proto" ./perfetto-proto { });
 })

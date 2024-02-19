@@ -140,7 +140,7 @@
           };
         in
         {
-          inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote openttd-claire spr-sunshowers;
+          inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote openttd-claire spr-sunshowers jellyfin-plugin-sso;
           caddy-acmedns = pkgs.callPackage ./packages/caddy-acmedns/package.nix { };
           hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
