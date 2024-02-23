@@ -14,7 +14,8 @@ buildDotnetModule rec {
   nugetDeps = ./deps.nix;
   dotnet-sdk = dotnetCorePackages.sdk_6_0;
   dotnet-runtime = dotnetCorePackages.aspnetcore_6_0;
-  dotnetBuildFlags = [ "--no-self-contained" ];
+  dotnetBuildFlags = [ "--no-self-contained" "-p:AssemblyVersion=${version}" "-p:FileVersion=${version}" ];
+  dotnetInstallFlags = [ "-p:Version=${version}" ];
 
   nativeBuildInputs = [ yq ];
 
