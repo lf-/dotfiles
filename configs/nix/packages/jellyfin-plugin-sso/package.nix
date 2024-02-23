@@ -1,13 +1,13 @@
 { lib, fetchFromGitHub, dotnetCorePackages, buildDotnetModule, yq }:
 buildDotnetModule rec {
   pname = "jellyfin-plugin-sso";
-  version = "3.5.2.2";
+  version = "3.5.2.3";
 
   src = fetchFromGitHub {
     owner = "9p4";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-Ei9OpkhaftqrvNU90f/Xq74T62sFDHr4Pa2GvhJx0ug=";
+    hash = "sha256-PkehIQlWTWeD/0t5UmxwmqBXPcPk5vMZ031zSdA35fo=";
   };
 
   projectFile = "SSO-Auth/SSO-Auth.csproj";
