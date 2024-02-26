@@ -33,6 +33,7 @@
   rage
   age-plugin-yubikey
   age-plugin-tpm
+  kanidm
 
   nix-output-monitor
 
