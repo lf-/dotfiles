@@ -35,6 +35,8 @@
   age-plugin-tpm
   kanidm
 
+  sqlite-interactive
+
   nix-output-monitor
 
   simple-http-server
