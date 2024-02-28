@@ -1,6 +1,6 @@
 { pkgs, ... }: {
   nixpkgs.overlays = [
-    (import ../../overlays/forks.nix)
+    (import ../../overlays/vendor-pkgs.nix)
   ];
 
   services.jellyfin = {

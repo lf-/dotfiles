@@ -134,13 +134,12 @@
               (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
               (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; })
               (import ./overlays/jadeware.nix)
-              (import ./overlays/forks.nix)
+              (import ./overlays/vendor-pkgs.nix)
             ];
             system = "x86_64-linux";
           };
         in
-        {
-          inherit (pkgs) aiopanel vim-swapfile-header nvimsplit nvremote openttd-claire spr-sunshowers jellyfin-plugin-sso;
+        (import ./local-packages.nix pkgs) // {
           caddy-acmedns = pkgs.callPackage ./packages/caddy-acmedns/package.nix { };
           hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;

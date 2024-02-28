@@ -10,10 +10,8 @@ let
   pkgs = import nixpkgs {
     overlays = [
       (import ./overlays/jadeware.nix)
-      (import ./overlays/forks.nix)
+      (import ./overlays/vendor-pkgs.nix)
     ];
   };
 in
-{
-  inherit (pkgs) nvimsplit nvremote vim-swapfile-header spr-sunshowers openttd-claire jellyfin-plugin-sso;
-}
+import ./local-packages.nix pkgs
