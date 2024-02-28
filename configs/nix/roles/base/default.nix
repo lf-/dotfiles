@@ -1,4 +1,4 @@
-{ config, pkgs, polkadots, ... }:
+{ config, pkgs, ... }:
 {
   environment.etc."nix/inputs/nixpkgs" = {
     source = config.jade.dep-inject.nixpkgs.outPath;
@@ -18,6 +18,7 @@
 
   nixpkgs.overlays = [
     (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })
+    (import ../../overlays/vendor-pkgs.nix)
   ];
   nixpkgs.config.allowUnfree = true;
 

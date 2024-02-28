@@ -1,8 +1,4 @@
 { pkgs, ... }: {
-  nixpkgs.overlays = [
-    (import ../../overlays/vendor-pkgs.nix)
-  ];
-
   services.jellyfin = {
     enable = true;
   };

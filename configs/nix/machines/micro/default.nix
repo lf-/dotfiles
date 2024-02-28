@@ -5,6 +5,8 @@
     ./hardware-configuration.nix
   ];
 
+  jade.rootSshKeys.enable = true;
+
   virtualisation.vmVariant = {
     virtualisation.forwardPorts = [
       {
