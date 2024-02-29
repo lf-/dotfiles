@@ -14,6 +14,7 @@ in
     ../../roles/users
     ../../roles/autobackup-source
     ./hedgedoc.nix
+    ./opengist.nix
     ../../modules/caddy-wildcard.nix
   ];
 

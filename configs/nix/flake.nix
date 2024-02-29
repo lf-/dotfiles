@@ -124,8 +124,8 @@
             ];
           };
         };
-
-      packages.x86_64-linux =
+    } // (flake-utils.lib.eachDefaultSystem (system: {
+      packages =
         let
           aiopanel = /home/jade/dev/aiopanel;
           pkgs = import nixpkgs {
@@ -136,7 +136,7 @@
               (import ./overlays/jadeware.nix)
               (import ./overlays/vendor-pkgs.nix)
             ];
-            system = "x86_64-linux";
+            inherit system;
           };
         in
         (import ./local-packages.nix pkgs) // {
@@ -147,5 +147,5 @@
           profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs; };
           system-profile = import ./system-profile.nix { inherit pkgs flakey-profile; };
         };
-    };
+    }));
 }

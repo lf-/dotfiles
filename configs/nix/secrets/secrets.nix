@@ -22,4 +22,5 @@ in
 
   "webdav-creds.age".publicKeys = users.jade ++ hosts.voracle;
   "hedgedoc-oauth.age".publicKeys = users.jade ++ hosts.voracle;
+  "opengist-oauth.age".publicKeys = users.jade ++ hosts.voracle;
 }

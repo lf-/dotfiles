@@ -29,6 +29,7 @@
   diffoscope
   ruby-lsp
   rufo
+  gopls
 
   rage
   age-plugin-yubikey

@@ -6,7 +6,7 @@ let
 
     nativeBuildInputs = [ moreutils jq ];
     # npm complains of "invalid package". shrug. we can give it a version.
-    postPatch = ''
+    preBuild = ''
       jq '.version = "${version}"' package.json | sponge package.json
     '';
 
