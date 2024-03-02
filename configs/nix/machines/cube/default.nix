@@ -18,6 +18,7 @@ in
     ./zfs.nix
     ./autobackup.nix
     ./jellyfin.nix
+    ./octoprint.nix
     ./hardware-configuration.nix
   ];
 
