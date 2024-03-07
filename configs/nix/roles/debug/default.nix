@@ -2,6 +2,7 @@
   environment.systemPackages = with pkgs; [
     ripgrep
 
+    whois
     nethogs
     ethtool
     dogdns

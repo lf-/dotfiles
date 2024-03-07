@@ -7,6 +7,10 @@
 
   jade.rootSshKeys.enable = true;
 
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBPefOkO/ES/9glugzWNTS3yZeNYNAgPKtmoZBk3uH4FMJN2EYsv4Ngd6XFtRGD+3rpJYrBXNnoVxhUNn6KtoFD8= jade@snowflake"
+  ];
+
   virtualisation.vmVariant = {
     virtualisation.forwardPorts = [
       {
