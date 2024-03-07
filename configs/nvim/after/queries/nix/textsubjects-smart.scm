@@ -8,3 +8,8 @@
  (#make-range! "range" @_start @_end)
 )
 
+(
+ (list_expression element: (_) @_start @_end)
+ (#make-range! "range" @_start @_end)
+)
+
