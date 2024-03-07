@@ -215,6 +215,45 @@
         "type": "github"
       }
     },
+    "lix": {
+      "locked": {
+        "lastModified": 1709811453,
+        "narHash": "sha256-UOyTAdUAJv80w3s6rrgYB5tQjp43u5Zp2dlM94uud04=",
+        "ref": "refs/heads/main",
+        "rev": "8a268359b06471b463a8f3fc46c83a1fced8ab75",
+        "revCount": 15077,
+        "type": "git",
+        "url": "ssh://gerrit.lix.systems:2022/lix"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://gerrit.lix.systems:2022/lix"
+      }
+    },
+    "lix-module": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "lix": "lix",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1709842966,
+        "narHash": "sha256-l5r/SggShWAgPgALIGPfszTR1kAUAWhC9toutOSO3So=",
+        "ref": "refs/heads/main",
+        "rev": "6e25f8e09782b2664cfec313c07991309c511212",
+        "revCount": 7,
+        "type": "git",
+        "url": "ssh://git@lix.systems/lix-project/nixos-module"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@lix.systems/lix-project/nixos-module"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1709237383,
@@ -304,6 +343,7 @@
         "flakey-profile": "flakey-profile",
         "gitignore": "gitignore",
         "lanzaboote": "lanzaboote",
+        "lix-module": "lix-module",
         "nixpkgs": "nixpkgs",
         "polkadots": "polkadots"
       }

@@ -44,6 +44,12 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
+
+    lix-module = {
+      url = "git+ssh://git@lix.systems/lix-project/nixos-module";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
+    };
   };
 
   outputs =
@@ -57,6 +63,7 @@
     , agenix
     , lanzaboote
     , flakey-profile
+    , lix-module
     , ...
     }:
     let
@@ -76,6 +83,7 @@
           ./machines/snowflake
           ./modules/dep-inject.nix
           dep-inject
+          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.micro = nixpkgs.lib.nixosSystem {
@@ -135,6 +143,7 @@
               (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; })
               (import ./overlays/jadeware.nix)
               (import ./overlays/vendor-pkgs.nix)
+              lix-module.overlays.default
             ];
             inherit system;
           };
