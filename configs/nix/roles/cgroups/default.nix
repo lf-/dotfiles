@@ -3,7 +3,20 @@
 #
 # See also the Chris Down talk at LISA'21:
 # https://www.usenix.org/conference/lisa21/presentation/down
-{ config, pkgs, ... }: {
+{ ... }:
+let
+  systemCriticalSliceConfig = {
+    ManagedOOMMemoryPressure = "kill";
+
+    # guarantee availability of memory
+    MemoryMin = "192M";
+    # default 100
+    IOWeight = 1000;
+    # default 100
+    CPUWeight = 1000;
+  };
+in
+{
   systemd.oomd = {
     enable = true;
     # why not, we have cgroups at user level now so it'll just kill the
@@ -32,23 +45,19 @@
       DefaultDependencies = false;
     };
 
-    sliceConfig = {
-      CPUAccounting = true;
-      ManagedOOMMemoryPressure = "kill";
-
-      # guarantee availability of memory
-      MemoryMin = "192M";
-      # default 100
-      IOWeight = 1000;
-      # default 100
-      CPUWeight = 1000;
-    };
+    sliceConfig = systemCriticalSliceConfig;
   };
+
+  # make root logins higher priority for resources
+  systemd.slices."user-0" = {
+    sliceConfig = systemCriticalSliceConfig;
+  };
+
 
   systemd.slices.system = {
     sliceConfig = {
-      # ManagedOOMMemoryPressure = "kill";
-      # ManagedOOMMemoryPressureLimit = "50%";
+      ManagedOOMMemoryPressure = "kill";
+      ManagedOOMMemoryPressureLimit = "50%";
 
       IOWeight = 100;
     };

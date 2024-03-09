@@ -13,6 +13,7 @@ in
     ../../roles/webdav
     ../../roles/users
     ../../roles/autobackup-source
+    ../../roles/cgroups
     ./hedgedoc.nix
     ./opengist.nix
     ../../modules/caddy-wildcard.nix
