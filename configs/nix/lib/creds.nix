@@ -20,8 +20,8 @@ in
 
   lunaphied = {
     sshKeys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFJlKTwO+iJuMkoJVqK6Gn4JfGHJEQWbXleRkshpVY9i irides@Mira.lan"
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOmpR8V9YzyYTgXZsKy0yIJk4fRMMP3waZ785eWECu0v lunaphied@Ran"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHcVL4brr4njOfw4uT32LR/ehs+p7iCLE8K9tXeOqYI7 cardno:18_226_645" # Keychain 5A NFC
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL7d4Zf3AQ2wmtiYSVcnmFlO5YmEWoOrC18R+uhnxWhr cardno:27_226_378" # Mira 5C Nano
     ];
   };
 
