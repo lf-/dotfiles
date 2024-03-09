@@ -12,12 +12,15 @@ in
     settings = {
       log-level = "trace";
       external-url = "https://${domain}";
-      git.default-branch = "main";
-      http.host = "127.0.0.1";
-      http.port = port;
-      ssh.git-enabled = false;
+      "git.default-branch" = "main";
+      "http.host" = "127.0.0.1";
+      "http.port" = port;
+      "ssh.git-enabled" = true;
+      "ssh.port" = 2022;
+      "ssh.host" = "0.0.0.0";
     };
   };
+  networking.firewall.allowedTCPPorts = [ 2022 ];
 
   jade.caddy-wildcard.hosts.${domain} = {
     action = ''

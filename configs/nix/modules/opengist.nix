@@ -32,42 +32,42 @@ let
         default = stateDir;
       };
 
-      http.host = lib.mkOption {
+      "http.host" = lib.mkOption {
         type = types.str;
         description = lib.mdDoc "The host on which opengist will bind http";
         default = "0.0.0.0";
         example = "127.0.0.1";
       };
 
-      http.port = lib.mkOption {
+      "http.port" = lib.mkOption {
         type = types.port;
         description = lib.mdDoc "The port on which opengist will bind http";
         default = 6157;
         example = 1234;
       };
 
-      http.git-enabled = lib.mkOption {
+      "http.git-enabled" = lib.mkOption {
         type = types.bool;
         description = lib.mdDoc "Whether to enable git access via http";
         default = true;
         example = false;
       };
 
-      ssh.git-enabled = lib.mkOption {
+      "ssh.git-enabled" = lib.mkOption {
         type = types.bool;
         description = lib.mdDoc "Whether to enable git access via ssh";
         default = true;
         example = false;
       };
 
-      ssh.host = lib.mkOption {
+      "ssh.host" = lib.mkOption {
         type = types.str;
         description = lib.mdDoc "The host on which opengist will bind ssh";
         default = "0.0.0.0";
         example = "127.0.0.1";
       };
 
-      ssh.port = lib.mkOption {
+      "ssh.port" = lib.mkOption {
         type = types.port;
         description = lib.mdDoc "The port on which opengist will bind ssh";
         default = 2222;
@@ -139,7 +139,7 @@ in
         RestrictNamespaces = true;
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
-        SocketBindAllow = [ cfg.settings.http.port cfg.settings.ssh.port ];
+        SocketBindAllow = [ cfg.settings."http.port" cfg.settings."ssh.port" ];
         SocketBindDeny = [ "any" ];
         SystemCallArchitectures = [ "native" ];
         SystemCallFilter = [

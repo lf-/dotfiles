@@ -45,10 +45,16 @@
       flake = false;
     };
 
+    lix = {
+      url = "git+ssh://gerrit.lix.systems:2022/lix";
+      flake = false;
+    };
+
     lix-module = {
       url = "git+ssh://git@lix.systems/lix-project/nixos-module";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
+      inputs.lix.follows = "lix";
     };
   };
 
@@ -101,6 +107,7 @@
           ./modules/dep-inject.nix
           dep-inject
           agenix.nixosModules.default
+          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
