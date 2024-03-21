@@ -352,6 +352,22 @@
         "type": "github"
       }
     },
+    "qyriad-nur": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1710648182,
+        "narHash": "sha256-h8SIzbLjg/dKbsY+A6gSnY6RbEh4z9zcosM3EBFnujk=",
+        "owner": "qyriad",
+        "repo": "nur-packages",
+        "rev": "8cb49d41ba42ef6009ef7050ab7a9cb5f2406705",
+        "type": "github"
+      },
+      "original": {
+        "owner": "qyriad",
+        "repo": "nur-packages",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
@@ -365,7 +381,8 @@
         "lix": "lix",
         "lix-module": "lix-module",
         "nixpkgs": "nixpkgs",
-        "polkadots": "polkadots"
+        "polkadots": "polkadots",
+        "qyriad-nur": "qyriad-nur"
       }
     },
     "rust-overlay": {

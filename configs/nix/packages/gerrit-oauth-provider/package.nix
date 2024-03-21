@@ -1,4 +1,4 @@
-{ fetchFromGitHub, buildBazelPackage, bazel_5, git, curl, jdk }:
+{ fetchFromGitHub, buildBazelPackage, bazel_5, git, curl, jdk, breakpointHook }:
 let
   # bazel needs the literal git commit but we also need a version number
   # Please update both when updating the package.
@@ -37,19 +37,25 @@ buildBazelPackage {
     git
     curl
     jdk
+    breakpointHook
   ];
 
   bazelTargets = [ "gerrit-oauth-provider" ];
   fetchAttrs = {
-    sha256 = "sha256-xRTwGWOIr/Sd5nt+TH1i98hTfmSHkaKBHuBKPTgG65s=";
+    sha256 = "sha256-aUINeqwk0XLbnUS5va2nZM3O+PWeNz9Rxzf/bmMC0EI=";
     # copypasta from BUILD under gerrit_plugin, deps
+    bazelFetchFlags = [ "--all" ];
     bazelTargets = [
-      "@commons-codec//jar:neverlink"
-      "@jackson-core//jar"
-      "@jackson-databind//jar"
-      "@scribejava-apis//jar"
-      "@scribejava-core//jar"
+      "//..."
+      # "@commons-codec//jar:neverlink"
+      # "@jackson-core//jar"
+      # "@jackson-databind//jar"
+      # "@scribejava-apis//jar"
+      # "@scribejava-core//jar"
     ];
   };
-  buildAttrs = { };
+  buildAttrs = {
+    bazelTestFlags = [ "--nofetch" ];
+    bazelBuildFlags = [ "--nofetch" ];
+  };
 }

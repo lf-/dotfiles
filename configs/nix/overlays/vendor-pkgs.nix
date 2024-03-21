@@ -5,4 +5,5 @@ let inherit (final) callPackage darwin; in {
   jellyfin-plugin-sso = callPackage ../packages/jellyfin-plugin-sso/package.nix { };
   opengist = callPackage ../packages/opengist/package.nix { };
   gerrit-oauth-provider = callPackage ../packages/gerrit-oauth-provider/package.nix { };
+  clangbuildanalyzer = callPackage ../packages/clangbuildanalyzer/package.nix { };
 }

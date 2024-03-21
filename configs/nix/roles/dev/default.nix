@@ -29,6 +29,11 @@ in
       type = lib.types.bool;
       description = ''Include hsutils (mildly expensive to build) in the closure'';
     };
+    jade.dev.withGui = mkOption {
+      default = true;
+      type = lib.types.bool;
+      description = ''Include gui stuff in the closure'';
+    };
   };
 
   config = {

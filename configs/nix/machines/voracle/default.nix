@@ -20,6 +20,7 @@ in
   ];
 
   jade.dev.withHsutils = false;
+  jade.dev.withGui = false;
 
   services.caddy = {
     enable = true;

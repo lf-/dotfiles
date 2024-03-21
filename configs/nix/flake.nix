@@ -30,6 +30,12 @@
       inputs.flake-compat.follows = "flake-compat";
     };
 
+    qyriad-nur = {
+      url = "github:qyriad/nur-packages";
+      # flake packaging violates "1000 instances of nixpkgs"
+      flake = false;
+    };
+
     flakey-profile = {
       url = "github:lf-/flakey-profile";
     };
@@ -68,6 +74,7 @@
     , gitignore
     , agenix
     , lanzaboote
+    , qyriad-nur
     , flakey-profile
     , lix-module
     , ...
@@ -76,7 +83,7 @@
       dep-inject = {
         imports = [ lanzaboote.nixosModules.lanzaboote ];
         jade.dep-inject = {
-          inherit polkadots aiobspwm aiopanel gitignore nixpkgs;
+          inherit polkadots aiobspwm aiopanel gitignore nixpkgs qyriad-nur;
         };
       };
     in
@@ -160,7 +167,7 @@
           hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
-          profile = import ./profile.nix { inherit pkgs flakey-profile nixpkgs; };
+          profile = import ./profile.nix { inherit pkgs flakey-profile qyriad-nur nixpkgs; };
           system-profile = import ./system-profile.nix { inherit pkgs flakey-profile; };
         };
     }));
