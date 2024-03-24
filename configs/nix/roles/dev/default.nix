@@ -16,7 +16,7 @@ let
   ];
   hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; };
 
-  common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils; };
+  common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils withGui; inherit (config.jade.dep-inject) qyriad-nur; };
 
   cfg = config.jade.dev;
   inherit (lib) mkOption;
