@@ -52,7 +52,7 @@
     };
 
     lix = {
-      url = "git+ssh://gerrit.lix.systems:2022/lix";
+      url = "git+ssh://git@lix.systems/lix-project/lix";
       flake = false;
     };
 

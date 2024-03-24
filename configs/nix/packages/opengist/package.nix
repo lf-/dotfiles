@@ -20,21 +20,21 @@ let
       cp -R public $out
     '';
 
-    npmDepsHash = "sha256-Sy321tIQOOrypk+EOGGixEzrPdhA9U8Hak+DOS+d00A=";
+    npmDepsHash = "sha256-QdZPO5UWY3cXyrjsQu6MkWbQHznb/GJSNJxSkhZRm50=";
   };
 
-  version = "1.6.1";
+  version = "1.7-dev20240224";
   src = fetchFromGitHub {
     owner = "thomiceli";
     repo = "opengist";
-    rev = "v${version}";
-    hash = "sha256-rJ8oiH08kSSFNgPHKGo68Oi1i3L1SEJyHuzoxKMOZME=";
+    rev = "390a18a143020838734fc020ff7eec4163d826fb";
+    hash = "sha256-9lxNiohyjtlqeR9A+jb+iMJMQEArnVuVdBp8FcpoyPk=";
   };
 in
 buildGoModule {
   pname = "opengist";
   inherit version src;
-  vendorHash = "sha256-IorqXJKzUTUL5zfKRipZaJtRlwVOmTwolJXFG/34Ais=";
+  vendorHash = "sha256-ub1XQdzX+7oKyaGrZ7nnhxKK8tidRIlGonGjUACn+yI=";
   tags = [
     "fs_embed"
   ];
