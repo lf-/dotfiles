@@ -64,6 +64,11 @@
             "settings": {
                 "haskell": {
                     "formattingProvider": "fourmolu",
+                    "plugin": {
+                        "stan": {
+                            "globalOn": false
+                        }
+                    }
                 },
             },
             "trace.server": "verbose",
@@ -72,6 +77,10 @@
         "typst": {
             "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
             "filetypes": ["typst"],
+        },
+        "gopls": {
+            "command": "gopls",
+            "filetypes": ["go"],
         }
     },
     "semanticTokens.enable": true,

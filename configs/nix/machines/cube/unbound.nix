@@ -8,6 +8,9 @@
 
   services.unbound = {
     enable = true;
+    # actually a bug in nixpkgs, this should be disabled by the default
+    # i dont feel like reporting it
+    checkconf = false;
     settings = {
       server = {
         interface = "0.0.0.0";

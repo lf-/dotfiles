@@ -78,7 +78,7 @@ if [[ ! -d "$TMPDIR" ]]; then
 fi
 
 # Sane infinality java config
-export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=lcd'
-export _JAVA_AWT_WM_NONREPARENTING=1
+#export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=lcd'
+#export _JAVA_AWT_WM_NONREPARENTING=1
 
 TMPPREFIX="${TMPDIR%/}/zsh"

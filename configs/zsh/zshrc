@@ -23,9 +23,9 @@ fi
 #     print -sr "${1%%$'\n'} ### ${PWD}"
 #     fc -p
 # }
-# if whence atuin >/dev/null 2>&1; then
-#     eval "$(ATUIN_NOBIND=true atuin init zsh)"
-# fi
+if whence atuin >/dev/null 2>&1; then
+    eval "$(ATUIN_NOBIND=true atuin init zsh)"
+fi
 
 if which direnv > /dev/null 2>&1; then
   eval "$(direnv hook zsh)"
