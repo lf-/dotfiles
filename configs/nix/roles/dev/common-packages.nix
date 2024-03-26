@@ -6,6 +6,7 @@ let
   qyriad-nur-packages = import qyriad-nur { inherit pkgs; };
 in
 with pkgs; [
+  atuin
   cachix
   cmake-language-server
   cntr
