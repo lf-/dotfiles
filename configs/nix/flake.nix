@@ -128,6 +128,7 @@
           ./modules/dep-inject.nix
           dep-inject
           agenix.nixosModules.default
+          lix-module.nixosModules.default
         ];
       };
 
