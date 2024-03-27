@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# stolen from https://gist.github.com/thoughtpolice/8f2fd36ae17cd11b8e7bd93a70e31ad6
+
+set -euo pipefail
+
+NAME=$(jj config get user.name)
+MAIL=$(jj config get user.email)
+USE_SIGNOFF=$(jj config get repo.use-signoff || echo false)
+CID=$(jj log --no-graph -r @ -T "change_id" | sha256sum | head -c 40)
+
+SIGNSTR="Signed-off-by: ${NAME} <${MAIL}>"
+CHGSTR="Change-Id: I${CID}"
+
+contents=$(<"$1")
+readarray -t lines <<<"$contents"
+
+body=''
+last=''
+for x in "${lines[@]}"; do
+  [[ "$x" =~ ^"JJ:" ]] && continue
+  [[ "$x" =~ ^"Change-Id:" ]] && continue
+  [[ $USE_SIGNOFF != false && "$x" =~ ^"$SIGNSTR" ]] && continue
+
+  [[ "$x" == '' ]] && [[ "$last" == '' ]] && continue
+
+  last="$x"
+  body+=$"$x\n"
+done
+
+[[ $USE_SIGNOFF != false ]] && body+="$SIGNSTR\n"
+body+="$CHGSTR\n"
+
+t=$(mktemp)
+echo -n "$body" > "$t"
+mv "$t" "$1"
+
+$VISUAL "$1"
+ret=$?
+
+if [[ "$(grep -v '^JJ:' "$1")" =~ ^[[:space:]]*$ ]]; then
+    echo 'empty commit message!'
+    exit 1
+fi
+
+exit $ret
