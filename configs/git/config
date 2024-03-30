@@ -46,6 +46,9 @@
 [merge]
 	conflictStyle = zdiff3
 
+[diff]
+    colorMoved = dimmed-zebra
+
 [init]
 	defaultBranch = main
 
@@ -62,6 +65,10 @@
 # git clone -j8 by default
 [submodule]
 	fetchJobs = 8
+
+# allow gerrit git hooks to run on git-revise
+[revise "run-hooks"]
+	commit-msg = true
 
 # [url "git@github.com:"]
 # 	pushInsteadOf = git://github.com/
