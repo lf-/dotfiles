@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eu
+
+gerrit_host=$(git config git-gerrit.host)
+
+ssh "$gerrit_host" -- gerrit "${*@Q}"
