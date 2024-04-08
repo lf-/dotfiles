@@ -14,7 +14,7 @@ let
 
     numpy
   ];
-  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc94"; };
+  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; };
 
   common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils withGui; inherit (config.jade.dep-inject) qyriad-nur; };
 
@@ -70,6 +70,7 @@ in
       hsutilsOverlay
       (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
       (import ../../overlays/jadeware.nix)
+      (import ../../overlays/patches/diffoscope)
     ];
 
     nix.settings = {

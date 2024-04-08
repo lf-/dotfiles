@@ -24,7 +24,6 @@ with pkgs; [
   phpPackages.php-cs-fixer
   phpactor
   reuse
-  rnix-lsp
   nixd
   nil
   rustfilt
