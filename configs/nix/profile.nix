@@ -5,13 +5,11 @@ let
   wrapGui = pkg: writeShellScriptBin pkg.pname ''
     LOCALE_ARCHIVE=${lib.getLib pkgs.glibcLocales}/lib/locale/locale-archive exec ${nixYuriPkg.nixYuriIntel}/bin/nixYuri ${pkg}/bin/${pkg.meta.mainProgram or pkg.pname}
   '';
-  xwaylandvideobridge = wrapGui pkgs.xwaylandvideobridge;
 in
 flakey-profile.lib.mkProfile {
   inherit pkgs;
   paths = with pkgs; [
     nixYuriPkg.nixYuriIntel
-    xwaylandvideobridge
     librespot
     watchman
   ] ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = true; withGui = true; };

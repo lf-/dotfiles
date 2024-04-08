@@ -36,6 +36,8 @@ with pkgs; [
   rufo
   gopls
 
+  jujutsu
+
   rage
   age-plugin-yubikey
   age-plugin-tpm
