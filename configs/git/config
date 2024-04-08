@@ -9,17 +9,18 @@
 	d = diff --staged
 	rs = restore --staged
 	ap = add -pu
-    lin = linear
-    bigclone = clone --filter=tree:0
-    amend = commit --amend --no-edit
-    fix = commit --fixup
-    p = push -fu origin @
+	lin = linear
+	bigclone = clone --filter=tree:0
+	amend = commit --amend --no-edit
+	fix = commit --fixup
+	p = push -fu origin @
 	git = !git
 	pukk = pull
 	r = restore
-    rsw = restore --staged --worktree
+	rsw = restore --staged --worktree
 	tlog = log --graph --oneline --all
 	leash = push --force-with-lease
+	fulllog = log --format=full --full-diff --patch
 
 [blame]
 	coloring = highlightRecent
@@ -47,7 +48,7 @@
 	conflictStyle = zdiff3
 
 [diff]
-    colorMoved = dimmed-zebra
+	colorMoved = dimmed-zebra
 
 [init]
 	defaultBranch = main
@@ -75,5 +76,5 @@
 # 	pushInsteadOf = https://github.com/
 
 [sendemail.linux]
-    tocmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nol"
-    cccmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nom"
+	tocmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nol"
+	cccmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nom"

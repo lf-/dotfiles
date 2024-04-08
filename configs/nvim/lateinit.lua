@@ -518,6 +518,15 @@ augroup('formatoptions', function(autocmd)
     autocmd(
         'FileType',
         {
+            pattern = 'gitconfig',
+            callback = function()
+                bufopt.expandtab = false
+            end,
+        }
+    )
+    autocmd(
+        'FileType',
+        {
             pattern = 'gitcommit',
             callback = function ()
                 bufopt.spell = true
@@ -535,6 +544,9 @@ augroups.setfiletypes('filetypedetection', {
 
     -- git revise -i has the same syntax as git rebase, to a first degree
     {'git-revise-todo', 'gitrebase'},
+
+    -- new style git config does not get filetype'd properly
+    {'*/git/config', 'gitconfig'},
 
     -- coc-settings is actually json+comments
     {'coc-settings.json', 'jsonc'},
