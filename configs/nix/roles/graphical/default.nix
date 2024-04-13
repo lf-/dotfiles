@@ -40,7 +40,7 @@
 
     meld
 
-    dfeet
+    d-spy
 
     vscode
 

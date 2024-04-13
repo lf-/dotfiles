@@ -3,4 +3,4 @@
 cmd=${1:-switch}
 shift
 
-nixos-rebuild $cmd --flake .#snowflake -L "$@"
+nixos-rebuild $cmd --fast --flake .#snowflake -L "$@"
