@@ -15,6 +15,7 @@ with pkgs; [
   git-absorb
   git-revise
   niv
+  npins
   nix-direnv
   nix-doc
   nix-eval-jobs
@@ -24,7 +25,6 @@ with pkgs; [
   phpPackages.php-cs-fixer
   phpactor
   reuse
-  nixd
   nil
   rustfilt
   shellcheck
