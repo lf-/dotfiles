@@ -78,3 +78,7 @@
 [sendemail.linux]
 	tocmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nol"
 	cccmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nom"
+
+# https://github.com/dandavison/delta/discussions/1676
+# [diff "json-diff"]
+# 	command = json-diff --color "$2" "$5" || true

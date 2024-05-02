@@ -34,6 +34,7 @@ with pkgs; [
   ruby-lsp
   rufo
   gopls
+  nodePackages.json-diff
 
   jujutsu
 
