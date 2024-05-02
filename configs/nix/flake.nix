@@ -156,7 +156,6 @@
               (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
               (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
               (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; })
-              (import ./overlays/patches/diffoscope)
               (import ./overlays/jadeware.nix)
               (import ./overlays/vendor-pkgs.nix)
               lix-module.overlays.default

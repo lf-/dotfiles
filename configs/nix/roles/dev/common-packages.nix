@@ -30,7 +30,8 @@ with pkgs; [
   shellcheck
   typst-lsp
   typst
-  diffoscope
+  # https://github.com/NixOS/nixpkgs/pull/307337
+  # diffoscope
   ruby-lsp
   rufo
   gopls
