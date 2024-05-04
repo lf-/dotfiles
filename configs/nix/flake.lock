@@ -96,21 +96,6 @@
         "type": "github"
       }
     },
-    "flake-compat_2": {
-      "locked": {
-        "lastModified": 1696426674,
-        "narHash": "sha256-kvjfFW7WAETZlt09AgDn1MrtKzP7t90Vf7vypd3OL1U=",
-        "ref": "refs/heads/master",
-        "rev": "0f9255e01c2351cc7d116c072cb317785dd33b33",
-        "revCount": 57,
-        "type": "git",
-        "url": "ssh://git@git.lix.systems/lix-project/flake-compat"
-      },
-      "original": {
-        "type": "git",
-        "url": "ssh://git@git.lix.systems/lix-project/flake-compat"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
@@ -248,11 +233,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1714353561,
-        "narHash": "sha256-1OKjSB5kPw0Tnm/h4j1IZe6TfdX04QNbm1kn0q58Rls=",
+        "lastModified": 1714774053,
+        "narHash": "sha256-RaiwQCGFhC1WtieS2N3FotIlKSowq+R6ETyY6nZnPh8=",
         "ref": "refs/heads/main",
-        "rev": "c0733f3cec9e5edd7fa3a4bf156b6ee065762fea",
-        "revCount": 15448,
+        "rev": "549d609a7bce2b4ac28808a76a72d7f3743b9c76",
+        "revCount": 15471,
         "type": "git",
         "url": "ssh://git@lix.systems/lix-project/lix"
       },
@@ -263,7 +248,6 @@
     },
     "lix-module": {
       "inputs": {
-        "flake-compat": "flake-compat_2",
         "flake-utils": [
           "flake-utils"
         ],
@@ -276,11 +260,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1713823914,
-        "narHash": "sha256-phAcUYvh3tuCTCBkB/i4cfU4QafrNub6rvRqD2Wcbt4=",
+        "lastModified": 1714781899,
+        "narHash": "sha256-LGG9JOAGVu+JjfKpbwkTbTqUglQePZdNpasnrKKEwqs=",
         "ref": "refs/heads/main",
-        "rev": "21907b875dcc5472faea29a0eabf114966fcff84",
-        "revCount": 53,
+        "rev": "a2ef313aceb2205d7b9be3247e71a6bab628faf5",
+        "revCount": 57,
         "type": "git",
         "url": "ssh://git@lix.systems/lix-project/nixos-module"
       },
