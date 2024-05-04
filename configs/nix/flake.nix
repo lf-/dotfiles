@@ -163,7 +163,7 @@
             inherit system;
           };
         in
-        (import ./local-packages.nix pkgs) // {
+        (import ./local-packages.nix { inherit pkgs qyriad-nur; }) // {
           caddy-acmedns = pkgs.callPackage ./packages/caddy-acmedns/package.nix { };
           hsutils = pkgs.haskell.lib.justStaticExecutables pkgs.hsutils;
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;

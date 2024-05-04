@@ -1,11 +1,13 @@
 {}:
 let
   lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-  nixpkgsLock = lock.nodes.nixpkgs.locked;
-  nixpkgs = builtins.fetchTarball {
-    url = "https://github.com/${nixpkgsLock.owner}/${nixpkgsLock.repo}/archive/${nixpkgsLock.rev}";
-    sha256 = nixpkgsLock.narHash;
+
+  fetchGitHubLocked = lock: builtins.fetchTarball {
+    url = "https://github.com/${lock.owner}/${lock.repo}/archive/${lock.rev}";
+    sha256 = lock.narHash;
   };
+  nixpkgs = fetchGitHubLocked lock.nodes.nixpkgs.locked;
+  qyriad-nur = fetchGitHubLocked lock.nodes.qyriad-nur.locked;
 
   pkgs = import nixpkgs {
     overlays = [
@@ -14,4 +16,4 @@ let
     ];
   };
 in
-import ./local-packages.nix pkgs
+import ./local-packages.nix { inherit pkgs qyriad-nur; }
