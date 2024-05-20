@@ -80,15 +80,15 @@ require 'nvim-treesitter.configs'.setup {
     },
 }
 
-require 'treesitter-context'.setup {
-    max_lines = 3,
-    min_window_height = 30,
-    patterns = {
-        nix = {
-            'binding'
-        }
-    }
-}
+-- require 'treesitter-context'.setup {
+--     max_lines = 3,
+--     min_window_height = 30,
+--     patterns = {
+--         nix = {
+--             'binding'
+--         }
+--     }
+-- }
 
 require('telescope').setup {
     defaults = {

@@ -1,0 +1,21 @@
+{
+  "languageserver": {
+    "haskell": {
+      "command": "direnv-hls",
+      "args": ["--lsp"],
+      "rootPatterns": [
+        "*.cabal",
+        "stack.yaml",
+        "cabal.project",
+        "package.yaml",
+        "hie.yaml"
+      ],
+      "filetypes": ["haskell", "lhaskell"],
+      "settings": {
+        "haskell.formattingProvider": "fourmolu"
+      },
+      "trace.server": "verbose",
+      "trace.server.verbosity": "verbose"
+    }
+  }
+}

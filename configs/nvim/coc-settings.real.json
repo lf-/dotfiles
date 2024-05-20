@@ -1,0 +1,133 @@
+{
+    "hover.floatMaxWidth": 90,
+    "hover.floatMaxHeight": 20,
+    "signature.maxWindowHeight": 15,
+    "list.maxPreviewHeight": 25,
+    "rust-analyzer.diagnostics.disabled": ["incorrect-ident-case"],
+    "rust-analyzer.procMacro.attributes.enable": true,
+    "rust-analyzer.server.extraEnv": {
+        "RA_LOG": "info,salsa::derived::slot=warn,chalk_recursive=warn,hir_ty::traits=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,project_model=debug,proc_macro_api=debug,hir_expand::db=error,ide_assists=debug,ide=debug"
+    },
+    "rust-analyzer.updates.channel": "stable",
+    "coc.preferences.formatOnSaveFiletypes": ["rust", "typescript", "typescriptreact"],
+    "languageserver": {
+        "nix": {
+            "command": "nil",
+            "args": [],
+            "filetypes": ["nix"],
+            "settings": {
+                "nil": {
+                    "formatting": {
+                        "command": ["nixpkgs-fmt"],
+                    },
+                },
+            },
+        },
+        "cmake": {
+            "command": "cmake-language-server",
+            "filetypes": ["cmake"]
+        },
+        "svlangserver": {
+            // npm i -g @imc-trading/svlangserver
+            "module": "~/.local/share/npm-packages/lib/node_modules/@imc-trading/svlangserver/lib/svlangserver.js",
+            "rootPatterns": [".svls_root"],
+            "filetypes": ["systemverilog", "verilog"],
+            "settings": {
+                "systemverilog.includeIndexing": ["*.{sv,v,svh}"],
+                "systemverilog.excludeIndexing": [],
+                "systemverilog.defines": [],
+                "systemverilog.launchConfiguration": "verilator -sv -Wall --timing --lint-only",
+                "systemverilog.formatCommand": "verible-verilog-format --indentation_spaces 4"
+            }
+        },
+        "phpactor": {
+            "command": "phpactor",
+            "args": ["language-server", "-vvv"],
+            "filetypes": ["php"],
+        },
+        "bash": {
+            "command": "bash-language-server",
+            "args": ["start"],
+            "filetypes": ["sh"]
+        },
+        "haskell": {
+            "command": "direnv-hls",
+            "args": ["--lsp"],
+            "rootPatterns": [
+                "*.cabal",
+                "stack.yaml",
+                "cabal.project",
+                "package.yaml",
+                "hie.yaml"
+            ],
+            "filetypes": ["haskell", "lhaskell"],
+            "settings": {
+                "haskell": {
+                    "formattingProvider": "fourmolu",
+                },
+            },
+            "trace.server": "verbose",
+            "trace.server.verbosity": "verbose",
+        },
+        "ruby": {
+            "command": "ruby-lsp",
+            "filetypes": ["ruby"],
+            "trace.server": "verbose",
+            "trace.server.verbosity": "verbose",
+        },
+        "typst": {
+            "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
+            "filetypes": ["typst"],
+        }
+    },
+    "semanticTokens.enable": true,
+    "rust-analyzer.semanticHighlighting.strings.enable": false,
+    "rust-analyzer.semanticHighlighting.operator.enable": false,
+    "rust-analyzer.semanticHighlighting.punctuation.enable": false,
+    "prettier.tabWidth": 4,
+    "codeLens.enable": true,
+    // "python.pythonPath": "/home/jade/bin/_pyright_python",
+    "python.formatting.provider": "yapf",
+    "workspace.rootPatterns": [
+        ".python-root",
+        ".git",
+        ".hg",
+        ".projections.json"
+    ],
+    "rust-analyzer.cargo.unsetTest": ["ed25519-dalek", "core"],
+    "yaml.schemaStore.enable": true,
+    "yaml.trace.server": "verbose",
+    "sumneko-lua.enableNvimLuaDev": true,
+    "Lua.telemetry.enable": false,
+    "Lua.runtime.version": "LuaJIT",
+    "Lua.runtime.pathStrict": false,
+    "Lua.workspace.library": [
+      "/home/jade/.local/share/nvim/site"
+    ],
+
+    // dont do stuff when i type
+    "html.autoClosingTags": false,
+    "html.autoCreateQuotes": false,
+
+    "suggest.noselect": true,
+    "suggest.enablePreselect": false,
+
+    "list.insertMappings": {
+        "<C-x>": "action:split",
+        "<C-v>": "action:vsplit"
+    },
+    "list.normalMappings": {
+        "<C-x>": "action:split",
+        "<C-v>": "action:vsplit"
+    },
+    "clangd.path": "direnv-clangd",
+    "clangd.enabled": true,
+
+    "codeLens.position": "eol",
+    "hover.floatConfig": {
+        "focusable": true
+    },
+    "rust-analyzer.server.extraEnv": {
+        "CARGO_REGISTRIES_CRATES_IO_PROTOCOL": "sparse"
+    }
+}
