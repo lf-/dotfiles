@@ -5,10 +5,13 @@
 { pkgs, lib, config, ... }:
 let
   host = "git.jade.fyi";
+  baseDir = "/data/forgejo";
 in
 {
   services.forgejo = {
     enable = true;
+
+    stateDir = baseDir;
 
     # General settings.
     lfs.enable = true;
@@ -33,17 +36,22 @@ in
       };
 
       openid = {
-        #ENABLE_OPENID_SIGNIN = true;
-        ENABLE_OPENID_SIGNUP = true;
+        ENABLE_OPENID_SIGNIN = false;
+        ENABLE_OPENID_SIGNUP = false;
       };
+
       oauth2_client = {
         ENABLE_AUTO_REGISTRATION = true;
+        REGISTER_EMAIL_CONFIRM = false;
         ACCOUNT_LINKING = "login";
         USERNAME = "nickname";
+        OPENID_CONNECT_SCOPES = "email profile";
       };
 
       service = {
-        DISABLE_REGISTRATION = true;
+        DISABLE_REGISTRATION = false;
+        ALLOW_ONLY_EXTERNAL_REGISTRATION = true;
+        ALLOW_ONLY_INTERNAL_REGISTRATION = false;
         #REQUIRE_SIGNIN_VIEW = false;
         ENABLE_NOTIFY_MAIL = true;
 
@@ -52,6 +60,10 @@ in
         #
         # See: https://github.com/bmackinney/gitea/commit/a9eb2167536cfa8f7b7a23f73e11c8edf5dc0dc0
         AUTO_WATCH_NEW_REPOS = false;
+
+        explore = {
+          REQUIRE_SIGNIN_VIEW = true;
+        };
       };
 
       session = {
@@ -106,7 +118,17 @@ in
   };
   users.groups."${config.services.forgejo.group}" = { };
 
+  jade.caddy-wildcard.hosts = {
+    "git.jade.fyi" = {
+      publicAccess = true;
+      action = ''
+        reverse_proxy 127.0.0.1:3000
+      '';
+    };
+  };
+
   systemd.tmpfiles.rules = let cfg = config.services.forgejo; img = ./img; in [
+    "d '${cfg.customDir}/public' 0750 ${cfg.user} ${cfg.group} - -"
     "d '${cfg.customDir}/public/assets' 0750 ${cfg.user} ${cfg.group} - -"
     "d '${cfg.customDir}/public/assets/img' 0750 ${cfg.user} ${cfg.group} - -"
     "L+ '${cfg.customDir}/public/assets/css' - - - - ${./theme}"
