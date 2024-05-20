@@ -1,0 +1,2 @@
+@import "theme-lix-light.css";
+@import "theme-lix-dark.css" (prefers-color-scheme: dark);

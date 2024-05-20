@@ -43,6 +43,8 @@ in
   programs.zsh.enable = true;
 
   documentation.dev.enable = true;
+  # simply do not need the nixos manual
+  documentation.nixos.enable = false;
 
   # use nftables for firewall
   networking.nftables.enable = true;

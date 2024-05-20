@@ -14,8 +14,10 @@ in
     ../../roles/users
     ../../roles/autobackup-source
     ../../roles/cgroups
+    ../../roles/forgejo
     ./hedgedoc.nix
     ./opengist.nix
+    ./postgres.nix
     ../../modules/caddy-wildcard.nix
   ];
 

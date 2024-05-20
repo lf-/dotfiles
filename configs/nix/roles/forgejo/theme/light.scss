@@ -1,0 +1,33 @@
+$lightpurple: #d162a4;
+$mediumpurple: #b55690;
+$darkpurple: #a30262;
+$base: $darkpurple;
+
+:root {
+  --color-primary: #{$darkpurple};
+  --color-primary-contrast: #fff;
+  --color-primary-dark-1: #{darken($darkpurple, 5%)};
+  --color-primary-dark-2: #{darken($darkpurple, 10%)};
+  --color-primary-dark-3: #{darken($darkpurple, 15%)};
+  --color-primary-dark-4: #{darken($darkpurple, 20%)};
+  --color-primary-dark-5: #{darken($darkpurple, 25%)};
+  --color-primary-dark-6: #{darken($darkpurple, 30%)};
+  --color-primary-dark-7: #{darken($darkpurple, 35%)};
+  --color-primary-light-1: #{mix($darkpurple, $mediumpurple)};
+  --color-primary-light-2: #{$mediumpurple};
+  --color-primary-light-3: #{mix($mediumpurple, $lightpurple)};
+  --color-primary-light-4: #{$lightpurple};
+  --color-primary-light-5: #{lighten($lightpurple, 5%)};
+  --color-primary-light-6: #{lighten($lightpurple, 10%)};
+  --color-primary-light-7: #{lighten($lightpurple, 15%)};
+  --color-primary-alpha-10: #{$base}19;
+  --color-primary-alpha-20: #{$base}33;
+  --color-primary-alpha-30: #{$base}4b;
+  --color-primary-alpha-40: #{$base}66;
+  --color-primary-alpha-50: #{$base}80;
+  --color-primary-alpha-60: #{$base}99;
+  --color-primary-alpha-70: #{$base}b3;
+  --color-primary-alpha-80: #{$base}cc;
+  --color-primary-alpha-90: #{$base}e1;
+}
+

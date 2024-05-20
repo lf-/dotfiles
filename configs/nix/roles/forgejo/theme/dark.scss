@@ -1,0 +1,34 @@
+$lightpurple: #d162a4;
+$mediumpurple: #b55690;
+$darkpurple: #a30262;
+$base: $lightpurple;
+
+:root {
+  --color-primary: #{$base};
+  // Used e.g. on button labels
+  --color-primary-contrast: #fff;
+  --color-primary-dark-1: #{mix($lightpurple, $darkpurple)};
+  --color-primary-dark-2: #{$mediumpurple};
+  --color-primary-dark-3: #{mix($mediumpurple, $darkpurple)};
+  --color-primary-dark-4: #{$darkpurple};
+  --color-primary-dark-5: #{darken($darkpurple, 5%)};
+  --color-primary-dark-6: #{darken($darkpurple, 10%)};
+  --color-primary-dark-7: #{darken($darkpurple, 15%)};
+  --color-primary-light-1: #{lighten($lightpurple, 5%)};
+  --color-primary-light-2: #{lighten($lightpurple, 10%)};
+  --color-primary-light-3: #{lighten($lightpurple, 15%)};
+  --color-primary-light-4: #{lighten($lightpurple, 20%)};
+  --color-primary-light-5: #{lighten($lightpurple, 25%)};
+  --color-primary-light-6: #{lighten($lightpurple, 30%)};
+  --color-primary-light-7: #{lighten($lightpurple, 35%)};
+  --color-primary-alpha-10: #{$base}19;
+  --color-primary-alpha-20: #{$base}33;
+  --color-primary-alpha-30: #{$base}4b;
+  --color-primary-alpha-40: #{$base}66;
+  --color-primary-alpha-50: #{$base}80;
+  --color-primary-alpha-60: #{$base}99;
+  --color-primary-alpha-70: #{$base}b3;
+  --color-primary-alpha-80: #{$base}cc;
+  --color-primary-alpha-90: #{$base}e1;
+}
+
