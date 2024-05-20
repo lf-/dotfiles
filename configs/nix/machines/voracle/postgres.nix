@@ -1,9 +1,11 @@
-{ ... }:
-let basePath = "/data/postgres";
+{ config, ... }:
+let
+  basePath = "/data/postgres";
+  cfg = config.services.postgresql;
 in
 {
   services.postgresql = {
     enable = true;
-    dataDir = basePath;
+    dataDir = "${basePath}/${cfg.package.psqlSchema}";
   };
 }
