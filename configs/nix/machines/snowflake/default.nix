@@ -97,6 +97,8 @@
   };
 
   environment.systemPackages = with pkgs; [
+    # i dont want literally any of the gpg stuff, just the agent
+    config.programs.gnupg.agent.pinentryPackage
     prismlauncher
     openttd
     virt-manager
