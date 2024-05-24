@@ -105,6 +105,7 @@
           ./machines/micro
           ./modules/dep-inject.nix
           dep-inject
+          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.voracle = nixpkgs.lib.nixosSystem {
