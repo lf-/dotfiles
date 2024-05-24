@@ -32,6 +32,7 @@ with pkgs; [
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
   # diffoscope
+  difftastic
   ruby-lsp
   rufo
   gopls
