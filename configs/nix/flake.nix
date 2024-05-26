@@ -99,6 +99,15 @@
           lix-module.nixosModules.default
         ];
       };
+      nixosConfigurations.icecream = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./machines/icecream
+          ./modules/dep-inject.nix
+          dep-inject
+          lix-module.nixosModules.default
+        ];
+      };
       nixosConfigurations.micro = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [

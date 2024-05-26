@@ -14,6 +14,7 @@
     zsh
     tree
     htop
+    xonsh
   ];
 
   nixpkgs.overlays = [

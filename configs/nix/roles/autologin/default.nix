@@ -1,12 +1,13 @@
 { config, pkgs, lib, ... }:
-let sddmCfg = config.services.xserver.displayManager.sddm;
+let sddmCfg = config.services.displayManager.sddm;
 in {
-  services.xserver.displayManager = {
+  services.displayManager = {
     sddm = {
       enable = true;
+      wayland.enable = true;
     };
 
-    defaultSession = "plasmawayland";
+    defaultSession = "plasma";
     autoLogin = {
       enable = true;
       user = "jade";
@@ -23,7 +24,7 @@ in {
     sddm-autologin.text = lib.mkForce ''
       auth     requisite pam_nologin.so
       auth     optional  ${config.systemd.package}/lib/security/pam_systemd_loadkey.so debug
-      auth     optional  ${pkgs.plasma5Packages.kwallet-pam}/lib/security/pam_kwallet5.so kwalletd=${pkgs.plasma5Packages.kwallet.bin}/bin/kwalletd5
+      auth     optional  ${pkgs.kdePackages.kwallet-pam}/lib/security/pam_kwallet5.so kwalletd=${pkgs.kdePackages.kwallet}/bin/kwalletd6
       auth     optional  ${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so
       auth     required  pam_succeed_if.so uid >= ${toString sddmCfg.autoLogin.minimumUid} quiet
       auth     required  pam_permit.so

@@ -63,7 +63,7 @@
 
   # deal with the dbus systemd interaction bug where it will not fail things if
   # they fail in systemd
-  # services.dbus.implementation = "broker";
+  services.dbus.implementation = "broker";
 
   # gitk
   programs.git.package = pkgs.gitFull;
@@ -78,6 +78,10 @@
     pulse.enable = true;
   };
   security.rtkit.enable = true;
+
+  programs.dconf.enable = true;
+  hardware.bluetooth.enable = true;
+  hardware.acpilight.enable = true;
 
   boot.extraModulePackages = [ config.boot.kernelPackages.v4l2loopback ];
   boot.kernelModules = [ "v4l2loopback" ];

@@ -1,12 +1,14 @@
 { pkgs, lib, ... }:
 {
-  services.xserver.desktopManager.plasma5 = {
+  imports = [ ../graphical ];
+
+  services.desktopManager.plasma6 = {
     enable = true;
   };
   # conflicts with programs.seahorse
-  programs.ssh.askPassword = "${pkgs.libsForQt5.plasma5.ksshaskpass.out}/bin/ksshaskpass";
+  programs.ssh.askPassword = "${pkgs.kdePackages.ksshaskpass.out}/bin/ksshaskpass";
 
-  environment.systemPackages = with pkgs.libsForQt5; [
+  environment.systemPackages = with pkgs.kdePackages; [
     kate
   ];
 }

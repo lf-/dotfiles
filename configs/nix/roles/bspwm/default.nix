@@ -74,16 +74,16 @@
     blueberry
     okular
     dolphin
-    libsForQt5.dolphin-plugins
+    kdePackages.dolphin-plugins
     kio-admin
-    libsForQt5.kio-extras
+    kdePackages.kio-extras
     ffmpegthumbs
     ark
     konsole
-    libsForQt5.print-manager
+    kdePackages.print-manager
     systemsettings
     gwenview
-    libsForQt5.kdegraphics-thumbnailers
+    kdePackages.kdegraphics-thumbnailers
 
     # FIXME: maybe convert to the service module?
     picom

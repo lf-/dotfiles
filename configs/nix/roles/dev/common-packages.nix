@@ -36,6 +36,7 @@ with pkgs; [
   ruby-lsp
   rufo
   gopls
+  python3Packages.python-lsp-server
   nodePackages.json-diff
 
   jujutsu
