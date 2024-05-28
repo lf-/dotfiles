@@ -6,4 +6,5 @@ let inherit (final) callPackage darwin; in {
   opengist = callPackage ../packages/opengist/package.nix { };
   gerrit-oauth-provider = callPackage ../packages/gerrit-oauth-provider/package.nix { };
   clangbuildanalyzer = callPackage ../packages/clangbuildanalyzer/package.nix { };
+  xunit-viewer = callPackage ../packages/xunit-viewer/package.nix { };
 }
