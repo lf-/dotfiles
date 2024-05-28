@@ -88,6 +88,7 @@
     ATTR{device}=="0x249d", ATTR{vendor}=="0x10de", ATTR{power/control} := "auto"
   '';
 
+  services.hardware.openrgb.enable = true;
 
   boot.initrd.systemd = {
     enable = true;
