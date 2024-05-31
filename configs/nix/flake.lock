@@ -236,11 +236,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1716165492,
-        "narHash": "sha256-L1tz9F8JJOrjT0U6tC41aynGcfME3wUubpp32upseJU=",
-        "rev": "992c63fc0b485e571714eabe28e956f10e865a89",
+        "lastModified": 1717106018,
+        "narHash": "sha256-SrO5K+RmM6gRIeu43IvoVv0tQMAtIlRCUeyWj7y2s9Q=",
+        "rev": "2f104bbe3baf1e43a3fd78dc04f3f8ed48183554",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/992c63fc0b485e571714eabe28e956f10e865a89.tar.gz"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/2f104bbe3baf1e43a3fd78dc04f3f8ed48183554.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -261,11 +261,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1715885250,
-        "narHash": "sha256-IUFYAl3158Ig5vySnRBHoPReb2/S97bjodCo6FhzJv4=",
-        "rev": "53d713eb486f21d653af3ef3528e9a19ecfc45e5",
+        "lastModified": 1717036776,
+        "narHash": "sha256-joKTxvywYlKspGGKOIXho6oRbggOPyayEqAyuZCavO0=",
+        "rev": "b4b38e6b5fe18da9464f291ae5fbf2ea9acb9ccb",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/53d713eb486f21d653af3ef3528e9a19ecfc45e5.tar.gz"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/b4b38e6b5fe18da9464f291ae5fbf2ea9acb9ccb.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -274,11 +274,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1715787315,
-        "narHash": "sha256-cYApT0NXJfqBkKcci7D9Kr4CBYZKOQKDYA23q8XNuWg=",
+        "lastModified": 1716948383,
+        "narHash": "sha256-SzDKxseEcHR5KzPXLwsemyTR/kaM9whxeiJohbL04rs=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "33d1e753c82ffc557b4a585c77de43d4c922ebb5",
+        "rev": "ad57eef4ef0659193044870c731987a6df5cf56b",
         "type": "github"
       },
       "original": {

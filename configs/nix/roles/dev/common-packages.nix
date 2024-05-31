@@ -39,6 +39,8 @@ with pkgs; [
   python3Packages.python-lsp-server
   nodePackages.json-diff
 
+  xonsh
+
   xunit-viewer
 
   jujutsu

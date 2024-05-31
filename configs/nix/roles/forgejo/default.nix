@@ -61,9 +61,10 @@ in
         # See: https://github.com/bmackinney/gitea/commit/a9eb2167536cfa8f7b7a23f73e11c8edf5dc0dc0
         AUTO_WATCH_NEW_REPOS = false;
 
-        explore = {
-          REQUIRE_SIGNIN_VIEW = true;
-        };
+      };
+
+      "service.explore" = {
+        REQUIRE_SIGNIN_VIEW = true;
       };
 
       session = {
