@@ -253,3 +253,6 @@ cgroup
 BPF
 btrfs
 xfs
+Forgejo
+gerrit
+forgejo

@@ -12,6 +12,7 @@ flakey-profile.lib.mkProfile {
     nixYuriPkg.nixYuriIntel
     librespot
     watchman
+    polkadots
   ] ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = true; withGui = true; };
   pinned = { nixpkgs = nixpkgs; };
 }
