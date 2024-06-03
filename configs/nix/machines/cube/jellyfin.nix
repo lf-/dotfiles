@@ -1,12 +1,27 @@
-{ pkgs, ... }: {
+{ pkgs, config, ... }: {
   services.jellyfin = {
     enable = true;
   };
 
   jade.caddy-wildcard.hosts = {
     "stream.h.jade.fyi" = {
+      publicAccess = true;
       action = ''
-        reverse_proxy 127.0.0.1:8096
+        handle /_oauth2_proxy/* {
+          reverse_proxy ${config.services.oauth2-proxy.httpAddress}
+        }
+        handle {
+          forward_auth ${config.services.oauth2-proxy.httpAddress} {
+            uri /_oauth2_proxy/auth
+            # copy_headers Authorization
+
+            @bad status 4xx
+            handle_response @bad {
+              redir * /_oauth2_proxy/start
+            }
+          }
+          reverse_proxy 127.0.0.1:8096
+        }
       '';
     };
   };

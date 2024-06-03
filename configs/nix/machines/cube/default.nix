@@ -12,6 +12,7 @@ in
     ../../roles/debug
     ../../roles/avahi
     ../../roles/kanidm
+    ../../roles/oauth2-proxy
     ../../modules/caddy-wildcard.nix
     ./jasperlake.nix
     ./unbound.nix
