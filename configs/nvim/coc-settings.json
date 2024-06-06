@@ -89,7 +89,8 @@
     "rust-analyzer.semanticHighlighting.punctuation.enable": false,
     "prettier.tabWidth": 4,
     "codeLens.enable": true,
-    // "python.pythonPath": "/home/jade/bin/_pyright_python",
+    // Get it from direnv, not from random shell env
+    "python.pythonPath": "_pyright_python",
     "python.formatting.provider": "yapf",
     "workspace.rootPatterns": [
         ".python-root",

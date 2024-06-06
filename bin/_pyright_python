@@ -1,4 +1,9 @@
 #!/bin/sh
 # this is a hack wrapper for pyright to grab the python from $PATH. this is
 # terrible.
-exec python "$@"
+# exec python "$@"
+
+# https://github.com/microsoft/pyright/issues/4021
+# However, we can do so much worse. Watch this.
+editor_cwd=$(nvremote one "$NVIM" eval 'getcwd()')
+direnv exec "$editor_cwd" python "$@"
