@@ -6,6 +6,9 @@ use log::{debug, info, LevelFilter};
 use nvim_rs::rpc::handler::Dummy;
 use regex::Regex;
 
+#[cfg(not(windows))]
+use std::os::unix::fs::FileTypeExt;
+
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -15,6 +18,8 @@ use std::{
 enum EachCmd {
     /// run a command verbatim
     Run { cmd: String },
+    /// Evaluates an expression
+    Eval { expr: String },
 }
 
 #[derive(clap::Parser, Debug)]
@@ -37,7 +42,7 @@ enum SubCommand {
 struct Args {
     /// level of verbosity
     #[clap(short, long, action = clap::ArgAction::Count)]
-    verbose: u32,
+    verbose: u8,
 
     /// subcommand to run
     #[clap(subcommand)]
@@ -96,7 +101,6 @@ async fn find_sockets() -> Result<Vec<PathBuf>, io::Error> {
         static ref NAME_RE: Regex = Regex::new(r"nvim.{6}").unwrap();
     };
 
-    use std::os::unix::prelude::FileTypeExt;
     let mut socks = Vec::new();
 
     static TEMP_DIR_NAMES: &[&str] = &["$TMPDIR", "/tmp", ".", "~"];
@@ -141,6 +145,17 @@ enum EvalOrExec {
     Exec,
 }
 
+fn is_socket(sock: &Path) -> Result<bool> {
+    #[cfg(windows)]
+    {
+        Ok(sock.starts_with(r"\\.\pipe"))
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(sock.metadata()?.file_type().is_socket())
+    }
+}
+
 async fn run_cmd_on(sock: &Path, cmd: &str, with: EvalOrExec) -> Result<nvim_rs::Value> {
     debug!("connect to {}", sock.display());
     let hand = Dummy::new();
@@ -166,15 +181,20 @@ async fn run_cmd_on(sock: &Path, cmd: &str, with: EvalOrExec) -> Result<nvim_rs:
 async fn cmd_each(cmd: EachCmd) -> Result<()> {
     let socks = find_sockets().await.wrap_err("could not find sockets")?;
     debug!("socks: {:?}", &socks);
-    future::join_all(socks.into_iter().map(|sock| {
+    let res = future::join_all(socks.into_iter().map(|sock| {
         let cmd = cmd.clone();
         tokio::spawn(async move {
             match cmd {
                 EachCmd::Run { ref cmd } => run_cmd_on(&sock, cmd, EvalOrExec::Exec).await,
+                EachCmd::Eval { ref expr } => run_cmd_on(&sock, expr, EvalOrExec::Eval).await,
             }
         })
     }))
     .await;
+
+    res.into_iter()
+        .map(|x| x.expect("join error"))
+        .collect::<Result<Vec<_>>>()?;
 
     debug!("done");
     Ok(())
@@ -200,18 +220,32 @@ async fn find_sock_for_pid(find_pid: u32) -> Result<Option<PathBuf>> {
     Ok(maybe_pidsock.map(|(_pid, sock)| sock))
 }
 
+fn print_value(val: &nvim_rs::Value) {
+    match val {
+        nvim_rs::Value::String(s) => println!("{}", s.as_str().expect("utf8")),
+        _ => println!("{val}"),
+    }
+}
+
 async fn cmd_one(path: PathBuf, cmd: EachCmd) -> Result<()> {
-    let swapfile: PathBuf = vim_swapfile_header::swap_file_for(&path)?;
-    let content = fs::read(swapfile)?;
-    let header: vim_swapfile_header::Header = vim_swapfile_header::from_bytes(&content)?;
+    let sock = if is_socket(&path)? {
+        path
+    } else {
+        let swapfile: PathBuf = vim_swapfile_header::swap_file_for(&path)?;
+        let content = fs::read(swapfile)?;
+        let header: vim_swapfile_header::Header = vim_swapfile_header::from_bytes(&content)?;
 
-    let sock = find_sock_for_pid(header.pid)
-        .await?
-        .ok_or(eyre!("could not find the socket :("))?;
-
-    match cmd {
-        EachCmd::Run { ref cmd } => run_cmd_on(&sock, cmd, EvalOrExec::Exec).await?,
+        find_sock_for_pid(header.pid)
+            .await?
+            .ok_or(eyre!("could not find the socket :("))?
     };
+
+    let res = match cmd {
+        EachCmd::Run { ref cmd } => run_cmd_on(&sock, cmd, EvalOrExec::Exec).await?,
+        EachCmd::Eval { ref expr } => run_cmd_on(&sock, expr, EvalOrExec::Eval).await?,
+    };
+
+    print_value(&res);
     Ok(())
 }
 
