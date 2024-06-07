@@ -9,8 +9,9 @@ with forgejo support and configurability.
 ## Configuration
 
 Set `linky.remote` to select the remote to use for the git linking. If you have
-a non autodetected (HTTPS) remote, you can set the type of it with
-`remotes.some-remote.linky-type = "github"` or `"forgejo"`.
+a non autodetected remote (ssh or https; ssh-looking remotes will be guessed
+into https ones with some questionable regexes), you can set the type of it
+with `remotes.some-remote.linky-type = "github"` or `"forgejo"`.
 
-It's future work on this to teach it how to strip ssh remotes automatically
-given the knowledge of what the service is.
+GitLab uses the same links as GitHub, so linky-type = "github" works for it
+too.

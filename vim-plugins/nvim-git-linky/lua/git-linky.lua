@@ -64,21 +64,39 @@ function M.git_config(cwd, opt, default)
     return exec(cmd, {cwd = cwd})
 end
 
+function M.ssh2https_githublike(uri)
+    local MATCHERS = {
+        {'^ssh://%w+@([a-zA-Z0-9-.]+)/(.*)', replace = 'https://%1/%2'},
+        {'^ssh://%w+@([a-zA-Z0-9-.]+):%d+/(.*)', replace = 'https://%1/%2'},
+        {'^%w+@([a-zA-Z0-9-.]+):(.*)', replace = 'https://%1/%2'},
+    }
+
+    for _, m in ipairs(MATCHERS) do
+        if string.match(uri, m[1]) then
+            local new_uri = uri
+            if m.replace then
+                new_uri = string.gsub(uri, m[1], m.replace)
+            end
+            return new_uri
+        end
+    end
+
+    return nil
+end
+
 function M.guess_remote_kind(uri)
+    local as_https_may = M.ssh2https_githublike(uri)
     local MATCHERS = {
         {'^https://github%.com/.*', 'github'},
         {'^https://gitlab%.com/.*', 'github'},
-        {'^ssh://git@github%.com/(.*)', 'github', replace = 'https://github.com/%1'},
-        {'^git@github%.com:(.*)', 'github', replace = 'https://github.com/%1'},
         {'^https://codeberg%.org/.*', 'forgejo'},
-        {'^git@codeberg%.org:(.*)', 'forgejo', replace = 'https://codeberg.org/%1'},
-        {'^ssh://git@codeberg%.org/(.*)', 'forgejo', replace = 'https://codeberg.org/%1'},
         {'^https://git%.lix%.systems/.*', 'forgejo'},
-        {'^git@git%.lix%.systems:(.*)', 'forgejo', replace = 'https://git.lix.systems/%1'},
-        {'^ssh://git@git%.lix%.systems/(.*)', 'forgejo', replace = 'https://git.lix.systems/%1'},
     }
-    -- FIXME: this probably should be done differently to handle doing
-    -- replacement on non https remotes with custom types
+
+    -- Try scuffedly converting it to https and see if it matches then
+    if as_https_may then
+        uri = as_https_may
+    end
 
     for _, m in ipairs(MATCHERS) do
         if string.match(uri, m[1]) then
@@ -162,21 +180,5 @@ function M.range_from_args(args)
     -- we did that, since commands don't do columnwise ranges
     return { line_start = args.line1, line_end = args.line2 }
 end
-
-local function make_command(name, kind)
-    vim.api.nvim_create_user_command(
-        name, function (args)
-            M.do_linking(kind, M.range_from_args(args))
-        end, {
-            nargs = 0,
-            range = true,
-            desc = ("require('git-linky').do_linking(%s, require('git-linky').range_from_args(args))"):format(vim.inspect(kind)),
-        }
-    )
-end
-
-make_command('GitCommitLink', 'file')
-make_command('GitCurrentBranchLink', 'branch')
-make_command('GitCurrentCommitLink', 'head')
 
 return M
