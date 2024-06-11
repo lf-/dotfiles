@@ -6,7 +6,7 @@
 
 [alias]
 	s = status
-	sl = log -10 --color=always --pretty='format:%C(auto)%h %<(60,trunc)%s  %>|(-20)%aN%>|(-1)%ah' --abbrev-commit
+	sl = log -10 --color=always --pretty='format:%C(auto)%h %<(60,trunc)%s %>|(-35)%d%>|(-20)%aN%>|(-1)%ah' --abbrev-commit
 	sll = log --pretty=short --abbrev-commit
 	d = diff --staged
 	rs = restore --staged
