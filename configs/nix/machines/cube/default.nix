@@ -27,7 +27,7 @@ in
 
   # unused since we just haven't done the userspace for it and it's Fine
   /*
-  boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
+    boot.kernelPackages = pkgs.linuxPackages.extend (self: super: {
     kernel = super.kernel.override (old: {
       kernelPatches = old.kernelPatches ++ [
         {
@@ -36,7 +36,7 @@ in
         }
       ];
     });
-  });
+    });
   */
 
   networking.useNetworkd = true;
@@ -59,11 +59,13 @@ in
 
   users.groups.tank = { };
   users.groups.tank_public = { };
+  users.groups.tank_media = { };
   # group of /tank/backup/zfs, which allows seeing what's in there but nothing
   # more
   users.groups.autobackup = { };
 
-  users.users.jade.extraGroups = [ "tank" "tank_public" "autobackup" ];
+  users.users.jade.extraGroups = [ "tank" "tank_public" "tank_media" "autobackup" ];
+  users.users.jellyfin.extraGroups = [ "tank_media" ];
 
   users.users.smbguest = {
     expires = "1970-01-02";
@@ -73,55 +75,77 @@ in
     extraGroups = [ "tank_public" ];
   };
 
-  services.samba = {
-    enable = true;
-    openFirewall = true;
-    enableNmbd = false;
-    shares = {
-      media = {
-        path = "/tank/media";
+  services.samba =
+    let
+      mkShare = name: {
+        path = "/tank/${name}";
         browseable = "yes";
         public = "no";
         "read only" = "no";
         "valid users" = "@tank";
         "force group" = "tank";
         # mask perms with 0664
-        "create mask" = "0664";
+        "create mask" = "0660";
         # force perms to 0664
-        "force create mode" = "0664";
-        "directory mask" = "2775";
-        "force directory mode" = "2775";
+        "force create mode" = "0660";
+        "directory mask" = "2770";
+        "force directory mode" = "2770";
       };
-      public = {
-        path = "/tank/public";
-        browseable = "yes";
-        "guest ok" = "yes";
-        "read only" = "no";
-        "force group" = "tank_public";
-        comment = "public share";
+      mkMediaShare = name: {
+          path = "/tank/${name}";
+          browseable = "yes";
+          public = "no";
+          "read only" = "no";
+          "valid users" = "@tank_media";
+          "force group" = "tank";
+          # mask perms with 0664
+          "create mask" = "0664";
+          # force perms to 0664
+          "force create mode" = "0664";
+          "directory mask" = "2775";
+          "force directory mode" = "2775";
       };
+    in
+    {
+      enable = true;
+      openFirewall = true;
+      enableNmbd = false;
+      shares = {
+        media = mkMediaShare "media";
+        music = mkMediaShare "music";
+        archive = mkShare "archive";
+        documents = mkShare "documents";
+        photos = mkShare "photos";
+        public = {
+          path = "/tank/public";
+          browseable = "yes";
+          "guest ok" = "yes";
+          "read only" = "no";
+          "force group" = "tank_public";
+          comment = "public share";
+        };
+      };
+      # this is hot garbage why is this not structured x_x good lord someone
+      # needs to give this module some love.
+      extraConfig = ''
+        # log to journald
+        logging = systemd
+        log level = 3
+
+        # we dont do legacy here
+        server min protocol = SMB3_00
+
+        guest account = smbguest
+        # if the evil bit is set,,, but i think this applies to when windows
+        # tries to auth as a user that doesn't exist.
+        map to guest = bad user
+
+        # make fruity devices work properly (hi im a fruity device...???)
+        vfs objects = fruit streams_xattr
+        # we have the zettabyte filesystem, why not
+        fruit:resource = xattr
+      '';
     };
-    # this is hot garbage why is this not structured x_x good lord someone
-    # needs to give this module some love.
-    extraConfig = ''
-      # log to journald
-      logging = systemd
-      log level = 3
-
-      # we dont do legacy here
-      server min protocol = SMB3_00
-
-      guest account = smbguest
-      # if the evil bit is set,,, but i think this applies to when windows
-      # tries to auth as a user that doesn't exist.
-      map to guest = bad user
-
-      # make fruity devices work properly (hi im a fruity device...???)
-      vfs objects = fruit streams_xattr
-      # we have the zettabyte filesystem, why not
-      fruit:resource = xattr
-    '';
-  };
 
   networking.firewall.allowedTCPPorts = [ 80 443 ];
   services.caddy = {
