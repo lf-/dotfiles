@@ -1,4 +1,6 @@
 import gdb
+import re
+
 
 def hxd(b, begin=0):
     print(hxd_s(b, begin))
@@ -95,12 +97,22 @@ class HexDump(gdb.Command):
 
 HexDump()
 
-inf = gdb.selected_inferior()
-if inf:
+IS_NIXY_RE = re.compile(r'^/nix/store/.*-glibc-.*/lib/ld-linux-.*\.so\..*$')
+def new_inferior(inf_: gdb.NewInferiorEvent):
+    inf = inf_.inferior
+
+    # debuginfod is completely pointless on nix built executables since they don't
+    # have any useful debuginfo in general and certainly not Online
+    do_debuginfod = True
+
     if 'x86_64' in inf.architecture().name():
         gdb.execute('set disassembly-flavor intel')
+    do_debuginfod = not any(IS_NIXY_RE.match(f.filename) for f in inf.progspace.objfiles() if f.filename)
 
-gdb.execute("""
+    gdb.execute(f"set debuginfod enabled {'on' if do_debuginfod else 'off'}")
+
+gdb.events.new_inferior.connect(new_inferior)
+
+gdb.execute(f"""
 set index-cache enabled on
-set debuginfod enabled on
 """)
