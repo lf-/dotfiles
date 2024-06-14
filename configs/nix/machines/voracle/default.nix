@@ -48,6 +48,8 @@ in
   networking.hostId = "4b247ece";
   boot.zfs.extraPools = [ "zdata" ];
 
+  virtualisation.podman.enable = true;
+
   # the scripted networking is so severely broken that it has tailscale eating
   # TXT requests. stop this madness.
   networking.useNetworkd = true;
