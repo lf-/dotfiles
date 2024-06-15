@@ -30,6 +30,7 @@
 , xorg
 , wayland
 , gcc
+, glibcLocales
 }:
 
 let
@@ -82,6 +83,8 @@ let
       in
       ''
         #!${runtimeShell}
+        locales="${glibcLocales}/lib/locale/locale-archive"
+        export LOCALE_ARCHIVE="''${LOCALE_ARCHIVE:-$locales}"
         export VK_LAYER_PATH=${vulkan-validation-layers}/share/vulkan/explicit_layer.d
         ICDS=$(cat ${icd})
         export VK_ICD_FILENAMES=$ICDS"''${VK_ICD_FILENAMES:+:$VK_ICD_FILENAMES}"
