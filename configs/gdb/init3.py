@@ -115,4 +115,5 @@ gdb.events.new_inferior.connect(new_inferior)
 
 gdb.execute(f"""
 set index-cache enabled on
+set print asm-demangle on
 """)
