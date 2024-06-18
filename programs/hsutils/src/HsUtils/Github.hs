@@ -9,17 +9,16 @@ import Data.Aeson.KeyMap qualified as A
 import Data.Aeson.Types qualified as A
 import Data.Generics.Product (HasField' (field'))
 import Data.Typeable (typeRep)
-import Data.Yaml qualified as YAML
 import Network.HTTP.Client (Manager, ManagerSettings (..), Request (..), RequestBody (..), Response (..), httpLbs, parseRequest_)
 import Network.HTTP.Client.TLS
 import RIO
-import RIO.Directory (XdgDirectory (XdgConfig), getXdgDirectory)
-import RIO.HashMap qualified as HM
 import RIO.Process
 import RIO.Text qualified as T
 import Text.RawString.QQ (r)
 
 import HsUtils.App
+import qualified RIO.ByteString as BS
+import RIO.Char (ord)
 
 githubApi :: Text
 githubApi = "https://api.github.com"
@@ -52,34 +51,21 @@ instance HasGithubToken GithubApp where
 instance HasProcessContext GithubApp where
   processContextL = field' @"processContext"
 
-data GhHostsEntry = GhHostsEntry
-  { user :: Text
-  , oauthToken :: Text
-  }
-  deriving (Generic, Show)
-
-instance FromJSON GhHostsEntry where
-  parseJSON = A.genericParseJSON snakeCaseOptions
+w8 :: Char -> Word8
+w8 = fromIntegral . ord
 
 {- | Nicks the token from the github gh tool. This kind of is terrible, and
  should use a system secret service, but there AREN'T ANY BINDINGS FOR ANY
  >:(
 -}
-getGithubToken :: (MonadIO m, MonadThrow m) => m GithubToken
+getGithubToken :: (HasProcessContext env, HasLogFunc env) => RIO env GithubToken
 getGithubToken = do
-  configPath <- liftIO $ getXdgDirectory XdgConfig "gh/hosts.yml"
-  configContent <- readFileBinary configPath
-
-  parsed <- YAML.decodeThrow configContent
-  githubComConfig :: GhHostsEntry <-
-    fromEither $
-      nothingToLeft (YAML.YamlException "missing github.com key") $
-        HM.lookup (T.pack "github.com") parsed
-  pure . GithubToken . encodeUtf8 $ githubComConfig.oauthToken
+  tok <- proc "gh" ["auth", "token", "-h", "github.com"] \conf -> do
+    readProcessStdout_ conf
+  pure . GithubToken . BS.dropWhileEnd (`elem` [w8 '\r', w8 '\n']) . toStrictBytes $ tok
 
 runGithubApp :: (MonadUnliftIO m, MonadThrow m) => LogOptions -> RIO GithubApp ret -> m ret
 runGithubApp logOpts act = do
-  token <- getGithubToken
   let settings =
         tlsManagerSettings
           { managerModifyRequest = \r ->
@@ -89,7 +75,9 @@ runGithubApp logOpts act = do
   manager <- newTlsManagerWith settings
   processContext <- mkDefaultProcessContext
   withLogFunc logOpts $ \logFunc ->
-    runRIO GithubApp {token, manager, logFunc, processContext} act
+    runRIO GithubApp {token = error "fake token", manager, logFunc, processContext} do
+      token <- getGithubToken
+      runRIO GithubApp {token, manager, logFunc, processContext} act
 
 class
   (FromJSON (ResultType query), ToJSON (GraphQLParams query), Display (GraphQLParams query), Typeable query) =>
