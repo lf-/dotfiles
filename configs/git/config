@@ -22,7 +22,7 @@
 	rsw = restore --staged --worktree
 	tlog = log --graph --oneline --all
 	leash = push --force-with-lease
-	fulllog = log --format=full --full-diff --patch
+	fulllog = log --format=fuller --full-diff --patch
 
 [blame]
 	coloring = highlightRecent
