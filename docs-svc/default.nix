@@ -221,6 +221,10 @@ let
         mkdir -p $out
         cd ..
         find gdb -name '*.html' -exec cp '{}' $out/ ';'
+        # Broken makeinfo invocations generate no-extension files
+        cp gdb/doc/gdb $out/gdb.html
+        cp gdb/doc/stabs $out/stabs.html
+        cp gdb/doc/annotate $out/annotate.html
         find libiberty -name '*.html' -exec cp '{}' $out/ ';'
         cp bfd/doc/bfd.html $out/
       '';
@@ -460,7 +464,6 @@ let
     "gawk"
     "gcc"
     "gdb"
-    "gforth"
     "gfortran:gcc"
     "gprof:binutils"
     "grub"
