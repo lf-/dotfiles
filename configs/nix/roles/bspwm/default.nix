@@ -53,7 +53,7 @@
 
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [
-    pkgs.xdg-desktop-portal-kde
+    # pkgs.xdg-desktop-portal-kde
   ];
 
   environment.systemPackages = with pkgs; [
@@ -71,19 +71,20 @@
 
     libsecret
 
-    blueberry
-    okular
-    dolphin
-    kdePackages.dolphin-plugins
-    kio-admin
-    kdePackages.kio-extras
-    ffmpegthumbs
-    ark
-    konsole
-    kdePackages.print-manager
-    systemsettings
-    gwenview
-    kdePackages.kdegraphics-thumbnailers
+    # seems to be kde5 lmao
+    # blueberry
+    # okular
+    # dolphin
+    # kdePackages.dolphin-plugins
+    # kio-admin
+    # kdePackages.kio-extras
+    # ffmpegthumbs
+    # ark
+    # konsole
+    # kdePackages.print-manager
+    # systemsettings
+    # gwenview
+    # kdePackages.kdegraphics-thumbnailers
 
     # FIXME: maybe convert to the service module?
     picom
@@ -98,6 +99,6 @@
     gnome.adwaita-icon-theme
     gnome-icon-theme
     catppuccin-gtk
-    breeze-icons
+    # breeze-icons
   ];
 }

@@ -117,7 +117,7 @@
     ios-webkit-debug-proxy
     libimobiledevice
     ifuse
-    kio-fuse
+    # kio-fuse
   ];
 
   # fixme: this is in closure from somewhere else and must be removed
