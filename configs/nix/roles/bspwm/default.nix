@@ -20,21 +20,21 @@
   ];
 
   services.resolved.enable = true;
-  services.connman = {
-    enable = true;
-    package = pkgs.connmanFull.override {
-      # better behaved with respect to tailscale compared to internal caching
-      # resolver
-      dnsType = "systemd-resolved";
-    };
-    wifi.backend = "iwd";
-    extraFlags = [ "--debug=plugins/iwd.c" ];
-    # Connman allows changing system hostname by default via dhcp (no thanks)
-    extraConfig = ''
-      [General]
-      AllowHostnameUpdates=false
-    '';
-  };
+  # services.connman = {
+  #   enable = true;
+  #   package = pkgs.connmanFull.override {
+  #     # better behaved with respect to tailscale compared to internal caching
+  #     # resolver
+  #     dnsType = "systemd-resolved";
+  #   };
+  #   wifi.backend = "iwd";
+  #   extraFlags = [ "--debug=plugins/iwd.c" ];
+  #   # Connman allows changing system hostname by default via dhcp (no thanks)
+  #   extraConfig = ''
+  #     [General]
+  #     AllowHostnameUpdates=false
+  #   '';
+  # };
 
   # gnome-keyring is the more standard of the options
   services.gnome = {

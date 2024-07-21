@@ -16,6 +16,7 @@
     ../../roles/secureboot
     ../../roles/autologin
     ../../roles/tpm
+    ../../roles/networkmanager
     ./hardware-configuration.nix
   ];
 
