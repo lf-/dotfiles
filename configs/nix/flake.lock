@@ -236,11 +236,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1719850292,
-        "narHash": "sha256-zLmbJBwEXGUuHlf6YHekewD1saTzMGu8EFoZc29aW7Y=",
-        "rev": "d3286d0990da111c536c2f879d8f9cbbd650ebae",
+        "lastModified": 1720825173,
+        "narHash": "sha256-YZ7043PFS6LalHAyGeO7qRLeZIevwjHRbbMkpixjwhM=",
+        "rev": "a8f443d96011c11ad726c2a28a37752bd56c12cc",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/d3286d0990da111c536c2f879d8f9cbbd650ebae.tar.gz"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/a8f443d96011c11ad726c2a28a37752bd56c12cc.tar.gz"
       },
       "original": {
         "type": "tarball",
@@ -261,15 +261,31 @@
         ]
       },
       "locked": {
-        "lastModified": 1719353937,
-        "narHash": "sha256-86NBqDxAP20ET/UoKX0WvSItblNQ97czXb2q7lkMrwk=",
-        "rev": "5d9d94089fb1ca96222a34bfe245ef5c5ebefd37",
+        "lastModified": 1720695775,
+        "narHash": "sha256-8Oqzl9QPjEe/n8y0R2tC6+2v/H6xBgABHXOJwxmnBg0=",
+        "rev": "d70318fb946a0e720dfdd1fb10b0645c14e2a02a",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/5d9d94089fb1ca96222a34bfe245ef5c5ebefd37.tar.gz"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/d70318fb946a0e720dfdd1fb10b0645c14e2a02a.tar.gz"
       },
       "original": {
         "type": "tarball",
         "url": "https://git.lix.systems/lix-project/nixos-module/archive/main.tar.gz"
+      }
+    },
+    "nix-on-droid": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1720964831,
+        "narHash": "sha256-UwVKfjrQ6FWTuqks6lF4+VlzPFDC/GR1Ti/iBKTEQco=",
+        "owner": "nix-community",
+        "repo": "nix-on-droid",
+        "rev": "c00333ee42aa2b4d4825e0388a1049fdeeded6c6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nix-on-droid",
+        "type": "github"
       }
     },
     "nixpkgs": {
@@ -379,6 +395,7 @@
         "lanzaboote": "lanzaboote",
         "lix": "lix",
         "lix-module": "lix-module",
+        "nix-on-droid": "nix-on-droid",
         "nixpkgs": "nixpkgs",
         "polkadots": "polkadots",
         "qyriad-nur": "qyriad-nur"

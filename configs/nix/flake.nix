@@ -51,6 +51,11 @@
       flake = false;
     };
 
+    nix-on-droid = {
+      url = "github:nix-community/nix-on-droid";
+      flake = false;
+    };
+
     lix = {
       url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
       flake = false;
@@ -77,6 +82,8 @@
     , qyriad-nur
     , flakey-profile
     , lix-module
+    , lix
+    , nix-on-droid
     , ...
     }:
     let
@@ -157,22 +164,32 @@
             ];
           };
         };
-    } // (flake-utils.lib.eachDefaultSystem (system: {
+    } // (flake-utils.lib.eachDefaultSystem (system:
+    let
+      pkgs = import nixpkgs {
+        overlays = [
+          (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
+          (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
+          (import ./overlays/polkadots.nix { inherit polkadots; })
+          (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; })
+          (import ./overlays/jadeware.nix)
+          (import ./overlays/vendor-pkgs.nix)
+          lix-module.overlays.default
+        ];
+        inherit system;
+      };
+    in
+    {
+      legacyPackages = {
+        nix-on-droid = pkgs.callPackage ./packages/nix-on-droid {
+          nixpkgsInput = nixpkgs;
+          inherit lix nix-on-droid;
+          hostArch = "aarch64";
+        };
+      };
       packages =
         let
           aiopanel = /home/jade/dev/aiopanel;
-          pkgs = import nixpkgs {
-            overlays = [
-              (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
-              (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
-              (import ./overlays/polkadots.nix { inherit polkadots; })
-              (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; })
-              (import ./overlays/jadeware.nix)
-              (import ./overlays/vendor-pkgs.nix)
-              lix-module.overlays.default
-            ];
-            inherit system;
-          };
         in
         (import ./local-packages.nix { inherit pkgs qyriad-nur; }) // {
           caddy-acmedns = pkgs.callPackage ./packages/caddy-acmedns/package.nix { };
