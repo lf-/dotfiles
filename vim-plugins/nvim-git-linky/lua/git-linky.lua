@@ -85,6 +85,10 @@ function M.ssh2https_githublike(uri)
 end
 
 function M.guess_remote_kind(uri)
+    -- chomp chomp :3
+    -- .git in uris will cause github web links to not work
+    uri = string.gsub(uri, '%.git$', '')
+
     local as_https_may = M.ssh2https_githublike(uri)
     local MATCHERS = {
         {'^https://github%.com/.*', 'github'},
