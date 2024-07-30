@@ -1,4 +1,4 @@
-{ nix-on-droid, overlays, path, hostArch, applyPatches }:
+{ nix-on-droid, overlays, path, hostArch, buildPlatform, applyPatches }:
 let patched = applyPatches {
     name = "nixpkgs-crosscompilation-patched";
     src = path;
@@ -10,6 +10,7 @@ let patched = applyPatches {
 in
 import patched {
   inherit overlays;
+  localSystem = buildPlatform.system;
   crossSystem = {
     config = "${hostArch}-unknown-linux-android";
     sdkVer = "32";

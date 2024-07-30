@@ -1,4 +1,6 @@
-{ pkgs
+# From nix-on-droid code
+{ lib
+, pkgs
 , nix-on-droid
 , nixpkgsInput
 , lix
@@ -12,8 +14,9 @@ let
       targetSystem = "${hostArch}-linux";
     }
   );
-  nixDirectory = callPackage ./nix-directory.nix { inherit hostArch; };
-  initialPackageInfo = import "${nixDirectory}/nix-support/package-info.nix";
+  initial-store = callPackage ./initial-store.nix { };
+  nixDirectory = initial-store.store;
+  initialPackageInfo = initial-store.initialPackageInfo;
 
   modules = import "${nix-on-droid}/modules" {
     inherit pkgs;
@@ -43,6 +46,9 @@ let
         flake.nix-on-droid = "github:nix-community/nix-on-droid/${nix-on-droid.rev}";
 
         flake.nixpkgs = "github:nixos/nixpkgs/${nixpkgsInput.rev}";
+
+        # because the way this is done by default is *absurd* builtins.storePath crimes
+        environment.files.prootStatic = customPkgs.prootTermux;
       };
     };
   };
@@ -57,7 +63,7 @@ let
       stdenv = crossPkgs.stdenvAdapters.makeStaticBinaries crossPkgs.stdenv;
     };
     # vendored since it hopelessly depended on source layout
-    tallocStatic = crossPkgs.callPackage ./talloc-static.nix { };
+    tallocStatic = lib.mkImageMediaOverride crossPkgs.callPackage ./talloc-static.nix { };
   };
 in
 {

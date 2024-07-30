@@ -181,7 +181,7 @@
     in
     {
       legacyPackages = {
-        nix-on-droid = pkgs.callPackage ./packages/nix-on-droid {
+        nix-on-droid = pkgs.pkgsCross.aarch64-multiplatform.callPackage ./packages/nix-on-droid {
           nixpkgsInput = nixpkgs;
           inherit lix nix-on-droid;
           hostArch = "aarch64";

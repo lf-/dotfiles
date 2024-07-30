@@ -59,6 +59,7 @@ stdenv.mkDerivation rec {
   '';
 
   # can't link unneeded .so, we'll link a static one by hand
+  # XXX: wtf, || true, and it is actually failing
   buildPhase = "python ./buildtools/bin/waf build || true";
   installPhase = ''
     mkdir -p $out/lib $out/include
