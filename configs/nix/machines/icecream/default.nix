@@ -30,6 +30,8 @@
 
   boot.blacklistedKernelModules = [ "nouveau" ];
 
+  programs.steam.enable = true;
+
   # for accelerated video decode. really this should be automatic.
   hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
 
@@ -85,8 +87,27 @@
     ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
 
     # nvidia
-    ATTR{device}=="0x249d", ATTR{vendor}=="0x10de", ATTR{power/control} := "auto"
+    # ATTR{device}=="0x249d", ATTR{vendor}=="0x10de", ATTR{power/control} := "auto"
   '';
+
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    powerManagement = {
+      enable = true;
+      finegrained = true;
+    };
+    dynamicBoost.enable = true;
+    modesetting.enable = true;
+
+    prime = {
+      nvidiaBusId = "PCI:1:0:0";
+      intelBusId = "PCI:0:2:0";
+      offload.enable = true;
+      offload.enableOffloadCmd = true;
+    };
+
+    nvidiaSettings = true;
+  };
 
   services.hardware.openrgb.enable = true;
 
