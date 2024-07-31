@@ -3,6 +3,21 @@ let
   qyriad-nur-packages = import qyriad-nur { inherit pkgs; };
 in
 {
-  inherit (pkgs) nvimsplit nvremote vim-swapfile-header spr-sunshowers openttd-claire opengist jellyfin-plugin-sso gerrit-oauth-provider clangbuildanalyzer nix nix-eval-jobs xunit-viewer;
+  inherit (pkgs)
+    nvimsplit
+    nvremote
+    vim-swapfile-header
+    spr-sunshowers
+    openttd-claire
+    opengist
+    jellyfin-plugin-sso
+    gerrit-oauth-provider
+    clangbuildanalyzer
+    nix
+    nix-eval-jobs
+    xunit-viewer
+    intel-vtune
+    vtune-sepdk
+    ;
   inherit (qyriad-nur-packages) cinny;
 }

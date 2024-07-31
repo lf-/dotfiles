@@ -167,6 +167,7 @@
     } // (flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs {
+        config.allowUnfree = true;
         overlays = [
           (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
           (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
@@ -180,6 +181,7 @@
       };
     in
     {
+      inherit pkgs;
       legacyPackages = {
         nix-on-droid = pkgs.pkgsCross.aarch64-multiplatform.callPackage ./packages/nix-on-droid {
           nixpkgsInput = nixpkgs;

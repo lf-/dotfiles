@@ -16,11 +16,15 @@
     #../../roles/secureboot
     ../../roles/autologin
     #../../roles/tpm
+    ../../modules/vtune.nix
+    ../../roles/realtime
     ./hardware-configuration.nix
   ];
 
   jade.dev.withHsutils = false;
   jade.dev.withGui = false;
+
+  programs.vtune.enable = true;
 
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
 

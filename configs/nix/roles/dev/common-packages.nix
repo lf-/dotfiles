@@ -21,6 +21,7 @@ with pkgs; [
   nix-eval-jobs
   nix-index
   nixpkgs-fmt
+  nixfmt-rfc-style
   nodePackages.bash-language-server
   phpPackages.php-cs-fixer
   phpactor

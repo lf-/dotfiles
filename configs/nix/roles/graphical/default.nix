@@ -52,6 +52,8 @@
     audacity
   ];
 
+  users.users.jade.extraGroups = [ "rtkit" ];
+
   nixpkgs.config.firefox.speechSynthesisSupport = true;
   services.printing.enable = true;
   services.printing.drivers = with pkgs; [ hplip ];
