@@ -88,6 +88,11 @@ in
         DISABLE_GIT_HOOKS = false;
       };
 
+      "ssh.minimum_key_sizes" = {
+        # Due to tpm bullshit I cannot use a longer or better key last I checked.
+        RSA = 2047;
+      };
+
       mailer = {
         ENABLED = false;
       };
