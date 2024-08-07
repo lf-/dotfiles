@@ -1,20 +1,18 @@
 # dev packages that are common between nixos and "env.nix" setups on non-nixos
 #
 # This includes everything that one would want that's not in Arch repos e.g.
-{ pkgs, qyriad-nur, withHsutils, withGui ? false, wrapGui ? (x: x) }:
+{ pkgs, qyriad-nur, withHsutils, withGui ? false, wrapGui ? (x: x), withHaskell ? true }:
 let
   qyriad-nur-packages = import qyriad-nur { inherit pkgs; };
 in
-with pkgs; [
+with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   atuin
-  cachix
   cmake-language-server
   cntr
   flyctl
   git-credential-oauth
   git-absorb
   git-revise
-  niv
   npins
   nix-direnv
   nix-doc
@@ -22,13 +20,9 @@ with pkgs; [
   nix-index
   nixpkgs-fmt
   nixfmt-rfc-style
-  nodePackages.bash-language-server
-  phpPackages.php-cs-fixer
-  phpactor
   reuse
   nil
   rustfilt
-  shellcheck
   typst-lsp
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
@@ -53,8 +47,6 @@ with pkgs; [
 
   sqlite-interactive
 
-  nix-output-monitor
-
   simple-http-server
 
   lieer
@@ -70,4 +62,11 @@ with pkgs; [
   (pkgs.haskell.lib.justStaticExecutables hsutils)
 ] ++ lib.optionals withGui (builtins.map wrapGui [
   qyriad-nur-packages.cinny
-])
+]) ++ lib.optionals withHaskell [
+  shellcheck
+  nodePackages.bash-language-server
+  nix-output-monitor
+  niv
+  phpPackages.php-cs-fixer
+  phpactor
+]

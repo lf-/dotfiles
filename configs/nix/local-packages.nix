@@ -18,6 +18,7 @@ in
     xunit-viewer
     intel-vtune
     vtune-sepdk
+    polkadots
     ;
   inherit (qyriad-nur-packages) cinny;
 }

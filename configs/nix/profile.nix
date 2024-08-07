@@ -1,5 +1,6 @@
 { pkgs, qyriad-nur, nixpkgs, flakey-profile }:
 let
+  isMac = pkgs.stdenv.isDarwin;
   inherit (pkgs) lib callPackage writeShellScriptBin;
   nixYuriPkg = callPackage ./packages/nixYuri/package.nix { };
   wrapGui = pkg: writeShellScriptBin pkg.pname ''
@@ -9,10 +10,15 @@ in
 flakey-profile.lib.mkProfile {
   inherit pkgs;
   paths = with pkgs; [
-    nixYuriPkg.nixYuriIntel
-    librespot
     watchman
     polkadots
-  ] ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = true; withGui = true; };
+  ]
+  ++ lib.optionals (isMac) [
+    pkgs.nodejs
+  ]
+  ++ lib.optionals (!isMac) [
+    nixYuriPkg.nixYuriIntel
+    librespot
+  ] ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = !isMac; withGui = !isMac; withHaskell = !isMac; };
   pinned = { nixpkgs = nixpkgs; };
 }
