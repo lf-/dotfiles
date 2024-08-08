@@ -489,6 +489,24 @@ augroup('reload queries on query save', function(autocmd) --https://github.com/n
     )
 end)
 
+vim.filetype.add({
+    extension = {
+        xsh = 'xonsh'
+    }
+})
+
+augroup('filetype syntax', function(autocmd)
+    autocmd(
+        'FileType',
+        {
+            pattern = 'xonsh',
+            callback = function()
+                vim.opt_local.syntax = 'python'
+            end,
+        }
+    )
+end)
+
 augroup('formatoptions', function(autocmd)
     autocmd(
         'FileType',
