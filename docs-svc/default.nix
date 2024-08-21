@@ -2,6 +2,7 @@
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs { };
+  inherit (pkgs) lib;
 
   buildHtmlWith = f: pkg: pkg.overrideAttrs (
     old@{ nativeBuildInputs ? [ ], ... }: {
@@ -18,12 +19,6 @@ let
 
       nativeBuildInputs = nativeBuildInputs ++ [ pkgs.texinfo ];
     } // (f old)
-  );
-
-  addNativeBuildInputs = addInputs: pkg: pkg.overrideAttrs (
-    old@{ nativeBuildInputs ? [ ], ... }: {
-      nativeBuildInputs = nativeBuildInputs ++ addInputs;
-    }
   );
 
   defaultAutotools = buildHtmlWith (
@@ -383,7 +378,7 @@ let
 
       installPhase = ''
         mkdir -p $out
-        find . -name postgres.html -exec cp '{}' $out ';'
+        find . -name postgres.html -exec cp '{}' $out/postgres-${lib.versions.major old.version}.html ';'
       '';
     }
   );
@@ -544,7 +539,21 @@ rec {
 
   };
 
-  postgresql = docify (buildPostgres pkgs.postgresql_14);
+  postgresql =
+    let
+      one = drv: ''
+        cp ${docify (buildPostgres drv)}/*.html $out
+      '';
+      versions = with pkgs; [
+        postgresql_14
+        postgresql_15
+        postgresql_16
+      ];
+    in
+    pkgs.runCommand "postgres-joined" { } ''
+      mkdir -p $out
+      ${lib.concatMapStringsSep "\n" one versions}
+    '';
 
   openocd = docify (buildOpenocd pkgs.openocd);
 
