@@ -557,8 +557,6 @@ rec {
 
   openocd = docify (buildOpenocd pkgs.openocd);
 
-  coreutils = defaultAutotools pkgs.coreutils;
-
   binutils = buildBinutils pkgs.binutils-unwrapped;
 
   octave = buildOctave pkgs.octave;
@@ -597,6 +595,7 @@ rec {
       mailutils
       nano
       parallel
+      parted
       readline
       time
       sharutils
