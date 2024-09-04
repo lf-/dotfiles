@@ -33,6 +33,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   gopls
   python3Packages.python-lsp-server
   nodePackages.json-diff
+  postgres-lsp
 
   xonsh
 

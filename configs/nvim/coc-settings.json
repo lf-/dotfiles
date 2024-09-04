@@ -23,6 +23,10 @@
                 },
             },
         },
+        "sql": {
+            "command": "postgres_lsp",
+            "filetypes": ["sql"],
+        },
         "cmake": {
             "command": "cmake-language-server",
             "filetypes": ["cmake"]
