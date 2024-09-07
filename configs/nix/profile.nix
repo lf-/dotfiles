@@ -19,6 +19,7 @@ flakey-profile.lib.mkProfile {
   ++ lib.optionals (!isMac) [
     nixYuriPkg.nixYuriIntel
     librespot
+    (wrapGui (art // { meta = art.meta // { mainProgram = "ART"; }; }))
   ] ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = !isMac; withGui = !isMac; withHaskell = !isMac; };
   pinned = { nixpkgs = nixpkgs; };
 }

@@ -183,6 +183,21 @@ in
     '';
   };
 
+  # mysql, chiefly for digikam
+  services.mysql = {
+    package = pkgs.mariadb;
+    enable = true;
+  };
+  systemd.services.mysql = {
+    serviceConfig = {
+      BindPaths = [ "/tank/srv/mysql:/var/lib/mysql" ];
+    };
+  };
+  systemd.tmpfiles.rules = [
+    "d /tank/srv/mysql 0770 mysql mysql"
+  ];
+  jade.tailscale.allowedTCPPorts = [ 3306 ];
+
   age.secrets.acme-dns-reg.file = ../../secrets/acme-dns-reg.age;
 
   age.secrets.backups-key.file = ../../secrets/backups-key.age;

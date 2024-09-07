@@ -1,19 +1,19 @@
 { lib, fetchFromGitHub, dotnetCorePackages, buildDotnetModule, yq }:
 buildDotnetModule rec {
   pname = "jellyfin-plugin-sso";
-  version = "3.5.2.3";
+  version = "3.5.2.4";
 
   src = fetchFromGitHub {
     owner = "9p4";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-PkehIQlWTWeD/0t5UmxwmqBXPcPk5vMZ031zSdA35fo=";
+    hash = "sha256-ilpMt/2QbInbRDZMt/W9qwL3D/EOVuZ4jLObdokQ86c=";
   };
 
   projectFile = "SSO-Auth/SSO-Auth.csproj";
   nugetDeps = ./deps.nix;
-  dotnet-sdk = dotnetCorePackages.sdk_6_0;
-  dotnet-runtime = dotnetCorePackages.aspnetcore_6_0;
+  dotnet-sdk = dotnetCorePackages.sdk_8_0;
+  dotnet-runtime = dotnetCorePackages.aspnetcore_8_0;
   dotnetBuildFlags = [ "--no-self-contained" "-p:AssemblyVersion=${version}" "-p:FileVersion=${version}" ];
   dotnetInstallFlags = [ "-p:Version=${version}" ];
 
@@ -48,7 +48,7 @@ buildDotnetModule rec {
     description = "SSO plugin for Jellyfin";
     homepage = "https://github.com/9p4/jellyfin-plugin-sso";
     license = licenses.gpl3Only;
-    maintainers = with lib.maintainers; [ lf- ];
+    maintainers = [ ];
     platforms = dotnet-runtime.meta.platforms;
   };
 }
