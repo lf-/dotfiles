@@ -20,6 +20,8 @@ in
   "autobackup_tail-bot.age".publicKeys = users.jade ++ hosts.cube;
   # ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAav+bdQWpnBPxTPnlPPSucyFTNzXOVw4t14M4LV2dZR
   "autobackup_voracle.age".publicKeys = users.jade ++ hosts.cube;
+  # intentionally no recovery for this, since they can be regenerated easily
+  "../machines/cube/b2-restic-keys.age".publicKeys = hosts.cube;
 
   "webdav-creds.age".publicKeys = users.jade ++ hosts.voracle;
   "hedgedoc-oauth.age".publicKeys = users.jade ++ hosts.voracle;

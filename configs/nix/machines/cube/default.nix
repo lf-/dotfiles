@@ -20,6 +20,7 @@ in
     ./autobackup.nix
     ./jellyfin.nix
     ./octoprint.nix
+    ./restic.nix
     ./hardware-configuration.nix
   ];
 
