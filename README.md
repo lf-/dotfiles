@@ -42,6 +42,11 @@ This plugin registers a hook for both `precmd` (run each time before the prompt 
 
 You can use zstyle to control the behaviour of the plugin. For now this is only used to enable debugging in different parts of the plugin
 
+### XDG_DATA_DIRS sync
+
+To turn the XDG_DATA_DIRS feature on or off, set `zstyle 'completion-sync:xdg' enabled` (default enabled).
+Note that disabling this feature during runtime will not remove the dirs added to the fpath at startup, it will only pause the syncing. To avoid adding paths from `$XDG_DATA_DIRS` to `$FPATH`, set the zstyle in `.zshrc` (i.e. before the first prompt is rendered)
+
 ### Debug Logging
 Examples:
 ```zsh

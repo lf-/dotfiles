@@ -42,72 +42,74 @@ _completion_sync:functions_from_xdg_data(){
 }
 
 _completion_sync:hook(){
-  if [[ ! -v COMPLETION_SYNC_OLD_XDG_DATA_DIRS ]] then
-    _completion_sync:debug_log ':completion-sync:xdg:init' "Syncing XDG_DATA_DIRS into FPATH enabled"
+  if zstyle -T ':completion-sync:xdg' enabled; then
+    if [[ ! -v COMPLETION_SYNC_OLD_XDG_DATA_DIRS ]]; then
+      _completion_sync:debug_log ':completion-sync:xdg:init' "Syncing XDG_DATA_DIRS into FPATH enabled"
 
-    _completion_sync:debug_log ':completion-sync:xdg:init:diff' "old FPATH\n${(F)fpath}"
+      _completion_sync:debug_log ':completion-sync:xdg:init:diff' "old FPATH\n${(F)fpath}"
 
-    # First time around, only add relevant XDG_DATA_DIRs, which are not on the FPATH yet
-    # Find XDG_DATA_DIRS which have $ZSH function dirs under them
-    completion_sync_old_xdg_fpaths=( $(_completion_sync:functions_from_xdg_data) )
+      # First time around, only add relevant XDG_DATA_DIRs, which are not on the FPATH yet
+      # Find XDG_DATA_DIRS which have $ZSH function dirs under them
+      completion_sync_old_xdg_fpaths=( $(_completion_sync:functions_from_xdg_data) )
 
-    _completion_sync:debug_log ':completion-sync:xdg:init:diff' "adding from XDG"
-
-    # Prepend in reverse order to maintain their order in the final path
-    for idx in {${#completion_sync_old_xdg_fpaths}..1} ; do
-      local elem="${completion_sync_old_xdg_fpaths[$idx]}"
-      if (( ! ${fpath[(I)"$elem"]} )); then
-
-        _completion_sync:debug_log ':completion-sync:xdg:init:diff' $elem
-
-        fpath=($elem $fpath)
-      fi
-    done
-
-    _completion_sync:debug_log ':completion-sync:xdg:init:diff' "New FPATH\n${(F)fpath}"
-
-  elif [[ "$COMPLETION_SYNC_OLD_XDG_DATA_DIRS" != "$XDG_DATA_DIRS" ]]; then
-    _completion_sync:debug_log ':completion-sync:xdg:onchange' "XDG_DATA_DIRS CHANGED"
-    # Check if the fpath dirs changed
-    local new_paths=( $(_completion_sync:functions_from_xdg_data) )
-
-    if [[ "$completion_sync_old_xdg_fpaths" != "$new_paths" ]]; then
-      _completion_sync:debug_log ':completion-sync:xdg:onchange' "Need to update FPATH from XDG_DATA_DIRS!"
-
-      local diff=( "${(@)$(diff <(for p in $new_paths; do echo $p; done) <(for p in $completion_sync_old_xdg_fpaths; do echo $p; done) | grep -E "<|>")}" )
-      _completion_sync:debug_log ':completion-sync:xdg:diff' "$diff"
+      _completion_sync:debug_log ':completion-sync:xdg:init:diff' "adding from XDG"
 
       # Prepend in reverse order to maintain their order in the final path
-      for idx in {${#diff}..1} ; do
-        local p=$diff[$idx]
-        case "${p[1]}" in
-          \<)
-            # path got added
-            local p_path="${p:2}"
-            _completion_sync:debug_log ':completion-sync:xdg:onchange:add' "Adding path '$p_path'"
-            _completion_sync:debug_log ':completion-sync:fpath:add' "Adding '$p_path' to FPATH"
-            fpath=("$p_path" $fpath)
-            ;;
-          \>)
-            # path got removed
-            local p_path="${p:2}"
-            _completion_sync:debug_log ':completion-sync:xdg:onchange:delete' "Removing path '$p_path'"
-            _completion_sync:delete_first_from_fpath "$p_path"
-            ;;
-          *)
-            # This should not happen
-            _completion_sync:debug_log ':completion-sync:xdg:onchange' "Invalid diff line $p"
-            _completion_sync:debug_log ':completion-sync:xdg:onchange' "Tried to match on character ${p[1]}"
-            ;;
-        esac
+      for idx in {${#completion_sync_old_xdg_fpaths}..1} ; do
+        local elem="${completion_sync_old_xdg_fpaths[$idx]}"
+        if (( ! ${fpath[(I)"$elem"]} )); then
+
+          _completion_sync:debug_log ':completion-sync:xdg:init:diff' $elem
+
+          fpath=($elem $fpath)
+        fi
       done
 
-      completion_sync_old_xdg_fpaths=( "${(@f)new_paths}" )
-    else
-      _completion_sync:debug_log ':completion-sync:xdg:onchange' "No FPATH change needed"
+      _completion_sync:debug_log ':completion-sync:xdg:init:diff' "New FPATH\n${(F)fpath}"
+
+    elif [[ "$COMPLETION_SYNC_OLD_XDG_DATA_DIRS" != "$XDG_DATA_DIRS" ]]; then
+      _completion_sync:debug_log ':completion-sync:xdg:onchange' "XDG_DATA_DIRS CHANGED"
+      # Check if the fpath dirs changed
+      local new_paths=( $(_completion_sync:functions_from_xdg_data) )
+
+      if [[ "$completion_sync_old_xdg_fpaths" != "$new_paths" ]]; then
+        _completion_sync:debug_log ':completion-sync:xdg:onchange' "Need to update FPATH from XDG_DATA_DIRS!"
+
+        local diff=( "${(@)$(diff <(for p in $new_paths; do echo $p; done) <(for p in $completion_sync_old_xdg_fpaths; do echo $p; done) | grep -E "<|>")}" )
+        _completion_sync:debug_log ':completion-sync:xdg:diff' "$diff"
+
+        # Prepend in reverse order to maintain their order in the final path
+        for idx in {${#diff}..1} ; do
+          local p=$diff[$idx]
+          case "${p[1]}" in
+            \<)
+              # path got added
+              local p_path="${p:2}"
+              _completion_sync:debug_log ':completion-sync:xdg:onchange:add' "Adding path '$p_path'"
+              _completion_sync:debug_log ':completion-sync:fpath:add' "Adding '$p_path' to FPATH"
+              fpath=("$p_path" $fpath)
+              ;;
+            \>)
+              # path got removed
+              local p_path="${p:2}"
+              _completion_sync:debug_log ':completion-sync:xdg:onchange:delete' "Removing path '$p_path'"
+              _completion_sync:delete_first_from_fpath "$p_path"
+              ;;
+            *)
+              # This should not happen
+              _completion_sync:debug_log ':completion-sync:xdg:onchange' "Invalid diff line $p"
+              _completion_sync:debug_log ':completion-sync:xdg:onchange' "Tried to match on character ${p[1]}"
+              ;;
+          esac
+        done
+
+        completion_sync_old_xdg_fpaths=( "${(@f)new_paths}" )
+      else
+        _completion_sync:debug_log ':completion-sync:xdg:onchange' "No FPATH change needed"
+      fi
     fi
+    COMPLETION_SYNC_OLD_XDG_DATA_DIRS="$XDG_DATA_DIRS"
   fi
-  COMPLETION_SYNC_OLD_XDG_DATA_DIRS="$XDG_DATA_DIRS"
 
   if [[ ! -v completion_sync_old_fpath ]]; then
     _completion_sync:debug_log ':completion-sync:fpath:init' "Syncing completions to fpath enabled"
