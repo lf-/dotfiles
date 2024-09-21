@@ -36,3 +36,20 @@ Ensure that `.envrc` exports an extended `$XDG_DATA_DIRS`. each path should cont
 ## How does it work?
 
 This plugin registers a hook for both `precmd` (run each time before the prompt is displayed) and `chpwd` (run when changing directories). It registers itself at the end of the hook chain when it is loaded, in the hope of going last after all hooks that might change the env vars (especially after the dir env hook).
+
+
+## Options
+
+You can use zstyle to control the behaviour of the plugin. For now this is only used to enable debugging in different parts of the plugin
+
+### Debug Logging
+Examples:
+```zsh
+  # Enable debug logging by default
+  zstyle ':completion-sync:*' debug true
+  # Turn off the very verbose line diffs
+  zstyle ':completion-sync:*:diff' debug false
+  # Turn off debug logging about internal manipulation of how/whether compinit is loaded
+  zstyle ':completion-sync:compinit:autoload' debug false
+```
+You can control the debug logging very precisely if you need to, but for most use cases the options above are sufficient. If you need more precision, search for `:completion-sync:` in the source.
