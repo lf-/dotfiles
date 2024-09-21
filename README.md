@@ -37,6 +37,11 @@ Ensure that `.envrc` exports an extended `$XDG_DATA_DIRS`. each path should cont
 
 This plugin registers a hook for both `precmd` (run each time before the prompt is displayed) and `chpwd` (run when changing directories). It registers itself at the end of the hook chain when it is loaded, in the hope of going last after all hooks that might change the env vars (especially after the dir env hook).
 
+### XDG_DATA_DIRS sync
+
+The first time this feature loads, it will enumerate all subpaths of XDG_DATA_DIRS that contain zsh functions (`$dir/zsh/site-functions` or `$dir/zsh/$ZSH_VERSION/functions`) and then prepend all of these paths *that are not on the FPATH yet* to the FPATH. This avoids overriding custom overrides for internal functions again by putting the zsh install directory on the front of the path, because it is also reachable via `$XDG_DATA_DIRS`.
+
+Then everytime `$XDG_DATA_DIRS` changes, the plugin then enumerates the zsh function subpaths again and then diffs that against the last state of the function dirs. It then adds/removes these from fpaths as indicated by the diff. Note, that unlike in the initialization, this will always prepend or remove the first occurence of a path from the fpath. If a directory is dynamically added during runtime, we assume that the user wants it to take priority.
 
 ## Options
 
