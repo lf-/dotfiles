@@ -64,6 +64,18 @@ The plugin searches the relative paths indicated in the array set in `zstyle :co
 
 Note that if you want nix-shell to put you into zsh by default and only need support for `nix-shell` compatibility, you should install [this plugin for compatibility](https://github.com/chisui/zsh-nix-shell) which does put nix fpaths onto path already and does not require this plugin's workaround.
 
+### Builtin Compinit
+
+Caution: This is hacky and will probably break something.
+
+```zsh
+zstyle ':completion-sync:compinit:builtin-compinit' enabled true #default: false
+```
+
+Some plugins patch or otherwise modify the compinit function. this can leave us unable to access the functionality necessary for reloading the completion system. As a workaround, this option, if enabled will first copy the existing compinit function out of the way and autoload `compinit` from the fpath again. The result of this is almost always the builtin `compinit` or a function meant to act as a drop-in replacement and therefore safe to call.
+Note that while this will bruteforce re-enable the ability to reload completions, there is often a very good reason why plugins patch compinit. Sometimes, it is only the goal of improving performance ensuring that multiple calls to `compinit`  in `.zshrc` via different plugins do not slow down shell start. In this case, where `compinit` was no-op'ed for performance, it is safe to enable this option.
+On the other hand, plugins like [zsh-autocomplete](https://github.com/marlonrichert/zsh-autocomplete/) (which made me originally write this workaround) no-op the function, because it's default behaviour will break `zsh-autocomplete` in subtle ways. Using builtin-compinit with it gets completions for new commands, but at degraded autocomplete functionality across the board.
+
 ### Debug Logging
 Examples:
 ```zsh
@@ -71,8 +83,6 @@ Examples:
   zstyle ':completion-sync:*' debug true
   # Turn off the very verbose line diffs
   zstyle ':completion-sync:*:diff' debug false
-  # Turn off debug logging about internal manipulation of how/whether compinit is loaded
-  zstyle ':completion-sync:compinit:autoload' debug false
   # Turn off debug logging about candidate paths
   zstyle ':completion-sync:**:candidate' debug false
   zstyle ':completion-sync:**:candidate:*' debug false

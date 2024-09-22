@@ -71,24 +71,29 @@ _completion_sync:find_fpaths_from_path(){
 }
 
 _completion_sync:compsys_reload(){
-  # Allow us to restore the previous compinit, to be a good citizen
-  functions -c compinit compinit_orig
-  # Remove the current compinit to allow for reloading
-  unfunction compinit
-  # restore original compinit
-  autoload +X compinit
+  # Ensure that we call compinit provided from the fpath (default: off)
+  if zstyle -t ':completions-sync:compinit:builtin-compinit' enabled; then
+    # Allow us to restore the previous compinit, to be a good citizen
+    functions -c compinit compinit_orig
+    # Remove the current compinit to allow for reloading
+    unfunction compinit
+    # restore original compinit
+    autoload +X compinit
 
-  _completion_sync:debug_log ':completion-sync:compinit:autoload' "previous compinit: $(whence -v compinit_orig)"
-  _completion_sync:debug_log ':completion-sync:compinit:autoload' "loaded compinit: $(whence -v compinit)"
-
+    _completion_sync:debug_log ':completion-sync:compinit:builtin-compinit' "previous compinit: $(whence -v compinit_orig)"
+    _completion_sync:debug_log ':completion-sync:compinit:builtin-compinit' "loaded compinit: $(whence -v compinit)"
+  fi
 
   # do not write dumpfile, since we are likely working on a temporary FPATH
   # TODO: make argument configurable
   _completion_sync:debug_log ':completion-sync:compinit' "invoking compinit as 'compinit -D'"
   compinit -D
-  # restore original function
-  functions -c compinit_orig compinit
-  _completion_sync:debug_log ':completion-sync:compinit:autoload' "restored compinit: $(whence -v compinit)"
+
+  if zstyle -t ':completions-sync:compinit:builtin-compinit' enabled; then
+    # restore original function
+    functions -c compinit_orig compinit
+    _completion_sync:debug_log ':completion-sync:compinit:builtin-compinit' "restored compinit: $(whence -v compinit)"
+  fi
 }
 
 _completion_sync:path_hook(){
