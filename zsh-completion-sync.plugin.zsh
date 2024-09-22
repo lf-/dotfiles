@@ -70,6 +70,27 @@ _completion_sync:find_fpaths_from_path(){
 
 }
 
+_completion_sync:compsys_reload(){
+  # Allow us to restore the previous compinit, to be a good citizen
+  functions -c compinit compinit_orig
+  # Remove the current compinit to allow for reloading
+  unfunction compinit
+  # restore original compinit
+  autoload +X compinit
+
+  _completion_sync:debug_log ':completion-sync:compinit:autoload' "previous compinit: $(whence -v compinit_orig)"
+  _completion_sync:debug_log ':completion-sync:compinit:autoload' "loaded compinit: $(whence -v compinit)"
+
+
+  # do not write dumpfile, since we are likely working on a temporary FPATH
+  # TODO: make argument configurable
+  _completion_sync:debug_log ':completion-sync:compinit' "invoking compinit as 'compinit -D'"
+  compinit -D
+  # restore original function
+  functions -c compinit_orig compinit
+  _completion_sync:debug_log ':completion-sync:compinit:autoload' "restored compinit: $(whence -v compinit)"
+}
+
 _completion_sync:path_hook(){
   if [[ ! -v COMPLETION_SYNC_OLD_PATH ]]; then
     _completion_sync:debug_log ':completion-sync:path:init' "Detecting FPATHs from PATH enabled"
@@ -218,25 +239,7 @@ _completion_sync:hook(){
       diff <(echo "${(F)fpath}" | sort ) <(echo "${(F)completion_sync_old_fpath}" | sort) | grep -E "<|>"
     fi
 
-    # Allow us to restore the previous compinit, to be a good citizen
-    functions -c compinit compinit_orig
-    # Remove the current compinit to allow for reloading
-    unfunction compinit
-    # restore original compinit
-    autoload +X compinit
-
-    _completion_sync:debug_log ':completion-sync:compinit:autoload' "previous compinit: $(whence -v compinit_orig)"
-    _completion_sync:debug_log ':completion-sync:compinit:autoload' "loaded compinit: $(whence -v compinit)"
-
-
-    # do not write dumpfile, since we are likely working on a temporary FPATH
-    # TODO: make argument configurable
-    _completion_sync:debug_log ':completion-sync:compinit' "invoking compinit as 'compinit -D'"
-    compinit -D
-    # restore original function
-    functions -c compinit_orig compinit
-    _completion_sync:debug_log ':completion-sync:compinit:autoload' "restored compinit: $(whence -v compinit)"
-
+    _completion_sync:compsys_reload
   fi
   completion_sync_old_fpath=( "${(@f)fpath}" )
 }
