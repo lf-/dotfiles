@@ -27,7 +27,8 @@ Most packages have shell completion scripts for bash,zsh, and fish available in 
 ### `nix-shell -p`
 
 Currently, `nix-shell` does not currently set nativeBuildInputs (https://github.com/NixOS/nix/issues/4254) and therefore does not set/expand `$XDG_DATA_DIR`.
-This plugin might add support via a work-around that automatically discovers share paths from `$PATH` in the future.
+This plugin offers a slightly hacky workaround which tries to [discover fpaths from entries on `$PATH`](#path-sync).
+You can enable it by setting `zstyle ':completion-sync:path' enabled true`. Since this behaviour does not conform to the meaning of the `$PATH` variable (as opposed to `$FPATH` and `$XDG_DATA_DIR`) it is not enabled by default. Putting relevant packages into `nativeBuildInputs` (once supported) is the preferred way.
 
 ### `direnv` (without nix)
 
@@ -43,14 +44,25 @@ The first time this feature loads, it will enumerate all subpaths of XDG_DATA_DI
 
 Then everytime `$XDG_DATA_DIRS` changes, the plugin then enumerates the zsh function subpaths again and then diffs that against the last state of the function dirs. It then adds/removes these from fpaths as indicated by the diff. Note, that unlike in the initialization, this will always prepend or remove the first occurence of a path from the fpath. If a directory is dynamically added during runtime, we assume that the user wants it to take priority.
 
+### PATH sync
+The PATH sync feature is a workaround for [`nix-shell -p`](#nix-shell--p), which puts the `bin/` folder of nix a set of nix derivations on the PATH, but doesn't export their `share/` directory on `$XDG_DATA_DIRS`. (This is in tune with how nix works, since only `nativeBuildInputs` and not `packages` are meant to export their data dirs). In nix, these `share/` dirs are siblings to the `bin/` path on `$PATH` and if they have a corresponding zsh completions, those are installed in `share/zsh/site-functions`. So, to discover these fpaths, the plugin tests for the existence of a directory at `$p/$relPath` for every `$p` from `$PATH` and `$rp` from the [configured array of relative paths](#path-to-fpath-sync--nix-shell-compat). The default works for discovering any zsh FPATHs in nix derivations on `$PATH`. The resultant array of paths is then added to the front of `$FPATH` (preserving priority order from `$PATH`) *if the relevant path if not on `$FPATH` yet*. When there is a change in `$PATH`, the plugin builds the array from the current `$PATH` again and diffs it against the last state, adding or/removing to/from the front of `$FPATH` as needed.
+
 ## Options
 
-You can use zstyle to control the behaviour of the plugin. For now this is only used to enable debugging in different parts of the plugin
+You can use zstyle to control the behaviour of the plugin. This includes enabling/disabling certain feature-sets and fine-grained control over debug logging.
 
 ### XDG_DATA_DIRS sync
 
 To turn the XDG_DATA_DIRS feature on or off, set `zstyle 'completion-sync:xdg' enabled` (default enabled).
 Note that disabling this feature during runtime will not remove the dirs added to the fpath at startup, it will only pause the syncing. To avoid adding paths from `$XDG_DATA_DIRS` to `$FPATH`, set the zstyle in `.zshrc` (i.e. before the first prompt is rendered)
+
+### PATH to FPATH sync / nix-shell compat
+
+To enable detecting zsh function paths from the binary search path, set `zstyle :completion-sync:path enabled true` (default false).
+
+The plugin searches the relative paths indicated in the array set in `zstyle :completion-sync:path rel_dirs` (default: `("../share/zsh/$ZSH_VERSION/functions" '../share/zsh/site-functions')`). The default is setup based on the typical nix derivation structure, which has its `share/`/`XDG_DATA_DIR` as a sibling to the `bin/` directory on the path.
+
+Note that if you want nix-shell to put you into zsh by default and only need support for `nix-shell` compatibility, you should install [this plugin for compatibility](https://github.com/chisui/zsh-nix-shell) which does put nix fpaths onto path already and does not require this plugin's workaround.
 
 ### Debug Logging
 Examples:
@@ -61,5 +73,8 @@ Examples:
   zstyle ':completion-sync:*:diff' debug false
   # Turn off debug logging about internal manipulation of how/whether compinit is loaded
   zstyle ':completion-sync:compinit:autoload' debug false
+  # Turn off debug logging about candidate paths
+  zstyle ':completion-sync:**:candidate' debug false
+  zstyle ':completion-sync:**:candidate:*' debug false
 ```
 You can control the debug logging very precisely if you need to, but for most use cases the options above are sufficient. If you need more precision, search for `:completion-sync:` in the source.

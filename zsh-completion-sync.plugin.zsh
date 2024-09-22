@@ -41,7 +41,104 @@ _completion_sync:functions_from_xdg_data(){
   echo "${(u)a[@]}"
 }
 
+# This function directly reads into the completion_sync_fpaths_from_path variable to avoid a subshell invocation
+_completion_sync:find_fpaths_from_path(){
+  local rel_paths=()
+  if ! zstyle -g rel_paths ':completion-sync:path' rel_paths; then
+    rel_paths=("../share/zsh/$ZSH_VERSION/functions" '../share/zsh/site-functions')
+  fi
+
+  completion_sync_fpaths_from_path=()
+
+  for p in $path; do
+    for rp in $rel_paths; do
+      local maybe_fpath="$p/$rp"
+      # This is the equivalent of using readlink on the path (i.e. canonicalize it, and resolve symlinks)
+      _completion_sync:debug_log ':completion-sync:path:path2fpath:candidate' "fpath candidate: $maybe_fpath"
+      maybe_fpath=${maybe_fpath:A}
+      _completion_sync:debug_log ':completion-sync:path:path2fpath:candidate:canonicalize' "fpath candidate (canonicalized): $maybe_fpath"
+      if [[ -d "$maybe_fpath" ]]; then
+        _completion_sync:debug_log ':completion-sync:path:path2fpath' "found fpath on path: $maybe_fpath"
+        completion_sync_fpaths_from_path=("$maybe_fpath" $completion_sync_fpaths_from_path)
+      fi
+    done
+  done
+  # unique the directories
+  _completion_sync:debug_log ':completion-sync:path:path2fpath:unique' "fpaths on path (non-unique):\n${(F)completion_sync_fpaths_from_path}\n"
+  completion_sync_fpaths_from_path=(${(u)completion_sync_fpaths_from_path[@]})
+  _completion_sync:debug_log ':completion-sync:path:path2fpath:unique' "fpaths on path (unique):\n${(F)completion_sync_fpaths_from_path}\n"
+
+}
+
+_completion_sync:path_hook(){
+  if [[ ! -v COMPLETION_SYNC_OLD_PATH ]]; then
+    _completion_sync:debug_log ':completion-sync:path:init' "Detecting FPATHs from PATH enabled"
+
+    _completion_sync:debug_log ':completion-sync:path:init:diff' "from path: old FPATH\n${(F)fpath}\n"
+    # Detect current fpaths from path and read it into the variable
+    _completion_sync:find_fpaths_from_path
+
+    # Prepend in reverse order to maintain their order in the final path
+    for idx in {${#completion_sync_fpaths_from_path}..1} ; do
+      local elem=${completion_sync_fpaths_from_path[$idx]}
+      # First time around, only add relevant XDG_DATA_DIRs, which are not on the FPATH yet
+      if (( ! ${fpath[(I)"$elem"]} )); then
+
+        _completion_sync:debug_log ':completion-sync:path:init:diff' "from path: $elem"
+
+        fpath=($elem $fpath)
+      fi
+    done
+
+    _completion_sync:debug_log ':completion-sync:path:init:diff' "from path: new FPATH\n${(F)fpath}\n"
+  elif [[ "$COMPLETION_SYNC_OLD_PATH" != "$PATH" ]]; then
+    _completion_sync:debug_log ':completion-sync:path:onchange' "PATH CHANGED"
+    # Check if the fpath dirs changed
+    local completion_sync_old_fpaths_from_path=( "${(@f)completion_sync_fpaths_from_path}" )
+
+    if [[ "$completion_sync_old_fpaths_from_path" != "$completion_sync_fpaths_from_path" ]]; then
+      _completion_sync:debug_log ':completion-sync:path:onchange' "Need to update FPATH from PATH!"
+
+      local diff=( "${(@)$(diff <(${(F)completion_sync_fpaths_from_path}) <(${(F)completion_sync_fpaths_from_path}) | grep -E "<|>")}" )
+      _completion_sync:debug_log ':completion-sync:path:diff' "$diff"
+
+      # TODO: Generalize without subshell
+      # Prepend in reverse order to maintain their order in the final path
+      for idx in {${#diff}..1} ; do
+        local p=$diff[$idx]
+        case "${p[1]}" in
+          \<)
+            # path got added
+            local p_path="${p:2}"
+            _completion_sync:debug_log ':completion-sync:path:onchange:add' "Adding path '$p_path'"
+            _completion_sync:debug_log ':completion-sync:fpath:add' "Adding '$p_path' to FPATH"
+            fpath=("$p_path" $fpath)
+            ;;
+          \>)
+            # path got removed
+            local p_path="${p:2}"
+            _completion_sync:debug_log ':completion-sync:path:onchange:delete' "Removing path '$p_path'"
+            _completion_sync:delete_first_from_fpath "$p_path"
+            ;;
+          *)
+            # This should not happen
+            _completion_sync:debug_log ':completion-sync:path:onchange' "Invalid diff line $p"
+            _completion_sync:debug_log ':completion-sync:path:onchange' "Tried to match on character ${p[1]}"
+            ;;
+        esac
+      done
+    else
+      _completion_sync:debug_log ':completion-sync:path:onchange' "No FPATH change needed"
+    fi
+  fi
+  COMPLETION_SYNC_OLD_PATH="$PATH"
+}
+
 _completion_sync:hook(){
+  if zstyle -t ':completion-sync:path' enabled; then
+    _completion_sync:path_hook
+  fi
+
   if zstyle -T ':completion-sync:xdg' enabled; then
     if [[ ! -v COMPLETION_SYNC_OLD_XDG_DATA_DIRS ]]; then
       _completion_sync:debug_log ':completion-sync:xdg:init' "Syncing XDG_DATA_DIRS into FPATH enabled"
