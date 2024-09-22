@@ -108,6 +108,7 @@ _completion_sync:path_hook(){
         _completion_sync:debug_log ':completion-sync:path:init:diff' "from path: $elem"
 
         fpath=($elem $fpath)
+        completion_sync_fpath_changed_during_init=true
       fi
     done
 
@@ -180,6 +181,7 @@ _completion_sync:hook(){
           _completion_sync:debug_log ':completion-sync:xdg:init:diff' $elem
 
           fpath=($elem $fpath)
+          completion_sync_fpath_changed_during_init=true
         fi
       done
 
@@ -231,7 +233,11 @@ _completion_sync:hook(){
 
   if [[ ! -v completion_sync_old_fpath ]]; then
     _completion_sync:debug_log ':completion-sync:fpath:init' "Syncing completions to fpath enabled"
-    # Do no re-init the first time around
+    # Do not re-init the first time around unless other init code extended FPATH
+    if [[ "$completion_sync_fpath_changed_during_init" == "true" ]]; then
+      _completion_sync:debug_log ':completion-sync:fpath:init' "FPATH Changed during init, reloading compsys!"
+      _completion_sync:compsys_reload
+    fi
   elif [[ "$completion_sync_old_fpath" != "$fpath" ]]; then
 
     _completion_sync:debug_log ':completion-sync:fpath:onchange' "FPATH Changed!"
