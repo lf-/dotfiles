@@ -36,7 +36,7 @@ _completion_sync:fpath_maybe_add_xdg(){
 }
 
 _completion_sync:functions_from_xdg_data(){
-  local a=($(echo "$XDG_DATA_DIRS" | tr ':' "\n" | xargs -I{} realpath -e "{}/zsh/site-functions" "\n" realpath -e "{}/zsh/$ZSH_VERSION/functions" 2>/dev/null | tr "\n" ' '))
+  local a=($(echo "$XDG_DATA_DIRS" | tr ':' "\n" | xargs -I{} realpath -e "{}/zsh/site-functions" "\n" realpath -e "{}/zsh/$ZSH_VERSION/functions" "\n" realpath -e "{}/zsh/vendor-completions" 2>/dev/null | tr "\n" ' '))
   # unique the directories
   echo "${(u)a[@]}"
 }
