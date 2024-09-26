@@ -291,7 +291,7 @@ _completion_sync:hook(){
       # Prepend in reverse order to maintain their order in the final path
       for idx in {${#completion_sync_old_xdg_fpaths}..1} ; do
         local elem="${completion_sync_old_xdg_fpaths[$idx]}"
-        if (( ! ${fpath[(I)"$elem"]} )); then
+        if (( ! ${fpath[(I)$elem]} )); then
 
           _completion_sync:debug_log ':completion-sync:xdg:init:diff' $elem
 
