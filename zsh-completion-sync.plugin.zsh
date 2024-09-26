@@ -378,7 +378,7 @@ if _completion_sync:zsh_autocomplete_compat_isenabled ; then
     echo "completion sync: compat: zsh-autocomplete: This disables autodetection and tells completion-sync directly how to reload zsh-autocomplete"
     echo "completion sync: compat: zsh-autocomplete: in your .zshrc before this plugin is loaded"
     echo "completion sync: compat: zsh-autocomplete: To disable these messages set\n\
-          zstyle ':completion-sync:compinit:compat:zsh-autocomplete:optimize' debug false"
+          zstyle ':completion-sync:compinit:compat:zsh-autocomplete' optimize false"
   fi
 fi
 
