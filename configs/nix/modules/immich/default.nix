@@ -33,6 +33,13 @@ in
         type = types.str;
       };
 
+      redisDataDir = lib.mkOption {
+        description = "Directory on the host where the Immich redis instance stores data";
+        example = "/tank/srv/immich/redis";
+        default = "/var/lib/immich/redis";
+        type = types.str;
+      };
+
       environment = lib.mkOption {
         description = "Non-sensitive environment variables to set in the immich containers";
         example = {
@@ -133,6 +140,10 @@ in
           user = "immich";
           # FIXME: this may be evil?
           extraOptions = [ "--userns=keep-id" "--hostuser=immich" ];
+
+          volumes = [
+            "${cfg.redisDataDir}:/data"
+          ];
         };
         immich-database = {
           image = versions.database.image;
@@ -188,6 +199,9 @@ in
       };
     };
 
+    # as required by redis https://github.com/jemalloc/jemalloc/issues/1328
+    boot.kernel.sysctl."vm.overcommit_memory" = "1";
+
     users.groups.immich = { };
 
     users.users.immich = {
@@ -200,6 +214,7 @@ in
       "d /var/cache/immich/model-cache 0770 immich immich"
       "d ${cfg.uploadDir} 0770 immich immich"
       "d ${cfg.postgresDataDir} 0700 immich root"
+      "d ${cfg.redisDataDir} 0770 immich immich"
     ];
   };
 }

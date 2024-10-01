@@ -22,6 +22,7 @@ in
     ./jellyfin.nix
     ./octoprint.nix
     ./restic.nix
+    ./immich.nix
     ./hardware-configuration.nix
   ];
 
@@ -222,19 +223,12 @@ in
     wildcardCertDomain = "*.h.jade.fyi";
   };
 
-  age.secrets.immich-container-creds.file = ./immich-container-creds.age;
-  users.users.immich.extraGroups = [ "tank_photos" ];
-  jade.immich = {
-    enable = true;
-    postgresDataDir = "/tank/srv/immich/postgres";
-    uploadDir = "/tank/photos/immich";
-
-    environmentFiles = [
-      config.age.secrets.immich-container-creds.path
-    ];
-  };
   virtualisation.podman.defaultNetwork.settings = {
     dns_enabled = true;
+  };
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = "1";
+    "net.ipv6.ip_forward" = "1";
   };
 
   jade.rootSshKeys.enable = true;
