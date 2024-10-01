@@ -13,7 +13,7 @@
     checkconf = false;
     settings = {
       server = {
-        interface = "0.0.0.0";
+        interface = "192.168.0.40";
         access-control = [
           "127.0.0.0/8 allow"
           "192.168.0.0/16 allow"
