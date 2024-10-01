@@ -33,9 +33,14 @@ in {
     postgresDataDir = "/tank/srv/immich/postgres";
     redisDataDir = "/tank/srv/immich/redis";
     uploadDir = "/tank/photos/immich";
+    extraVolumes = [
+      "/tank/photos/Library:/libraries/Library:ro"
+    ];
 
     environmentFiles = [
       config.age.secrets.immich-container-creds.path
     ];
+
+    extraPodmanOptions = [ "--group-add=${toString config.users.groups.tank_photos.gid}" ];
   };
 }

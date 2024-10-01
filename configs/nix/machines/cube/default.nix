@@ -68,7 +68,9 @@ in
   # group of /tank/backup/zfs, which allows seeing what's in there but nothing
   # more
   users.groups.autobackup = { };
-  users.groups.tank_photos = { };
+  users.groups.tank_photos = {
+    gid = 979;
+  };
 
   users.users.jade.extraGroups = [
     "tank"

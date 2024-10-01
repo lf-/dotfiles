@@ -71,6 +71,18 @@ in
         default = 2283;
         type = types.port;
       };
+
+      extraVolumes = lib.mkOption {
+        description = "Extra volumes to add to the main immich container, for external libraries";
+        default = [ ];
+        type = types.listOf types.str;
+      };
+
+      extraPodmanOptions = lib.mkOption {
+        description = "Extra podman options to add to the main immich container";
+        default = [ ];
+        type = types.listOf types.str;
+      };
     };
   };
 
@@ -88,11 +100,14 @@ in
           volumes = [
             "${cfg.uploadDir}:/usr/src/app/upload"
             "/etc/localtime:/etc/localtime:ro"
-          ];
+          ] ++ cfg.extraVolumes;
 
           user = "immich";
           # FIXME: this may be evil?
-          extraOptions = [ "--userns=keep-id" "--hostuser=immich" ];
+          extraOptions = [
+            "--userns=keep-id"
+            "--hostuser=immich"
+          ] ++ cfg.extraPodmanOptions;
 
           ports = [
             "127.0.0.1:${toString cfg.httpPort}:3001"
@@ -123,7 +138,10 @@ in
 
           user = "immich";
           # FIXME: this may be evil?
-          extraOptions = [ "--userns=keep-id" "--hostuser=immich" ];
+          extraOptions = [
+            "--userns=keep-id"
+            "--hostuser=immich"
+          ];
 
           inherit (cfg) environment environmentFiles;
 
@@ -139,7 +157,10 @@ in
 
           user = "immich";
           # FIXME: this may be evil?
-          extraOptions = [ "--userns=keep-id" "--hostuser=immich" ];
+          extraOptions = [
+            "--userns=keep-id"
+            "--hostuser=immich"
+          ];
 
           volumes = [
             "${cfg.redisDataDir}:/data"
@@ -154,7 +175,10 @@ in
 
           user = "immich";
           # FIXME: this may be evil
-          extraOptions = [ "--userns=keep-id" "--hostuser=immich" ];
+          extraOptions = [
+            "--userns=keep-id"
+            "--hostuser=immich"
+          ];
 
           environment = {
             POSTGRES_INITDB_ARGS = "--data-checksums";
