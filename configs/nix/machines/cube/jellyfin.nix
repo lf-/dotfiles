@@ -24,6 +24,13 @@
         }
       '';
     };
+    # stream via tailscale to skip the public oauth2
+    "stream-ts.h.jade.fyi" = {
+      publicAccess = false;
+      action = ''
+        reverse_proxy 127.0.0.1:8096
+      '';
+    };
   };
 
   # absurdly, jellyfin wants to be able to write to this meta file to store its

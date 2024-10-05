@@ -59,6 +59,10 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nvimsplit
   vim-swapfile-header
   nvremote
+
+  # FIXME: this probably should not be in here since it doesn't do much good
+  # for VMs. but bleh effort.
+  cyme
 ] ++ lib.optionals withHsutils [
   (pkgs.haskell.lib.justStaticExecutables hsutils)
 ] ++ lib.optionals withGui (builtins.map wrapGui [
