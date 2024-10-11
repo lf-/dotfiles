@@ -24,6 +24,14 @@ in {
         }
       '';
     };
+    "immich-ts.h.jade.fyi" = {
+      publicAccess = false;
+      action = ''
+        handle {
+          reverse_proxy 127.0.0.1:${toString port}
+        }
+      '';
+    };
   };
 
   age.secrets.immich-container-creds.file = ./immich-container-creds.age;

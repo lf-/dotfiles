@@ -22,6 +22,10 @@ in
   "autobackup_voracle.age".publicKeys = users.jade ++ hosts.cube;
   # intentionally no recovery for this, since they can be regenerated easily
   "../machines/cube/b2-restic-keys.age".publicKeys = hosts.cube;
+  # this, however, is higher priority to have accessible imo
+  "../machines/cube/b2-restic-password.age".publicKeys = users.jade ++ hosts.cube;
+  # barely even sensitive
+  "../machines/cube/b2-restic-repo.age".publicKeys = users.jade ++ hosts.cube;
   "../machines/cube/immich-container-creds.age".publicKeys = hosts.cube;
 
   "webdav-creds.age".publicKeys = users.jade ++ hosts.voracle;
