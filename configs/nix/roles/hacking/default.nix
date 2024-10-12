@@ -5,5 +5,11 @@
     binwalk
     wireshark
     ghidra
+
+    dsniff
+
+    android-tools
+    apktool
+    apksigner
   ];
 }

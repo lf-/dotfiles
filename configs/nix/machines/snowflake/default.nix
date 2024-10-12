@@ -17,6 +17,7 @@
     ../../roles/autologin
     ../../roles/tpm
     ../../roles/networkmanager
+    ../../roles/realtime
     ./hardware-configuration.nix
   ];
 
@@ -104,6 +105,9 @@
     openttd
     virt-manager
 
+    # photography software not written by ridiculously toxic people
+    digikam
+
     verible
     verilator
     imhex
@@ -119,6 +123,11 @@
     libimobiledevice
     ifuse
     # kio-fuse
+
+    # another rawtherapee
+    art
+
+    yt-dlp
   ];
 
   # fixme: this is in closure from somewhere else and must be removed
@@ -142,6 +151,11 @@
 
     # fpga
     ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
+  '';
+
+  # workaround broken DNS for the captive portal at VPL
+  networking.extraHosts = ''
+    10.254.98.1 captiveportal-login.vpl.ca
   '';
 
   # This value determines the NixOS release from which the default
