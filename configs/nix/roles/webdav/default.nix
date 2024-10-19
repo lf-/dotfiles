@@ -5,6 +5,12 @@
   # when it sucks.
   jade.tailscale.allowedTCPPorts = [ 9999 ];
 
+  nixpkgs.overlays = [(final: prev: {
+    # pin to 4.2.0 via goofy means because the nixos module is of dubious quality
+    # pinning to avoid regression: https://github.com/hacdias/webdav/issues/190
+    webdav = pkgs.callPackage ./package.nix { };
+  })];
+
   services.webdav = {
     enable = true;
 
