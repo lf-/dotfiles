@@ -59,6 +59,9 @@ actions = [
     SymlinkAction('kde-color-schemes', '~/.local/share/color-schemes'),
     SymlinkAction('gtksourceview-4', '~/.local/share/gtksourceview-4'),
 
+    MkdirAction('~/.config/GIMP/2.10'),
+    SymlinkAction('gnu-imp/scripts', '~/.config/GIMP/2.10/scripts'),
+
     SymlinkAction('main', '~', dir_mode=True),
 
     MkdirAction('~/.config/Code/User'),
