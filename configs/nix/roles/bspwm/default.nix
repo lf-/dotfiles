@@ -1,4 +1,14 @@
 { config, pkgs, ... }:
+let
+  dontAutostart = pkg: pkgs.runCommand pkg.name
+    {
+      nativeBuildInputs = [ pkgs.xorg.lndir ];
+    } ''
+    mkdir -p $out
+    lndir ${pkg} $out
+    rm -rf $out/etc/xdg/autostart
+  '';
+in
 {
   imports = [ ../graphical ];
   services.xserver = {
@@ -87,7 +97,7 @@
     # kdePackages.kdegraphics-thumbnailers
 
     # FIXME: maybe convert to the service module?
-    picom
+    (dontAutostart picom)
 
     xdo
     xdotool
