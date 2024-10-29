@@ -25,6 +25,7 @@
     element-desktop
 
     alsa-utils
+    qpwgraph
 
     kooha
     # FIXME: kooha doesn't work on my bspwm machine

@@ -71,6 +71,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   shellcheck
   nodePackages.bash-language-server
   nix-output-monitor
+  nix-diff
   niv
   phpPackages.php-cs-fixer
   phpactor

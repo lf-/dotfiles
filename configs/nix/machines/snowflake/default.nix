@@ -124,6 +124,8 @@
     ifuse
     # kio-fuse
 
+    ffmpeg
+
     # another rawtherapee
     art
 
