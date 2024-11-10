@@ -1,0 +1,61 @@
+From e5dd6c0ed6491936691a7da3b7d9c1e74c6ff328 Mon Sep 17 00:00:00 2001
+From: Jade Lovelace <software@lfcode.ca>
+Date: Sun, 10 Nov 2024 01:11:38 -0800
+Subject: [PATCH] hack: make the WebAuthn authenticator accept binary UUIDs in
+ user handle
+
+This is for compatibility with Kanidm generated credentials
+---
+ .../browser/WebAuthnAuthenticator.java        | 20 ++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/services/src/main/java/org/keycloak/authentication/authenticators/browser/WebAuthnAuthenticator.java b/services/src/main/java/org/keycloak/authentication/authenticators/browser/WebAuthnAuthenticator.java
+index 1110957438..b17e47cbd0 100644
+--- a/services/src/main/java/org/keycloak/authentication/authenticators/browser/WebAuthnAuthenticator.java
++++ b/services/src/main/java/org/keycloak/authentication/authenticators/browser/WebAuthnAuthenticator.java
+@@ -53,8 +53,10 @@ import org.keycloak.sessions.AuthenticationSessionModel;
+ import jakarta.ws.rs.core.MultivaluedMap;
+ import jakarta.ws.rs.core.Response;
+ import java.nio.charset.StandardCharsets;
++import java.nio.ByteBuffer;
+ import java.util.Collections;
+ import java.util.List;
++import java.util.UUID;
+ 
+ import static org.keycloak.WebAuthnConstants.AUTH_ERR_DETAIL_LABEL;
+ import static org.keycloak.WebAuthnConstants.AUTH_ERR_LABEL;
+@@ -74,7 +76,7 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
+ 
+     public void authenticate(AuthenticationFlowContext context) {
+         LoginFormsProvider form = context.form();
+- 
++
+         Challenge challenge = new DefaultChallenge();
+         String challengeValue = Base64Url.encode(challenge.getValue());
+         context.getAuthenticationSession().setAuthNote(WebAuthnConstants.AUTH_CHALLENGE_NOTE, challengeValue);
+@@ -168,8 +170,20 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
+                 return;
+             }
+         } else {
+-            // decode using the same charset as it has been encoded (see: WebAuthnRegister.java)
+-            userId = new String(Base64Url.decode(userHandle), StandardCharsets.UTF_8);
++            byte[] userHandleBytes = Base64Url.decode(userHandle);
++            if (userHandleBytes.length == 16) {
++                // The user handle is a binary uuid and we need to turn it into a textual uuid
++                // Required for replacing your pet crabs with pet cappuccinos
++                ByteBuffer bb = ByteBuffer.wrap(userHandleBytes);
++                long hi = bb.getLong();
++                long lo = bb.getLong();
++                UUID uuid = new UUID(hi, lo);
++                userId = uuid.toString();
++            } else {
++                // decode using the same charset as it has been encoded (see: WebAuthnRegister.java)
++                userId = new String(userHandleBytes, StandardCharsets.UTF_8);
++            }
++
+             if (context.getUser() != null) {
+                 // Resident Key supported public key credential was used,
+                 // so need to confirm whether the already authenticated user is equals to one authenticated by the webauthn authenticator
+-- 
+2.47.0
+

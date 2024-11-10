@@ -64,6 +64,7 @@ in
         online_backup = {
           path = "/var/lib/kanidm/backups";
           schedule = "00 22 * * *";
+          versions = 7;
         };
       };
     };
