@@ -204,7 +204,7 @@ _completion_sync:path_hook(){
     if [[ "$completion_sync_old_fpaths_from_path" != "$completion_sync_fpaths_from_path" ]]; then
       _completion_sync:debug_log ':completion-sync:path:onchange' "Need to update FPATH from PATH!"
 
-      local diff=( "${(@)$(diff <(${(F)completion_sync_fpaths_from_path}) <(${(F)completion_sync_fpaths_from_path}) | grep -E "<|>")}" )
+      local diff=( "${(@)$(diff <(echo "${(F)completion_sync_fpaths_from_path}") <( echo "${(F)completion_sync_old_fpaths_from_path}") | grep -E "<|>")}" )
       _completion_sync:debug_log ':completion-sync:path:diff' "$diff"
 
       # TODO: Generalize without subshell
@@ -278,7 +278,7 @@ _completion_sync:hook(){
       if [[ "$completion_sync_old_xdg_fpaths" != "$new_paths" ]]; then
         _completion_sync:debug_log ':completion-sync:xdg:onchange' "Need to update FPATH from XDG_DATA_DIRS!"
 
-        local diff=( "${(@)$(diff <(for p in $new_paths; do echo $p; done) <(for p in $completion_sync_old_xdg_fpaths; do echo $p; done) | grep -E "<|>")}" )
+        local diff=( "${(f)$(diff <(echo "${(F)new_paths}") <( echo "${(F)completion_sync_old_xdg_fpaths}") | grep -E "<|>")}" )
         _completion_sync:debug_log ':completion-sync:xdg:diff' "$diff"
 
         # Prepend in reverse order to maintain their order in the final path
