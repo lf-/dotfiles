@@ -76,7 +76,7 @@ The following options all control how the zsh compsys is reloaded when a change 
 1. [Custom](#custom-command) (default: disabled)
 2. [zsh-autocomplete](#zsh-autocomplete-compatibility-1) (if enabled and zsh-autocomplete found, default: enabled)
 3. [Builtin compinit](#builtin-compinit) (default: disabled)
-4. `compinit -D` (using the loaded compinit)
+4. `compinit` (using the currently loaded compinit)
 
 ### Custom Command
 If the existing options are not sufficient or you want to fine tune how compsys is reloaded, you can set a custom command

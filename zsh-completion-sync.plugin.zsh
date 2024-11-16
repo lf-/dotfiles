@@ -146,6 +146,9 @@ _completion_sync:zsh_autocomplete_compat_detect(){
 }
 
 _completion_sync:compsys_reload(){
+  # Delete current cache
+  rm -rf "$_per_shell_compdump"
+
   if _completion_sync:custom_compinit_isenabled ; then
     local custom
     zstyle -s ':completion-sync:compinit:custom' command custom
@@ -160,22 +163,8 @@ _completion_sync:compsys_reload(){
       _completion_sync:zsh_autocomplete_compat_detect
       _completion_sync:compsys_reload
     else
-      local zacCompargs
-      zstyle -a ':autocomplete::compinit' arguments zaCompargs;
-
-      # -D is required to disable caching
-      if [[ "${zacCompargs[(Ie)'-D']}" -eq 0 ]] then
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:compargs' "compat: zsh-autocomplete: adding missing '-D' option to zsh-autocomplete compinit arguments'"
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:compargs:diff' "compat: zsh-autocomplete: previous arguments '${zacCompargs[@]}'"
-        newCompargs=('-D' $zacCompargs)
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:compargs:diff' "compat: zsh-autocomplete: new arguments '$newCompargs'"
-        zstyle ':autocomplete::compinit' arguments $newCompargs;
-      fi
       _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: reloading via 'source $completion_sync_zac_plugin_path'"
       source "$completion_sync_zac_plugin_path"
-      if [[ -v newCompargs ]]; then
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:compargs' "compat: zsh-autocomplete: restoring previous arguments '${zacCompargs[@]}'"
-      fi
     fi
   else
 
@@ -192,10 +181,8 @@ _completion_sync:compsys_reload(){
       _completion_sync:debug_log ':completion-sync:compinit:builtin-compinit' "loaded compinit: $(whence -v compinit)"
     fi
 
-    # do not write dumpfile, since we are likely working on a temporary FPATH
-    # TODO: make argument configurable
-    _completion_sync:debug_log ':completion-sync:compinit' "invoking compinit as 'compinit -D'"
-    compinit -D
+    _completion_sync:debug_log ':completion-sync:compinit' "invoking compinit as 'compinit -d \"$_per_shell_compdump\"'"
+    compinit -d "$_per_shell_compdump"
 
     if zstyle -t ':completion-sync:compinit:builtin-compinit' enabled; then
       # restore original function
@@ -381,6 +368,14 @@ if _completion_sync:zsh_autocomplete_compat_isenabled ; then
           zstyle ':completion-sync:compinit:compat:zsh-autocomplete' optimize false"
   fi
 fi
+
+local compDumpDir="${TMPDIR:-/tmp}/per-shell-zcompdumps"
+mkdir -p $compDumpDir
+# Create a specific zcompdump for this pid. This allows us to use a zcompdump per shell and identify it later if desired
+_per_shell_compdump="$compDumpDir/$$.zcompdump"
+# Set the relevant env vars for compdump location, various plugins/mechanisms will create the compdump there
+ZSH_COMPDUMP="$_per_shell_compdump"
+_comp_dumpfile="$_per_shell_compdump"
 
 typeset -ag precmd_functions
 if (( ! ${precmd_functions[(I)_completion_sync:hook]} )); then
