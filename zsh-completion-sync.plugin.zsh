@@ -91,58 +91,43 @@ _completion_sync:zsh_autocomplete_compat_disable(){
 }
 
 
-_completion_sync:zsh_autocomplete_compat_detect(){
-  # Find the first instance of a function provided by zsh-autocomplete (which are prefixed by '.autocomplete:' )
-  local zacFname="$(functions | grep --max-count=1 -o -E "^\.autocomplete:([^([:space:]])+")"
-  if [[ -z "$zacFname" ]]; then
-    _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: could not find loaded functions from zsh-autocomplete. Disabling integration"
-    _completion_sync:zsh_autocomplete_compat_disable
-    return
-  else
-    # Hopefully whence has a stable output, since we need to parse out the path
-    # Currently the path is an absolute path and the last part of the output,
-    # so we can return the longest match that starts with "/" and runs till the end of the line
-    local curDir="$(whence -v $zacFname | grep -Eo '(/.*)$' | xargs dirname)"
-    if [[ -z "$curDir" ]]; then
-      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: could not determine directory that '$zacFname' was loaded from. Disabling integration"
+_completion_sync:zsh_autocomplete_compat_reload(){
+  # If zsh-autocomplete is loaded, it will either be in the fully initiliazed state, or the pre-initialized state
+
+  # In the pre-initilaized state, a precmd hook is waiting to execute, which will setup the plugin and among other things reload compinit and define a named-directory
+  # Instead of waiting for the pre-cmd hook to fire, we want it to execute right now.
+
+  # Find the autocomplete hook if present
+  local precmd=${(M)precmd_functions:#.autocomplete:*}
+  # If the plugin is already fully initialized, then the relevant functions have been undefined and we need to re-initialize it from the start.
+  if [[ -z $precmd ]]; then
+    # In this case the named directory "~zsh-autocomplete" will be present, which we can use to reload regardless of install location
+    if [[ ! -v nameddirs[zsh-autocomplete] ]]; then
+      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: unable to detect plugin setup functions or named directory, disabling compat"
       _completion_sync:zsh_autocomplete_compat_disable
-      return
-    fi
-    _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: found zsh-autocomplete function '$zacFname' loaded from '$curDir'"
+      return 1
+    else
+      # Since the named directory exists we can source the plugin again, which will put the precmd hook back in the array
+      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: re-initializing zsh-autocomplete via 'source ~zsh-autocomplete/zsh-autocomplete.plugin.zsh'"
+      source ~zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
-    local zacPluginFileName="zsh-autocomplete.plugin.zsh"
-
-    # Canonicalize and resolve symlinks
-    curDir="${curDir:A}"
-
-    completion_sync_zac_plugin_path=""
-    #do while
-    while
-      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: looking for '$zacPluginFileName' in directory '$curDir' "
-      if [[ -f "$curDir/$zacPluginFileName" ]]; then
-        completion_sync_zac_plugin_path="$curDir/$zacPluginFileName"
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: found plugin source at '$completion_sync_zac_plugin_path'"
-        break
+      precmd=${(M)precmd_functions:#.autocomplete:*}
+      if [[ -z $precmd ]]; then
+        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: unable to detect plugin setup functions even after reinitializing, disabling compat"
+        _completion_sync:zsh_autocomplete_compat_disable
+        return 1
       fi
-    local oldDir="${curDir:A}"
-    if [[ "$oldDir" != "/" ]]; then
-      local newPath="$oldDir/.."
-      # Canonicalize and resolve symlinks
-      curDir="${newPath:A}"
     fi
-    # use $oldDir for the condition, to ensure that we run once even in root
-    # It is extremely unlikely that the plugin would be at root,
-    # but this technically prepares us for some really weird sandboxing
-    [[ "$oldDir" != "/" ]]
-    do :; done
-
-    if [[ "$completion_sync_zac_plugin_path" == "" ]]; then
-      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: unable to detect plugin source in parent directories of load dir for $zacFname. Disabling integration"
-      _completion_sync:zsh_autocomplete_compat_disable
-      return
-    fi
-
   fi
+
+  # Execute the precmd hook, this will re-initialize the compsys (since we are handling the zcompdump file)
+  _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: executing precmd hook '$precmd' now"
+  _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:diff' "compat: zsh-autocomplete: precmd hooks before"
+  _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:diff' "$precmd_functions"
+  $precmd
+  _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:diff' "compat: zsh-autocomplete: precmd hooks after"
+  _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete:diff' "$precmd_functions"
+
 }
 
 _completion_sync:compsys_reload(){
@@ -155,16 +140,12 @@ _completion_sync:compsys_reload(){
     _completion_sync:debug_log ':completion-sync:compinit:custom' "compinit: using custom command instead of compinit: ${(q)custom}"
     eval $custom
   elif _completion_sync:zsh_autocomplete_compat_isenabled ; then
-    # Check if unset or set to empty string (which might indicate previous failed detection)
-    if [[ -z "${completion_sync_zac_plugin_path+1}"  ]]; then
-      # zstyle was enabled post init
-      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: enabled, but path to plugin not set. Trying auto detection"
-      # We rely on detect either correctly setting the var or disabling the compat feature to not get into a loop here
-      _completion_sync:zsh_autocomplete_compat_detect
+    # Reload will either reload zsh-autocomplete or disable the compat if it is not present
+    if ! _completion_sync:zsh_autocomplete_compat_reload; then
+      # zsh_autocomplete_compat could not properly reload, the plugin is likely not present, disable compat
+      _completion_sync:zsh_autocomplete_compat_disable
+      # Re-run the compsys logic with zac compat disabled
       _completion_sync:compsys_reload
-    else
-      _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: reloading via 'source $completion_sync_zac_plugin_path'"
-      source "$completion_sync_zac_plugin_path"
     fi
   else
 
@@ -351,23 +332,6 @@ _completion_sync:hook(){
   fi
   completion_sync_old_fpath=( "${(@f)fpath}" )
 }
-
-if _completion_sync:zsh_autocomplete_compat_isenabled ; then
-  _completion_sync:zsh_autocomplete_compat_detect
-  if [[ -f "$completion_sync_zac_plugin_path" ]] && zstyle -T ':completion-sync:compinit:compat:zsh-autocomplete' optimize; then
-    # Detection was successful, and optimization reminder is turned on
-    echo "completion sync: Found functions belonging to zsh-autocomplete plugin at '$completion_sync_zac_plugin_path'. Using zsh-autocomplete specific reloading"
-    echo "completion sync: If you want to disable this integration, set\n\
-        zstyle ':completion-sync:compinit:compat:zsh-autocomplete' enabled false"
-    echo "completion sync: compat: zsh-autocomplete: Want faster shell init in the future? Set\n\
-        zstyle ':completion-sync:compinit:custom' enabled true\n\
-        zstyle ':completion-sync:compinit:custom' command 'source \"$completion_sync_zac_plugin_path\"'"
-    echo "completion sync: compat: zsh-autocomplete: This disables autodetection and tells completion-sync directly how to reload zsh-autocomplete"
-    echo "completion sync: compat: zsh-autocomplete: in your .zshrc before this plugin is loaded"
-    echo "completion sync: compat: zsh-autocomplete: To disable these messages set\n\
-          zstyle ':completion-sync:compinit:compat:zsh-autocomplete' optimize false"
-  fi
-fi
 
 local compDumpDir="${TMPDIR:-/tmp}/per-shell-zcompdumps"
 mkdir -p $compDumpDir
