@@ -66,7 +66,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 ] ++ lib.optionals withHsutils [
   (pkgs.haskell.lib.justStaticExecutables hsutils)
 ] ++ lib.optionals withGui (builtins.map wrapGui [
-  qyriad-nur-packages.cinny
+  # qyriad-nur-packages.cinny
 ]) ++ lib.optionals withHaskell [
   shellcheck
   nodePackages.bash-language-server
