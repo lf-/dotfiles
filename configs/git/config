@@ -24,6 +24,11 @@
 	leash = push --force-with-lease
 	fulllog = log --format=fuller --full-diff --patch
 
+[commit]
+	# show both diff between index and HEAD and diff between worktree and index
+	# in COMMIT_EDITMSG
+	verbose = 2
+
 [blame]
 	coloring = highlightRecent
 
