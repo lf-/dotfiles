@@ -27,6 +27,23 @@ in
   ];
 
   boot.supportedFilesystems = [ "btrfs" ];
+  boot.initrd.supportedFilesystems = [ "ext4" ];
+
+  # initrd crimes so that it will have the keybag loaded at early boot
+  boot.initrd.systemd = {
+    mounts = [
+      {
+        where = "/keybag";
+        what = "/dev/mapper/keybag";
+        type = "ext4";
+        requires = [ "systemd-cryptsetup@keybag.service" ];
+        after = [ "systemd-cryptsetup@keybag.service" ];
+
+        requiredBy = [ "zfs-import-zroot.service" ];
+        before = [ "zfs-import-zroot.service" ];
+      }
+    ];
+  };
 
   time.timeZone = "UTC";
 
@@ -43,6 +60,11 @@ in
     });
     });
   */
+
+  boot.initrd.systemd = {
+    enable = true;
+    emergencyAccess = "$2b$05$1wdLRpAwtirLmS3VniajbOF94vTJCkzbpp4bkQPPhSnUi7ynTJsAG";
+  };
 
   networking.useNetworkd = true;
 

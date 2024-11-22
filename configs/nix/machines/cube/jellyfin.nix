@@ -36,6 +36,7 @@
   # absurdly, jellyfin wants to be able to write to this meta file to store its
   # internal state. sigh.
   systemd.tmpfiles.rules = [
+    "d /var/lib/jellyfin/plugins 755 jellyfin jellyfin - -"
     "C+ /var/lib/jellyfin/plugins/sso 755 jellyfin jellyfin - ${pkgs.jellyfin-plugin-sso}"
     "z /var/lib/jellyfin/plugins/sso/meta.json 644 jellyfin jellyfin - -"
   ];

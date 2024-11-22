@@ -18,11 +18,6 @@
       fsType = "zfs";
     };
 
-  fileSystems."/home" =
-    { device = "zroot/data/home";
-      fsType = "zfs";
-    };
-
   fileSystems."/nix" =
     { device = "zroot/nix";
       fsType = "zfs";
@@ -30,11 +25,6 @@
 
   fileSystems."/var/log" =
     { device = "zroot/var/log";
-      fsType = "zfs";
-    };
-
-  fileSystems."/var/tmp" =
-    { device = "zroot/var/tmp";
       fsType = "zfs";
     };
 

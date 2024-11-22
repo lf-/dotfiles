@@ -55,7 +55,7 @@ in
     cube = {
       fqdn = "cube.van.lfcode.ca";
       hostKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBwAQnKgoThFVYC4mjFHLWVcQzlu4d6k3Blu4UDrFh/I"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDcS7ncFLnm5OWjkCgFMKjhNVZsiEQg/o4uMCQv8SoSr"
       ];
     };
   };
