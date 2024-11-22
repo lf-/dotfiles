@@ -62,9 +62,15 @@ in
 
   boot.zfs.extraPools = [ "tank" ];
 
-  users.groups.tank = { };
-  users.groups.tank_public = { };
-  users.groups.tank_media = { };
+  users.groups.tank = {
+    gid = 992;
+  };
+  users.groups.tank_public = {
+    gid = 991;
+  };
+  users.groups.tank_media = {
+    gid = 982;
+  };
   # group of /tank/backup/zfs, which allows seeing what's in there but nothing
   # more
   users.groups.autobackup = { };

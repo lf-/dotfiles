@@ -33,7 +33,7 @@ let
         Group = "autobackup";
       };
     };
-  makeConfig = { name, machineCreds, autobackupSet }:
+  makeConfig = { name, machineCreds, autobackupSet, uid }:
     let stuffName = "autobackup_${name}";
     in
     {
@@ -49,6 +49,7 @@ let
       };
 
       users.users.${stuffName} = {
+        inherit uid;
         isNormalUser = true;
         extraGroups = [ "autobackup" ];
       };
@@ -56,7 +57,7 @@ let
 in
 {
   config = mkMerge [
-    (makeConfig { name = "tail-bot"; machineCreds = creds.machine.tail-bot; autobackupSet = "tail-bot-home"; })
-    (makeConfig { name = "voracle"; machineCreds = creds.machine.voracle; autobackupSet = "cube"; })
+    (makeConfig { name = "tail-bot"; machineCreds = creds.machine.tail-bot; autobackupSet = "tail-bot-home"; uid = 1002; })
+    (makeConfig { name = "voracle"; machineCreds = creds.machine.voracle; autobackupSet = "cube"; uid = 1003; })
   ];
 }

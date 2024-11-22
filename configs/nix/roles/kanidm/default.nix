@@ -43,6 +43,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    users.users.kanidm = {
+      uid = 989;
+    };
+
     system.build.renewalScript = renewalScript;
     services.kanidm = {
       package = wrapped;

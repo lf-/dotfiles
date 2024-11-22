@@ -135,7 +135,10 @@
       };
       nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        modules = [ ./roles/iso ];
+        modules = [
+          ./roles/iso
+          lix-module.nixosModules.default
+        ];
       };
       nixosConfigurations.cube = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

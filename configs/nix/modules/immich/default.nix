@@ -226,12 +226,15 @@ in
     # as required by redis https://github.com/jemalloc/jemalloc/issues/1328
     boot.kernel.sysctl."vm.overcommit_memory" = "1";
 
-    users.groups.immich = { };
+    users.groups.immich = {
+      gid = 981;
+    };
 
     users.users.immich = {
       description = "immich service user";
       isSystemUser = true;
       group = "immich";
+      uid = 987;
     };
 
     systemd.tmpfiles.rules = [
