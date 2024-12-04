@@ -27,6 +27,8 @@ in
   # barely even sensitive
   "../machines/cube/b2-restic-repo.age".publicKeys = users.jade ++ hosts.cube;
   "../machines/cube/immich-container-creds.age".publicKeys = hosts.cube;
+  # ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK/I0/KkLCsbz26WE5WXf+prDk/kwfslfytY2GWFATeD cube initrd host key
+  "../machines/cube/initrd-ssh-host-ed25519.age".publicKeys = hosts.cube;
 
   "webdav-creds.age".publicKeys = users.jade ++ hosts.voracle;
   "hedgedoc-oauth.age".publicKeys = users.jade ++ hosts.voracle;

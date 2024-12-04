@@ -7,7 +7,7 @@
       type = "btrfs";
       options = "nossd";
 
-      wants = [ "tank-backup.mount" ];
+      requires = [ "tank-backup.mount" ];
       after = [ "tank-backup.mount" ];
       wantedBy = [ "local-fs.target" ];
     }

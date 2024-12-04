@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   hplip-hpijs = pkgs.callPackage ../../packages/hplip-hpijs { };
   creds = import ../../lib/creds.nix;
@@ -28,21 +28,71 @@ in
 
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.supportedFilesystems = [ "ext4" ];
+  # intel gigabit ethernet
+  boot.initrd.availableKernelModules = [ "igc" ];
 
+  age.secrets.initrd-ssh-host-ed25519.file = ./initrd-ssh-host-ed25519.age;
   # initrd crimes so that it will have the keybag loaded at early boot
-  boot.initrd.systemd = {
-    mounts = [
-      {
-        where = "/keybag";
-        what = "/dev/mapper/keybag";
-        type = "ext4";
-        requires = [ "systemd-cryptsetup@keybag.service" ];
-        after = [ "systemd-cryptsetup@keybag.service" ];
+  boot.initrd = {
+    systemd = {
+      mounts = [
+        {
+          where = "/keybag";
+          what = "/dev/mapper/keybag";
+          type = "ext4";
+          requires = [ "systemd-cryptsetup@keybag.service" ];
+          after = [ "systemd-cryptsetup@keybag.service" ];
 
-        requiredBy = [ "zfs-import-zroot.service" ];
-        before = [ "zfs-import-zroot.service" ];
-      }
-    ];
+          requiredBy = [ "zfs-import-zroot.service" ];
+          before = [ "zfs-import-zroot.service" ];
+        }
+        {
+          where = "/tailscale-initrd";
+          what = "zroot/tailscale-initrd";
+          type = "zfs";
+        }
+      ];
+
+      services.tailscaled = {
+        description = "Tailscale Daemon";
+        serviceConfig = {
+          ExecStart = "${lib.getExe' config.services.tailscale.package "tailscaled"} --state=/tailscale-initrd/state";
+          Type = "simple";
+          KillMode = "process";
+          Restart = "on-failure";
+        };
+        unitConfig.DefaultDependencies = false;
+        after = [ "tailscale-initrd.mount" "network.target" ];
+        before = [ "shutdown.target" ];
+        conflicts = [ "shutdown.target" ];
+        requires = [ "tailscale-initrd.mount" ];
+        wantedBy = [ "initrd.target" ];
+      };
+    };
+    network = {
+      enable = true;
+      ssh = {
+        enable = true;
+        authorizedKeys = creds.jade.sshKeys;
+        ignoreEmptyHostKeys = true;
+        hostKeys = [ ];
+        extraConfig = ''
+          HostKey /etc/ssh/initrd-host-key
+        '';
+      };
+    };
+    services.resolved = {
+      # FIXME: broken due to transitive dependency on local-fs.target
+      enable = false;
+    };
+  };
+  boot.initrd.secrets = {
+    # workaround a bug in the ssh module where if given a string it is passed
+    # through as-is to boot.initrd.secrets and thereby tampers the running
+    # system. goofy.
+    # Also it is fragile garbage that probably will break if clean installing
+    # the system.
+    "/etc/ssh/initrd-host-key" = config.age.secrets.initrd-ssh-host-ed25519.path;
   };
 
   time.timeZone = "UTC";
