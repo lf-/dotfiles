@@ -17,4 +17,7 @@ in
     vtune-sepdk = kfinal.callPackage ../packages/vtune-sepdk/package.nix { };
   });
   libsafec = callPackage ../packages/intel-vtune/libsafec.nix { };
+  pycrashreport = final.python3Packages.callPackage ../packages/pycrashreport/package.nix {
+    la-panic = final.python3Packages.callPackage ../packages/pycrashreport/la-panic.nix { };
+  };
 }

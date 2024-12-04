@@ -60,6 +60,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   vim-swapfile-header
   nvremote
 
+  pycrashreport
+
   # FIXME: this probably should not be in here since it doesn't do much good
   # for VMs. but bleh effort.
   cyme

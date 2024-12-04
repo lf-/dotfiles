@@ -19,6 +19,7 @@ in
     intel-vtune
     vtune-sepdk
     polkadots
+    pycrashreport
     ;
   inherit (qyriad-nur-packages) cinny;
 }
