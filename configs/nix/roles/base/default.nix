@@ -5,16 +5,7 @@
   };
   nix.nixPath = [ "nixpkgs=/etc/nix/inputs/nixpkgs" ];
 
-  environment.systemPackages = with pkgs; [
-    file
-    neovim
-    pkgs.polkadots
-    nodejs
-    rustup
-    zsh
-    tree
-    htop
-  ];
+  environment.systemPackages = import ./packages.nix { inherit pkgs; };
 
   nixpkgs.overlays = [
     (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })

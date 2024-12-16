@@ -201,6 +201,7 @@
           iso = self.nixosConfigurations.iso.config.system.build.isoImage;
 
           profile = import ./profile.nix { inherit pkgs flakey-profile qyriad-nur nixpkgs; };
+          profile-managed = import ./profile.nix { inherit pkgs flakey-profile qyriad-nur nixpkgs; isNixManaged = true; };
           system-profile = import ./system-profile.nix { inherit pkgs flakey-profile; };
         };
     }));

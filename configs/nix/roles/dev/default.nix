@@ -1,23 +1,9 @@
 { pkgs, config, lib, ... }:
 let
-  pyPkgs = ppkgs: with ppkgs; [
-    ipython
-    ipython-sql
-    # jacked on macos currently https://github.com/NixOS/nixpkgs/issues/185918
-    # pgcli
-    requests
-    tkinter
-    pyperclip
-    dbus-python
-
-    pip
-    yapf
-
-    numpy
-  ];
   hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; };
 
   common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils withGui; inherit (config.jade.dep-inject) qyriad-nur; };
+  nix-system-packages = import ./nix-system-packages.nix { inherit pkgs; nixos = true; };
 
   cfg = config.jade.dev;
   inherit (lib) mkOption;
@@ -38,34 +24,7 @@ in
   };
 
   config = {
-    environment.systemPackages = common-dev-pkgs ++ (with pkgs; [
-      direnv
-
-      gitAndTools.delta
-
-      dtach
-      tmux
-      gh
-      fd
-      gdb
-      jq
-      graphviz
-      ctags
-      moreutils
-      git-lfs
-
-      xxd
-
-      p7zip
-      unzip
-
-      msmtp
-
-      man-pages
-      man-pages-posix
-
-      (python3.withPackages pyPkgs)
-    ]);
+    environment.systemPackages = common-dev-pkgs ++ nix-system-packages;
 
     nixpkgs.overlays = [
       hsutilsOverlay
