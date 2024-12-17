@@ -1,7 +1,7 @@
 ;; extends
 ([
   ; FIXME: the do block should grab the INSIDE of the do block
-  (exp_do)
+  (do)
   (stmt)
   (exp_cond)
   (exp_tuple)
@@ -29,10 +29,8 @@
 ; guard equation rhs
 ; startOfThisWeek day | dayOfWeek day == Monday
 ;    = day
-((guard_equation
-   (guards)
-   "="
-   (_) @_start @_end)
+((match
+   expression: (_) @_start @_end)
  (#make-range! "range" @_start @_end))
 
 ; FIXME: individual constraints
@@ -54,19 +52,13 @@
 
 ; function apply param
 (
- (exp_apply . (_) (_) @_start @_end)
+ (apply . (_) (_) @_start @_end)
  (#make-range! "range" @_start @_end))
 
 ; function definition lhs
 ((function
-    pattern: (_) @_start @_end)
+    patterns: (_) @_start @_end)
  (#make-range! "range" @_start @_end))
-
-; function definition rhs (this matters if it is not a do)
-((function . (_)+
-    rhs: (_) @_start @_end)
- (#make-range! "range" @_start @_end)
-)
 
 ; let-in rhs
 (
@@ -75,7 +67,7 @@
  ;         a = 1
  ;         b = 2
  ;     in a + b
- (exp_let_in (exp_let) (exp_in "in" (_) @_start @_end))
+ (let_in expression: (_) @_start @_end)
  (#make-range! "range" @_start @_end))
 
 ; FIXME: how should this work
@@ -92,16 +84,16 @@
   ; { fieldOne :: Int
   ; , fieldTwo :: Int
   ; }
-  (field (_)) @_start @_end . (comma)? @_end
+  (field (_)) @_start @_end . ","? @_end
  )
  (#make-range! "range" @_start @_end))
 
 ([
   ; lhs of a bind_pattern assignment
   ; MkTy {tyOne, tyTwo} <- undefined
-  (bind_pattern . (_) @_start @_end)
+  (bind pattern: (_) @_start @_end)
   ; rhs
-  (bind_pattern (_) @_start @_end .)
+  (bind expression: (_) @_start @_end .)
  ]
  (#make-range! "range" @_start @_end))
 
@@ -115,7 +107,6 @@
   )
   ; rhs
   (signature
-    type: "::"
     type: (_) @_start @_end
   )
  ]

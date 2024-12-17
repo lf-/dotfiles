@@ -19,8 +19,8 @@
  (
   (signature) @_outer_start
   .
-  (function name: (_) rhs: [
-     (exp_do . (_) @_start @_end (_)? @_end .)
+  (function name: (_) match: [
+     (do . (_) @_start @_end (_)? @_end .)
      ; if a function is not a do the entire body is an expr
      (_) @_start @_end
   ]) @_outer_end
@@ -33,13 +33,13 @@
 
 ; formal parameters "a b c" in a lambda definition
 ; \a b c -> a
-(exp_lambda (_) @parameter.inner "->")
+(lambda (_) @parameter.inner "->")
 
 ; function sig parameter
 ; someFunc :: forall a. (a -> String)
 ; signature rhs:
 (signature
-  type: "::"
+  ; FIXME: maybe wrong
   type: (_) @parameter.inner
 )
 
@@ -48,21 +48,21 @@
   patterns: (patterns (_) @parameter.inner))
 
 ; function apply param
-(exp_apply . (_) (_) @parameter.inner)
+(apply . (_) (_) @parameter.inner)
 
 ;;; class
 
 ; class
 (
- (class (class_head) (class_body (where) . (_) @_start @_end (_)? @_end .)) @class.outer
+ (class declarations: (class_declarations) @_start @_end) @class.outer
  (#make-range! "class.inner" @_start @_end))
 
 ; class instances (yes, the nesting is different. lol.)
 (
- (instance (instance_head) (where) . (_) @_start @_end (_)? @_end .) @class.outer
+ (instance declarations: (instance_declarations) @_start @_end) @class.outer
  (#make-range! "class.inner" @_start @_end))
 
-(exp_apply) @call.outer
-(exp_apply (_) @call.inner)
+(apply) @call.outer
+(apply (_) @call.inner)
 
 (comment) @comment.outer
