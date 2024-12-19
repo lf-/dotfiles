@@ -51,6 +51,9 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     man-pages
     man-pages-posix
 
+    pipenv
+    poetry
+
     (python3.withPackages pyPkgs)
   ]
   ++ import ../base/packages.nix { inherit pkgs; }

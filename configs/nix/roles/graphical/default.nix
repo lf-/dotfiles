@@ -1,6 +1,9 @@
 { config, pkgs, lib, ... }:
 {
   imports = [ ../fonts ../avahi ];
+
+  boot.supportedFilesystems = [ "cifs" ];
+
   environment.systemPackages = with pkgs; [
     firefox-wayland
     chromium
