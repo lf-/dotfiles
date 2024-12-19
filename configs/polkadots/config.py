@@ -61,6 +61,8 @@ actions = [
 
     MkdirAction('~/.config/GIMP/2.10'),
     SymlinkAction('gnu-imp/scripts', '~/.config/GIMP/2.10/scripts'),
+    MkdirAction('~/.config/GIMP/2.99'),
+    SymlinkAction('gnu-imp/scripts', '~/.config/GIMP/2.99/scripts'),
 
     SymlinkAction('main', '~', dir_mode=True),
 
