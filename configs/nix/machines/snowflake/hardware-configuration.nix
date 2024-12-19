@@ -28,7 +28,7 @@
   boot.initrd.luks.devices."cryptroot".device = "/dev/disk/by-uuid/b80aedf8-ddd4-46fa-8d09-5215d5f286b9";
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/ADB8-22AF";
+    { device = "/dev/disk/by-uuid/87F1-D3EA";
       fsType = "vfat";
     };
 

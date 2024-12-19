@@ -86,6 +86,13 @@
   networking.firewall.allowedUDPPorts = [
     # evdevhook
     26760
+    # openttd
+    3979
+    3978
+  ];
+  networking.firewall.allowedTCPPorts = [
+    # openttd
+    3979
   ];
 
   programs.steam.enable = true;
