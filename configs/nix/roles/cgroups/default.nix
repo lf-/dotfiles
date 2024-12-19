@@ -30,9 +30,7 @@ in
 
   systemd.services.nix-daemon = {
     serviceConfig = {
-      # FIXME: how do i deprioritize this for memory
-      CPUWeight = 10;
-      IOWeight = 10;
+      Slice = "lowprio.slice";
     };
   };
 
@@ -53,6 +51,13 @@ in
     sliceConfig = systemCriticalSliceConfig;
   };
 
+  systemd.slices.lowprio = {
+    sliceConfig = {
+      # FIXME: how do i deprioritize this for memory
+      IOWeight = 10;
+      CPUWeight = 10;
+    };
+  };
 
   systemd.slices.system = {
     sliceConfig = {

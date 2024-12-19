@@ -25,9 +25,10 @@ in
     enable = true;
   };
 
-  nixpkgs.overlays = [
-    (import ../../overlays/aiopanel.nix { inherit (config.jade.dep-inject) aiobspwm aiopanel; })
-  ];
+  # gbulb is bork
+  # nixpkgs.overlays = [
+  #   (import ../../overlays/aiopanel.nix { inherit (config.jade.dep-inject) aiobspwm aiopanel; })
+  # ];
 
   services.resolved.enable = true;
   # services.connman = {
@@ -75,7 +76,7 @@ in
     alacritty
     rofi
 
-    pkgs.aiopanel
+    # pkgs.aiopanel
     lemonbar-xft
     xtitle
 
@@ -106,7 +107,7 @@ in
     maim
     rofimoji
 
-    gnome.adwaita-icon-theme
+    adwaita-icon-theme
     gnome-icon-theme
     catppuccin-gtk
     # breeze-icons
