@@ -41,7 +41,12 @@
   #   });
   # });
 
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # https://bugzilla.kernel.org/show_bug.cgi?id=219577
+  boot.blacklistedKernelModules = [
+    "snd_soc_avs"
+  ];
 
   # create a swap file on a subvol on the encrypted partition
   # swapDevices = [{ device = "/swap/swapfile"; size = 32768; }];
