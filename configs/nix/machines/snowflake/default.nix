@@ -109,6 +109,8 @@
 
     storageDriver = "btrfs";
   };
+  # docker screws up the network. jacked. don't run it by default.
+  systemd.services.docker.enable = false;
 
   environment.systemPackages = with pkgs; [
     # i dont want literally any of the gpg stuff, just the agent
@@ -140,6 +142,9 @@
 
     # another rawtherapee
     art
+
+    kiwix
+    filelight
 
     yt-dlp
   ];
