@@ -70,6 +70,19 @@ The plugin searches the relative paths indicated in the array set in `zstyle :co
 
 Note that if you want nix-shell to put you into zsh by default and only need support for `nix-shell` compatibility, you should install [this plugin for compatibility](https://github.com/chisui/zsh-nix-shell) which does put nix fpaths onto path already and does not require this plugin's workaround.
 
+
+### Custom Pre- and Post- Hooks
+
+This plugin allows running custom hooks just before and/or after reloading compinit. This is especially helpful to reintroduce changes which where overridden by compinit reinvocation. (For example zsh-autocomplete binds tab to its completion function, but the user might want to use tab for something else or use something like fzf as entrypoint to the completion functions)
+
+```
+zstyle ':completion-sync:compinit:custom:pre-hook' enabled true
+zstyle ':completion-sync:compinit:custom:pre-hook' command 'this string will be eval'ed'
+
+zstyle ':completion-sync:compinit:custom:post-hook' enabled true
+zstyle ':completion-sync:compinit:custom:post-hook' command 'this string will be eval'ed'
+```
+
 ### Priority of custom compinit options
 
 The following options all control how the zsh compsys is reloaded when a change in fpath is detected. These options take priority in the following order

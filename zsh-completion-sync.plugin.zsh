@@ -130,9 +130,23 @@ _completion_sync:zsh_autocomplete_compat_reload(){
 
 }
 
+# Take a path (as first arg) to a zstyle which has two leaf keys "enabled" and "command"
+# if enabled is true, eval the string inside command
+_completion_sync:run_hook_if_enabled(){
+  local style="$1"
+
+  if zstyle -t "$style" enabled; then
+    local hook
+    zstyle -s "$style" command hook
+    eval "$hook"
+  fi
+}
+
 _completion_sync:compsys_reload(){
   # Delete current cache
   rm -rf "$_per_shell_compdump"
+
+  _completion_sync:run_hook_if_enabled ':completion-sync:compinit:custom:pre-hook'
 
   if _completion_sync:custom_compinit_isenabled ; then
     local custom
@@ -172,6 +186,9 @@ _completion_sync:compsys_reload(){
     fi
 
   fi
+
+  _completion_sync:run_hook_if_enabled ':completion-sync:compinit:custom:post-hook'
+
 }
 
 _completion_sync:path_hook(){
