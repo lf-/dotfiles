@@ -87,20 +87,19 @@
     }:
     let
       dep-inject = {
-        imports = [ lanzaboote.nixosModules.lanzaboote ];
+        imports = [ ./modules/dep-inject.nix lanzaboote.nixosModules.lanzaboote ];
         jade.dep-inject = {
           inherit polkadots aiobspwm aiopanel gitignore nixpkgs qyriad-nur;
         };
       };
     in
     {
-      inherit nixpkgs inputs;
+      inherit nixpkgs inputs dep-inject;
       np = builtins.storePath nixpkgs.path;
       nixosConfigurations.snowflake = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           ./machines/snowflake
-          ./modules/dep-inject.nix
           dep-inject
           lix-module.nixosModules.default
         ];
@@ -109,7 +108,6 @@
         system = "x86_64-linux";
         modules = [
           ./machines/icecream
-          ./modules/dep-inject.nix
           dep-inject
           lix-module.nixosModules.default
         ];
@@ -118,7 +116,6 @@
         system = "x86_64-linux";
         modules = [
           ./machines/micro
-          ./modules/dep-inject.nix
           dep-inject
           lix-module.nixosModules.default
         ];
@@ -127,7 +124,6 @@
         system = "aarch64-linux";
         modules = [
           ./machines/voracle
-          ./modules/dep-inject.nix
           dep-inject
           agenix.nixosModules.default
           lix-module.nixosModules.default
@@ -144,7 +140,6 @@
         system = "x86_64-linux";
         modules = [
           ./machines/cube
-          ./modules/dep-inject.nix
           dep-inject
           agenix.nixosModules.default
           lix-module.nixosModules.default
