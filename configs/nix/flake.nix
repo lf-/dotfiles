@@ -1,7 +1,7 @@
 {
   description = "Computers with the nixos";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";
@@ -56,7 +56,8 @@
     };
 
     lix = {
-      url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
+      # url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
+      url = "git+https://gerrit.lix.systems/lix?ref=refs/changes/52/2352/1";
       flake = false;
     };
 

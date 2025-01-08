@@ -13,6 +13,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   git-credential-oauth
   git-absorb
   git-revise
+  gitleaks
   npins
   nix-direnv
   nix-doc

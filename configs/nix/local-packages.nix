@@ -12,7 +12,6 @@ in
     opengist
     jellyfin-plugin-sso
     gerrit-oauth-provider
-    clangbuildanalyzer
     nix
     nix-eval-jobs
     xunit-viewer
