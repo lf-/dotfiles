@@ -1,3 +1,3 @@
 #!/bin/sh
 
-direnv exec . haskell-language-server "$@"
+direnv exec . haskell-language-server-wrapper "$@"
