@@ -56,8 +56,7 @@
     };
 
     lix = {
-      # url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
-      url = "git+https://gerrit.lix.systems/lix?ref=refs/changes/52/2352/1";
+      url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
       flake = false;
     };
 
