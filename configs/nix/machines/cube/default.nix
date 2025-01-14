@@ -167,6 +167,11 @@ in
     extraGroups = [ "tank_public" ];
   };
 
+  users.users.agatha = {
+    openssh.authorizedKeys.keys = creds.agatha.sshKeys;
+    isNormalUser = true;
+  };
+
   services.samba =
     let
       mkShare = name: {

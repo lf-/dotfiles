@@ -25,6 +25,12 @@ in
     ];
   };
 
+  agatha = {
+    sshKeys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGGYqCcDg9hTINHyf8S56/P83+ZzqwV2t9gUsVYyajjR"
+    ];
+  };
+
   # backup-target owned ssh keys
   autobackup = {
     tail-bot.sshKeys = [
