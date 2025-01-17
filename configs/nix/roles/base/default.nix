@@ -1,9 +1,7 @@
 { config, pkgs, ... }:
 {
-  environment.etc."nix/inputs/nixpkgs" = {
-    source = config.jade.dep-inject.nixpkgs.outPath;
-  };
-  nix.nixPath = [ "nixpkgs=/etc/nix/inputs/nixpkgs" ];
+  nixpkgs.flake.source = config.jade.dep-inject.nixpkgs.outPath;
+  nix.channel.enable = false;
 
   environment.systemPackages = import ./packages.nix { inherit pkgs; };
 
@@ -20,10 +18,5 @@
 
   environment.variables = {
     EDITOR = "nvim";
-  };
-
-  nix.registry.nixpkgs.to = {
-    type = "path";
-    path = config.jade.dep-inject.nixpkgs;
   };
 }
