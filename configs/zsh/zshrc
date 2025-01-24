@@ -31,19 +31,13 @@ if which direnv > /dev/null 2>&1; then
   eval "$(direnv hook zsh)"
 fi
 
-unsetopt extendedglob
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/jade/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/jade/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/jade/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/jade/miniconda3/bin:$PATH"
-    fi
+# workaround a bug where /etc/zshrc is run on every shell startup including in shells descendent of other shells
+# This is probably macOS shell behaviour bugs: the login shell is getting skipped due
+# to terminal emulator configuration, so the Lix installer jams it in
+# /etc/zshrc despite this getting executed recursively.
+# Bug: https://git.lix.systems/lix-project/lix/issues/645
+if [[ -v __ETC_PROFILE_NIX_SOURCED ]]; then
+    export __ETC_PROFILE_NIX_SOURCED
 fi
-unset __conda_setup
-# <<< conda initialize <<<
+
+unsetopt extendedglob
