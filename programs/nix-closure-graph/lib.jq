@@ -26,3 +26,13 @@ def size_pretty:
 def formatTime:
     . | strftime("%F %T UTC")
     ;
+
+# Converts a `{path_a: value_a, ...}` into `[{...value_a, path: path_a}, ...]` if needed.
+# Before https://github.com/NixOS/nix/pull/9242, `nix path-info` used to return an array, now it returns an object.
+def entries_to_array:
+    if type == "array" then
+        .
+    else
+        to_entries | map(.value + {path: .key})
+    end
+    ;

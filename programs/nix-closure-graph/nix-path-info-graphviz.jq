@@ -27,6 +27,6 @@ def graphnode:
     ;
 
 "digraph G {\n",
-(.[] | (graphnode, graphedge)),
+  (lib::entries_to_array | .[] | (graphnode, graphedge)),
 "}"
 
