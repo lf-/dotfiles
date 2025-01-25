@@ -33,7 +33,7 @@ def graphnode:
     }
     ;
 
-
+lib::entries_to_array |
 (reduce .[] as $inp (({nodes: {}, edges: []});
     {
         nodes: (.nodes * {($inp.path): ($inp | graphnode)}),
