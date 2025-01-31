@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+import subprocess
+import json
+import dataclasses
+
+
+@dataclasses.dataclass
+class PRInfo:
+    url: str
+    number: int
+    title: str
+
+    @classmethod
+    def from_resp(cls, resp):
+        return cls(url=resp['html_url'], title=resp['title'], number=resp['number'])
+
+
+def get_repo() -> tuple[str, str]:
+    remotes_ = subprocess.check_output([
+        'git', 'config', 'get', '--all', '--show-names', '--regexp',
+        r'remote\..*\.gh-resolved'
+    ]).decode().splitlines()
+
+    def parse_line(l: str) -> tuple[str, str]:
+        name, _, value = l.partition(' ')
+        return name.removeprefix('remote.').removesuffix('.gh-resolved'), value
+
+    remotes = [
+        name for name, value in map(parse_line, remotes_) if value == 'base'
+    ]
+    assert len(remotes) == 1, 'not just one repo marked as gh remote??'
+    remote = remotes[0]
+
+    remote_url = subprocess.check_output(
+        ['git', 'config', 'get', f'remote.{remote}.url']).decode().strip()
+    [*_, owner, repo] = remote_url.removesuffix('.git').rsplit('/', 2)
+    return (owner, repo)
+
+
+def go(owner_repo: tuple[str, str], commit_id: str):
+    owner, repo = owner_repo
+    resp = json.loads(
+        subprocess.check_output(
+            ['gh', 'api', f'/repos/{owner}/{repo}/commits/{commit_id}/pulls']))
+
+    def fmt(pr_info: PRInfo):
+        # 7 chars of PR number
+        pad_url_len = len('https://github.com/') + len(owner) + 1 + len(repo) + len('/pull/') + 8
+        url = pr_info.url.ljust(pad_url_len)
+        return f'#{pr_info.number:<8} {url} {pr_info.title}'
+
+    decoded = [PRInfo.from_resp(pr) for pr in resp]
+    for dec in decoded:
+        print(fmt(dec))
+
+
+def main():
+    import argparse
+    ap = argparse.ArgumentParser(
+        description='Find the pull request corresponding with a given git ref')
+    ap.add_argument('--repo', help='owner/repo to look at', default=None)
+    ap.add_argument(
+        'git_ref', help='Git ref, assumed to exist locally, to get the PR for')
+    args = ap.parse_args()
+    if args.repo:
+        owner_repo = args.repo.split('/', 1)
+    else:
+        owner_repo = get_repo()
+
+    # resolve commit id
+    commit_id = subprocess.check_output(['git', 'rev-parse', args.git_ref]).decode().strip()
+
+    go(owner_repo, commit_id)
+
+if __name__ == '__main__':
+    main()
