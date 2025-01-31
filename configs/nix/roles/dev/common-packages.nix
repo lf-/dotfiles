@@ -19,12 +19,11 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-doc
   nix-eval-jobs
   nix-index
-  nixpkgs-fmt
   nixfmt-rfc-style
   reuse
   nil
   rustfilt
-  typst-lsp
+  tinymist
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
   # diffoscope
