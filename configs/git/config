@@ -66,9 +66,11 @@
 [cola]
 	spellcheck = false
 
-# rebase --autosquash by default
 [rebase]
+	# rebase --autosquash by default
 	autoSquash = true
+	# Warns on losing commits in rebase -i
+	missingCommitsCheck = warn
 
 # git clone -j8 by default
 [submodule]
