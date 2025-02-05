@@ -35,6 +35,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nodePackages.json-diff
   postgres-lsp
 
+  cargo-watch
+
   xonsh
 
   xunit-viewer
