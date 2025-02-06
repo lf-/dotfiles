@@ -1,19 +1,35 @@
 #!/usr/bin/env zsh
+
+withHls=true
+while [[ $# -gt 1 ]]; do
+    case "$1" in
+        --no-hls)
+            withHls=false
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
 v="$1"
 shift
 
 ex="$(cat <<'EOF'
-{ requestedPkgs, ghcVer }:
+{ requestedPkgs, ghcVer, withHls }:
 let
     pkgs = import <nixpkgs> { };
     pkgsList = builtins.filter (x: builtins.isString x && builtins.stringLength x > 0) (builtins.split " " requestedPkgs);
     haskellPkgs = pkgs.haskell.packages.${"ghc" + ghcVer};
+    inherit (pkgs) lib;
 in haskellPkgs.shellFor {
     packages = p: [ ];
     extraDependencies = hpkgs: { libraryHaskellDepends = map (e: hpkgs.${e}) pkgsList; };
-    nativeBuildInputs = (with haskellPkgs; [ haskell-language-server implicit-hie ]) ++ (with pkgs; [ cabal-install zlib xz bear pkg-config bashInteractive ]);
+    nativeBuildInputs = (lib.optionals withHls [ haskellPkgs.haskell-language-server ] ++ [ haskellPkgs.implicit-hie ])
+        ++ (with pkgs; [ cabal-install zlib xz bear pkg-config bashInteractive ]);
 }
 EOF
 )"
 
-exec nix develop --impure --debugger --ignore-try --argstr requestedPkgs "$*" --argstr ghcVer "$v" --expr "$ex"
+exec nix develop --impure --debugger --ignore-try --argstr requestedPkgs "$*" --argstr ghcVer "$v" --arg withHls "$withHls" --expr "$ex"
