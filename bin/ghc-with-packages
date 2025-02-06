@@ -1,10 +1,16 @@
 #!/usr/bin/env zsh
 
 withHls=true
+cabalInstallGhc=default
 while [[ $# -gt 1 ]]; do
     case "$1" in
         --no-hls)
             withHls=false
+            shift
+            ;;
+        --cabal-install-ghc)
+            shift
+            cabalInstallGhc="$1"
             shift
             ;;
         *)
@@ -17,12 +23,18 @@ v="$1"
 shift
 
 ex="$(cat <<'EOF'
-{ requestedPkgs, ghcVer, withHls }:
+{ requestedPkgs, ghcVer, withHls, cabalInstallGhc }:
 let
     pkgs = import <nixpkgs> { };
+    inherit (pkgs) lib;
+    hlib = pkgs.haskell.lib.compose;
+
     pkgsList = builtins.filter (x: builtins.isString x && builtins.stringLength x > 0) (builtins.split " " requestedPkgs);
     haskellPkgs = pkgs.haskell.packages.${"ghc" + ghcVer};
-    inherit (pkgs) lib;
+    defaultGhc = "ghc${builtins.replaceStrings ["."] [""] pkgs.haskellPackages.ghc.version}";
+
+    cabalInstallGhc' = if cabalInstallGhc == "default" then defaultGhc else "ghc${cabalInstallGhc}";
+    cabal-install = hlib.justStaticExecutables pkgs.haskell.packages.${cabalInstallGhc'}.cabal-install;
 in haskellPkgs.shellFor {
     packages = p: [ ];
     extraDependencies = hpkgs: { libraryHaskellDepends = map (e: hpkgs.${e}) pkgsList; };
@@ -32,4 +44,9 @@ in haskellPkgs.shellFor {
 EOF
 )"
 
-exec nix develop --impure --debugger --ignore-try --argstr requestedPkgs "$*" --argstr ghcVer "$v" --arg withHls "$withHls" --expr "$ex"
+exec nix develop --impure \
+    --argstr requestedPkgs "$*" \
+    --argstr ghcVer "$v" \
+    --arg withHls "$withHls" \
+    --argstr cabalInstallGhc "$cabalInstallGhc" \
+    --expr "$ex"
