@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env zsh
 v="$1"
 shift
 
@@ -11,7 +11,7 @@ let
 in haskellPkgs.shellFor {
     packages = p: [ ];
     extraDependencies = hpkgs: { libraryHaskellDepends = map (e: hpkgs.${e}) pkgsList; };
-    nativeBuildInputs = (with haskellPkgs; [ haskell-language-server implicit-hie ]) ++ (with pkgs; [ cabal-install zlib xz bear pkg-config ]);
+    nativeBuildInputs = (with haskellPkgs; [ haskell-language-server implicit-hie ]) ++ (with pkgs; [ cabal-install zlib xz bear pkg-config bashInteractive ]);
 }
 EOF
 )"

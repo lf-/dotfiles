@@ -67,6 +67,8 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
 
       gnused
       gnugrep
+      # sketchy but necessary tbh
+      bashInteractive
     ]
   )
 )
