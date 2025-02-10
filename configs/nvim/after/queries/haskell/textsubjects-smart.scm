@@ -2,33 +2,52 @@
 ([
   ; FIXME: the do block should grab the INSIDE of the do block
   (do)
-  (stmt)
-  (exp_cond)
-  (exp_tuple)
-  (exp_list)
-  (patterns)
-  (guard)
+  ; if cond then foo else bar
+  (conditional)
+  ; [a..b]
+  (arithmetic_sequence)
+  (tuple)
+  (list)
 
   (signature)
   (function)
 
   (data_constructor)
-  (record_fields)
+  (fields)
 
   (type_family)
   (type_instance)
 
   (newtype)
   (instance)
-  (adt)
+  ; data Foo = ...
+  ; ^^^^^^^^^^^^^^
+  (data_type)
   (class)
   (top_splice)
  ] @_start @_end
  (#make-range! "range" @_start @_end))
 
+; Inside of do statements: each line
+((do statement: (_) @_start @_end)
+ (#make-range! "range" @_start @_end))
+
+; Guards: each guard
+; Cons a b | a == b
+;            ^^^^^^
+;          | b == c
+;            ^^^^^^
+((guards guard: (_) @_start @_end)
+ (#make-range! "range" @_start @_end))
+
+; Patterns: each pattern
+((patterns (_) @_start @_end)
+ (#make-range! "range" @_start @_end))
+
 ; guard equation rhs
 ; startOfThisWeek day | dayOfWeek day == Monday
 ;    = day
+;      ^^^
 ((match
    expression: (_) @_start @_end)
  (#make-range! "range" @_start @_end))
@@ -114,6 +133,6 @@
 )
 
 (((_) @head . (comment) @_start . (comment)+ @_end (_) @tail)
-    (#not-has-type? @tail "comment")
-    (#not-has-type? @head "comment")
+    (#not-kind-eq? @tail "comment")
+    (#not-kind-eq? @head "comment")
     (#make-range! "range" @_start @_end))
