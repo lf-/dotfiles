@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+targets=()
+
+while [[ $# -gt 0 ]]; do
+    if [[ $1 != /* ]]; then
+        targets+=("$(command -v "$1")")
+    else
+        targets+=("$1")
+    fi
+    shift
+done
+
+drv=$(nix derivation show -- "${targets[@]}")
+debuginfo_out=$(echo "$drv" | jq -r 'to_entries | .[] | .value.outputs.debug.path | select(. != null) | (. + "/lib/debug")')
+echo "$debuginfo_out" | xargs -- nix-store --quiet --quiet --quiet -r > /dev/null
+echo -n "$debuginfo_out" | tr '\n' ':'
