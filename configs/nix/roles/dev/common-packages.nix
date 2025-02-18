@@ -22,7 +22,6 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nixfmt-rfc-style
   reuse
   nil
-  rustfilt
   tinymist
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
