@@ -41,7 +41,7 @@
   #   });
   # });
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # https://bugzilla.kernel.org/show_bug.cgi?id=219577
   boot.blacklistedKernelModules = [
@@ -102,7 +102,7 @@
 
   programs.steam.enable = true;
 
-  users.users.jade.extraGroups = [ "docker" ];
+  users.users.jade.extraGroups = [ "docker" "libvirtd" ];
   # eugh
   virtualisation.docker = {
     enable = true;
@@ -168,13 +168,19 @@
     # logic analyzer
     ATTRS{idVendor} == "0925", ATTRS{idProduct} == "3881", TAG += "uaccess"
 
+    # fujifilm
+    ATTRS{idVendor} == "04cb", ATTRS{idProduct} == "02e6", TAG += "uaccess"
+
     # fpga
     ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
   '';
 
-  # workaround broken DNS for the captive portal at VPL
+  # - workaround broken DNS for the captive portal at VPL
+  # - making iceportal always use the internal-network version even if also
+  #   tethering via mobile network for internet
   networking.extraHosts = ''
     10.254.98.1 captiveportal-login.vpl.ca
+    172.18.1.110 iceportal.de
   '';
 
   # This value determines the NixOS release from which the default
