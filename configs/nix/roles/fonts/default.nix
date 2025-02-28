@@ -1,5 +1,5 @@
 { config, pkgs, lib, ... }:
-let iosevkaTerm = pkgs.callPackage (pkgs.path + "/pkgs/data/fonts/iosevka/bin.nix") { variant = "SGr-IosevkaTerm"; };
+let iosevkaTerm = pkgs.iosevka-bin.override { variant = "SGr-IosevkaTerm"; };
 in {
   fonts.packages = with pkgs; [
     source-code-pro

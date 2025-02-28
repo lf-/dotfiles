@@ -2,7 +2,8 @@
 { pkgs, config, lib, ... }: {
   environment.systemPackages = with pkgs; [
     nmap
-    binwalk
+    # FIXME: build is bork due to jefferson. yeah idk
+    # binwalk
     wireshark
     ghidra
 
