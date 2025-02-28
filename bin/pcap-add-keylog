@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if [[ $# != 3 ]]; then
+    echo "Usage: $0 PCAP KEYLOG PCAPNG" >&2
+    exit 1
+fi
+
+editcap --inject-secrets "tls,$2" "$1" "$3"
