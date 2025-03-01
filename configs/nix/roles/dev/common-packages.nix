@@ -22,7 +22,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nixfmt-rfc-style
   reuse
   nil
-  tinymist
+  # FIXME: really slow to build
+  # tinymist
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
   # diffoscope
