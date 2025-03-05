@@ -1,0 +1,30 @@
+# Taken from archlinuxcn: https://github.com/archlinuxcn/repo/tree/master/archlinuxcn/zfs-linux-lts-poscat
+# However, I do not think it is a good idea to use a completely unknown zfs package, so I am not doing that.
+# This is thus just the initrd parts.
+
+pkgname=mkinitcpio-zfs-systemd
+pkgver=0.0.1
+arch=("x86_64")
+source=(
+    # mkinitcpio hooks & utils
+    'sd-zfs.initcpio.install'
+    'parse-cmdline'
+    'zfs-set-env'
+    'zfs-root-generator'
+    'zfs.shutdown'
+)
+sha256sums=(
+    SKIP
+    SKIP
+    SKIP
+    SKIP
+    SKIP
+)
+license=("CDDL-1.0")
+
+package() {
+    install -Dvm644 "${srcdir}"/sd-zfs.initcpio.install "${pkgdir}"/usr/lib/initcpio/install/sd-zfs
+
+    install -Dvm755 -t "${pkgdir}"/usr/lib/zfs/initcpio/ "${srcdir}"/{parse-cmdline,zfs-set-env,zfs-root-generator}
+    install -Dvm755 -t "${pkgdir}"/usr/lib/systemd/system-shutdown/ "${srcdir}"/zfs.shutdown
+}
