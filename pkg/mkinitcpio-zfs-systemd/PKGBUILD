@@ -4,6 +4,7 @@
 
 pkgname=mkinitcpio-zfs-systemd
 pkgver=0.0.1
+pkgrel=1
 arch=("x86_64")
 source=(
     # mkinitcpio hooks & utils
