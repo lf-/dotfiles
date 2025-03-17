@@ -21,7 +21,7 @@ flakey-profile.lib.mkProfile {
     (librespot.override { withAvahi = true; })
     (wrapGui (art // { meta = art.meta // { mainProgram = "ART"; }; }))
   ]
-  ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = !isMac; withGui = !isMac; withHaskell = !isMac; }
+  ++ import ./roles/dev/common-packages.nix { inherit pkgs qyriad-nur wrapGui; withHsutils = !isMac; withGui = !isMac; withHaskell = true; }
   ++ lib.optionals isNixManaged (import ./roles/dev/nix-system-packages.nix { inherit pkgs; });
   pinned = { nixpkgs = nixpkgs; };
 }

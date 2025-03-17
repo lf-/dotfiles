@@ -19,6 +19,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-doc
   nix-eval-jobs
   nix-index
+  nix-fast-build
   nixfmt-rfc-style
   reuse
   nil
