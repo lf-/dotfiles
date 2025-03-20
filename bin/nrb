@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -eu
+nl=$'\n'
+export NIX_CONFIG="${NIX_CONFIG:-}${nl}builders = @$HOME/.config/nix/machines"
+exec "$@"
