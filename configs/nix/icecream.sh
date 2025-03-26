@@ -3,4 +3,4 @@
 cmd=${1:-switch}
 shift
 
-nixos-rebuild $cmd --fast --flake .#icecream -L "$@"
+nixos-rebuild $cmd --fast --use-remote-sudo --flake .#icecream -L "$@"

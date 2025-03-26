@@ -102,6 +102,7 @@
     };
     dynamicBoost.enable = true;
     modesetting.enable = true;
+    open = true;
 
     prime = {
       nvidiaBusId = "PCI:1:0:0";
