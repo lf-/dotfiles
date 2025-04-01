@@ -56,7 +56,6 @@ return require('packer').startup(function(use)
 
     -- UI
     use 'gcmt/taboo.vim'
-    use 'romainl/flattened'
     use 'NLKNguyen/papercolor-theme'
     use 'vim-airline/vim-airline'
     use 'vim-airline/vim-airline-themes'
