@@ -80,6 +80,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-output-monitor
   nix-diff
   niv
-  phpPackages.php-cs-fixer
-  phpactor
+  # broken
+  # phpPackages.php-cs-fixer
+  # phpactor
 ]

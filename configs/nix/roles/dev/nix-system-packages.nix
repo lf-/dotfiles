@@ -48,7 +48,6 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
 
     msmtp
 
-    man-pages
     man-pages-posix
 
     pipenv
@@ -57,6 +56,12 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     (python3.withPackages pyPkgs)
   ]
   ++ import ../base/packages.nix { inherit pkgs; }
+  ++ lib.optionals (!stdenv.isDarwin) (
+    with pkgs;
+    [
+      man-pages
+    ]
+  )
   # replace apple's bad tools
   ++ lib.optionals (!nixos && stdenv.isDarwin) (
     with pkgs;
