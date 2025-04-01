@@ -29,6 +29,9 @@
 	# in COMMIT_EDITMSG
 	verbose = 2
 
+	# tolerate lines starting with # in the message
+	cleanup = scissors
+
 [blame]
 	coloring = highlightRecent
 
