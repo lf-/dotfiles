@@ -20,6 +20,11 @@ function pquartus() {
     . ~/.dotfiles/configs/support/pquartus
 }
 
+function ndr() {
+    direnv reload
+    nix-direnv-reload
+}
+
 # Make man pages a reasonable width to actually read them
 function man() {
     local cols=$(tput cols || echo ${COLUMNS:-80})
