@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Runs a process on just the p-cores in the system
+set -eu
+
+pcores="$(cat /sys/devices/cpu_core/cpus)"
+taskset -c "$pcores" "$@"
