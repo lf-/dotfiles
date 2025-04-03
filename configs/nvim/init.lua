@@ -29,6 +29,11 @@
 -- -- lol lmao 😭
 -- vim.treesitter.query.get_query_files = vim.treesitter.get_query_files
 
+-- FIXME: the termguicolors setting probably should not be done this way and
+-- instead autodetect but like, whatever, I don't use bad terminals.
+-- Workaround for https://github.com/neoclide/coc.nvim/issues/5297
+vim.opt.termguicolors = true
+
 require('plugins')
 
 vim.api.nvim_exec([[
