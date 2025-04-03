@@ -9,4 +9,5 @@ with pkgs;
   zsh
   tree
   htop
+  linuxPackages.perf
 ]
