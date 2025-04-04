@@ -173,6 +173,7 @@
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
           lix-module.overlays.default
+          (import ./overlays/lix-curl-testing.nix)
         ];
         inherit system;
       };

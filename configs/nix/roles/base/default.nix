@@ -12,10 +12,15 @@
     import ./packages.nix { inherit pkgs; }
   );
 
-  nixpkgs.overlays = [
-    (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })
-    (import ../../overlays/vendor-pkgs.nix)
-  ];
+  nixpkgs.overlays = (
+    lib.mkMerge [
+      [
+        (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })
+        (import ../../overlays/vendor-pkgs.nix)
+      ]
+      (lib.mkAfter [ (import ../../overlays/lix-curl-testing.nix) ])
+    ]
+  );
   nixpkgs.config.allowUnfree = true;
 
   nix.settings = {
