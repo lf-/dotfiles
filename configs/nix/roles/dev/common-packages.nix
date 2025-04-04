@@ -35,6 +35,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   python3Packages.python-lsp-server
   nodePackages.json-diff
   postgres-lsp
+  hyperfine
 
   cargo-watch
 

@@ -9,5 +9,10 @@ with pkgs;
   zsh
   tree
   htop
-  linuxPackages.perf
 ]
+++ pkgs.lib.optionals pkgs.stdenv.isLinux (
+  with pkgs;
+  [
+    linuxPackages.perf
+  ]
+)

@@ -40,6 +40,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     ctags
     moreutils
     git-lfs
+    socat
 
     xxd
 
