@@ -133,6 +133,7 @@
         system = "x86_64-linux";
         modules = [
           ./roles/iso
+          dep-inject
           lix-module.nixosModules.default
         ];
       };
