@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 
 targets=()
+src=0
 
 while [[ $# -gt 0 ]]; do
+    if [[ $1 == --src ]]; then
+        src=1
+        shift
+        continue
+    fi
     if [[ $1 != /* ]]; then
         targets+=("$(command -v "$1")")
     else
@@ -12,6 +18,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 drv=$(nix derivation show -- "${targets[@]}")
-debuginfo_out=$(echo "$drv" | jq -r 'to_entries | .[] | .value.outputs.debug.path | select(. != null) | (. + "/lib/debug")')
-echo "$debuginfo_out" | xargs -- nix-store --quiet --quiet --quiet -r > /dev/null
-echo -n "$debuginfo_out" | tr '\n' ':'
+if [[ $src == 0 ]]; then
+    debuginfo_out=$(echo "$drv" | jq -r 'to_entries | .[] | .value.outputs.debug.path | select(. != null) | (. + "/lib/debug")')
+    echo "$debuginfo_out" | xargs -- nix-store --quiet --quiet --quiet -r > /dev/null
+    echo -n "$debuginfo_out" | tr '\n' ':'
+else
+    echo "$drv" | jq -r 'to_entries | .[] | .value.env.src'
+fi
