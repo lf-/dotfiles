@@ -54,10 +54,6 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 
   simple-http-server
 
-  lieer
-  notmuch
-  notmuch-mutt
-
   clangbuildanalyzer
 
   nvimsplit
