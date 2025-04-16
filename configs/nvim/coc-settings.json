@@ -131,6 +131,7 @@
     },
     "clangd.path": "direnv-clangd",
     "clangd.enabled": true,
+    "clangd.arguments": ["--enable-config"],
 
     "codeLens.position": "eol",
     "hover.floatConfig": {
