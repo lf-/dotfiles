@@ -46,6 +46,9 @@ typeset -gU cdpath fpath mailpath path
 
 # Set the list of directories that Zsh searches for programs.
 path=(
+  # FIXME(jade): this is somehow correct without this on my laptop but not in
+  # macOS VMs. Who knows why.
+  $HOME/.nix-profile/bin
   $HOME/bin
   $HOME/.local/bin
   /usr/local/{bin,sbin}
