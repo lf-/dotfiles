@@ -1,5 +1,6 @@
 -- every query in here will use only the first file, thereby overriding the
 -- query retrieved to ignore ones from plugins, since ~/.config/nvim is earlier
+--
 -- in the runtime path
 -- local OVERRIDE_QUERIES = {
 --     haskell = {
@@ -34,7 +35,7 @@
 -- Workaround for https://github.com/neoclide/coc.nvim/issues/5297
 vim.opt.termguicolors = true
 
-require('plugins')
+require("config.lazy")
 
 vim.api.nvim_exec([[
 runtime legacy_init.vim

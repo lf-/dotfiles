@@ -327,7 +327,6 @@ nnoremap("<C-w>p", "<Cmd>call WindowSwap#DoWindowSwap()<cr>")
 nnoremap("g=", "mpgqap'p")
 
 -- Leader commands
-vim.g.mapleader = ","
 noremap("<M-n>", "<Cmd>:tabn<cr>")
 noremap("<M-p>", "<Cmd>:tabp<cr>")
 nmap("<Leader>iv", "<Cmd>:source ~/.config/nvim/lateinit.lua<cr>")

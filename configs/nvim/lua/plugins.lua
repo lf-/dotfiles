@@ -1,90 +1,56 @@
-local fn = vim.fn
-local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
-local packer_bootstrap
-
--- variadic
----@diagnostic disable-next-line: missing-parameter
-if fn.empty(fn.glob(install_path)) > 0 then
-    packer_bootstrap = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
-    -- https://github.com/wbthomason/packer.nvim/issues/750#issuecomment-1018881168
-    vim.o.runtimepath = vim.fn.stdpath('data') .. '/site/pack/*/start/*,' .. vim.o.runtimepath
+function local_plugin(name)
+    -- XXX: this is a holdover from packer using the nvim pack functionality
+    -- which lazy seems to not use. idk man.
+    return { dir = vim.fn.stdpath('config') .. '/pack/plugins/start/' .. name }
 end
 
-return require('packer').startup(function(use)
-    local function useLocal(name, ...)
-        local tableInput = name
-        if type(tableInput) == 'table' then
-            name = tableInput[1]
-        end
-        local basename = name:match('[^/]/([^/]+)')
-        local S_IFDIR = 0x4000
-        -- bogus type definitions
-        ---@diagnostic disable-next-line: missing-parameter
-        local coname = vim.fn.expand('$HOME') .. '/co/' .. basename
-        local stat = vim.loop.fs_stat(coname)
-        if stat and bit.band(stat.mode, S_IFDIR) ~= 0 then
-            if type(tableInput) == 'table' then
-                tableInput[1] = coname
-                return use(tableInput)
-            else
-                return use(coname, ...)
-            end
-        end
+return {
+    local_plugin('flattened'),
+    local_plugin('nvim-git-linky'),
+    local_plugin('vim-indent-guides'),
 
-        -- passthru it, it doesn't matter if it's a table
-        return use(name, ...)
-    end
-    use 'wbthomason/packer.nvim'
+    'tomtom/tcomment_vim',
+    'tpope/vim-surround',
+    'godlygeek/tabular',
 
-    use 'tomtom/tcomment_vim'
-    use 'tpope/vim-surround'
-    use 'godlygeek/tabular'
+    'jbyuki/instant.nvim',
 
-    use 'jbyuki/instant.nvim'
+    'tpope/vim-dispatch',
+    'tpope/vim-fugitive',
+    'tpope/vim-eunuch',
 
-    use 'tpope/vim-dispatch'
-    use 'tpope/vim-fugitive'
-    use 'tpope/vim-eunuch'
-
-    use 'nvim-lua/plenary.nvim'
-    use 'nvim-telescope/telescope.nvim'
-    use 'nvim-telescope/telescope-fzy-native.nvim'
+    'nvim-lua/plenary.nvim',
+    'nvim-telescope/telescope.nvim',
+    'nvim-telescope/telescope-fzy-native.nvim',
 
     -- completion
-    useLocal {'neoclide/coc.nvim', branch = 'release'}
-    use 'mattn/emmet-vim'
+    {'neoclide/coc.nvim', branch = 'release'},
+    'mattn/emmet-vim',
 
     -- UI
-    use 'gcmt/taboo.vim'
-    use 'NLKNguyen/papercolor-theme'
-    use 'vim-airline/vim-airline'
-    use 'vim-airline/vim-airline-themes'
-    use 'wesQ3/vim-windowswap'
-    use 'AndrewRadev/undoquit.vim'
-    use 'MattesGroeger/vim-bookmarks'
+    'gcmt/taboo.vim',
+    'NLKNguyen/papercolor-theme',
+    'vim-airline/vim-airline',
+    'vim-airline/vim-airline-themes',
+    'wesQ3/vim-windowswap',
+    'AndrewRadev/undoquit.vim',
+    'MattesGroeger/vim-bookmarks',
 
-    use {'nvim-treesitter/nvim-treesitter'}
-    use 'nvim-treesitter/playground'
-    use 'nvim-treesitter/nvim-treesitter-textobjects'
-    use 'RRethy/nvim-treesitter-textsubjects'
-    use 'nvim-treesitter/nvim-treesitter-context'
-    useLocal 'p00f/nvim-ts-rainbow'
+    'nvim-treesitter/nvim-treesitter',
+    'nvim-treesitter/playground',
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    'RRethy/nvim-treesitter-textsubjects',
+    'nvim-treesitter/nvim-treesitter-context',
+    'p00f/nvim-ts-rainbow',
 
     -- File types
-    use 'LnL7/vim-nix'
-    use 'alx741/yesod.vim'
-    use 'ekalinin/Dockerfile.vim'
-    use 'plasticboy/vim-markdown'
-    use 'qnighy/lalrpop.vim'
-    use 'editorconfig/editorconfig-vim'
-    use 'tikhomirov/vim-glsl'
-    use 'bfrg/vim-jq'
-    use 'vmchale/dhall-vim'
-
-    -- Automatically set up your configuration after cloning packer.nvim
-    -- Put this at the end after all plugins
-    if packer_bootstrap then
-        require('packer').sync()
-    end
-end)
-
+    'LnL7/vim-nix',
+    'alx741/yesod.vim',
+    'ekalinin/Dockerfile.vim',
+    'plasticboy/vim-markdown',
+    'qnighy/lalrpop.vim',
+    'editorconfig/editorconfig-vim',
+    'tikhomirov/vim-glsl',
+    'bfrg/vim-jq',
+    'vmchale/dhall-vim',
+}
