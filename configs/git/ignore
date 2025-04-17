@@ -13,6 +13,7 @@ tags
 tags-haskell
 *.nixops
 result
+result-*
 *~
 .ipynb_checkpoints
 **/.vim/svlangserver
