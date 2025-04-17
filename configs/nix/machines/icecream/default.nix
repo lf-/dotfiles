@@ -13,7 +13,7 @@
     #../../roles/rawethernet
     ../../roles/physical
     #../../roles/usbip
-    #../../roles/secureboot
+    ../../roles/secureboot
     ../../roles/autologin
     #../../roles/tpm
     ../../modules/vtune.nix
@@ -29,7 +29,10 @@
   boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
 
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot = {
+    enable = true;
+    edk2-uefi-shell.enable = true;
+  };
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.blacklistedKernelModules = [ "nouveau" ];
