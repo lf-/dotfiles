@@ -171,13 +171,13 @@ g.airline_symbols.linenr = ''
 
 g.bookmark_save_per_working_dir = 1
 
-
 ----------------------------------------------------------------------
 -- Options
 ----------------------------------------------------------------------
 
-opt.modelines = 0
-opt.history = 1000
+-- We don't like modelines since they do sometimes have CVEs but oh well...
+opt.modelines = 3
+opt.history = 10000
 
 -- completion stuff
 -- https://github.com/neoclide/coc.nvim/issues/649
@@ -187,7 +187,7 @@ opt.writebackup = false
 -- more space for the command window on bottom of screen
 opt.cmdheight = 2
 
--- aggressively write swap files (maybe used for diagnostics?)
+-- aggressively write swap files (so that if vim crashes its less bad)
 opt.updatetime = 300
 
 -- don't give |ins-completion-menu| messages.
