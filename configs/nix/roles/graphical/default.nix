@@ -26,7 +26,6 @@ in
       boot.supportedFilesystems = [ "cifs" ];
 
       environment.systemPackages = with pkgs; [
-        yubikey-manager-qt
         zoom-us
 
         # editors
