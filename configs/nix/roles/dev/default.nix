@@ -30,6 +30,7 @@ in
       hsutilsOverlay
       (import ../../overlays/gitignore.nix { inherit (config.jade.dep-inject) gitignore; })
       (import ../../overlays/jadeware.nix)
+      (import ../../overlays/git-interactive.nix)
     ];
 
     nix.settings = {
