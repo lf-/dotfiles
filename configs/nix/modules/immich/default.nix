@@ -110,7 +110,7 @@ in
           ] ++ cfg.extraPodmanOptions;
 
           ports = [
-            "127.0.0.1:${toString cfg.httpPort}:3001"
+            "127.0.0.1:${toString cfg.httpPort}:2283"
           ];
 
           inherit (cfg) environment environmentFiles;

@@ -1,14 +1,14 @@
 {
   "immich-server": {
-    "image": "ghcr.io/immich-app/immich-server:v1.115.0"
+    "image": "ghcr.io/immich-app/immich-server:v1.132.1"
   },
   "immich-machine-learning": {
-    "image": "ghcr.io/immich-app/immich-machine-learning:v1.115.0"
+    "image": "ghcr.io/immich-app/immich-machine-learning:v1.132.1"
   },
   "redis": {
-    "image": "docker.io/redis:6.2-alpine@sha256:2d1463258f2764328496376f5d965f20c6a67f66ea2b06dc42af351f75248792"
+    "image": "docker.io/valkey/valkey:8-bookworm@sha256:42cba146593a5ea9a622002c1b7cba5da7be248650cbb64ecb9c6c33d29794b1"
   },
   "database": {
-    "image": "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0"
+    "image": "docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:739cdd626151ff1f796dc95a6591b55a714f341c737e27f045019ceabf8e8c52"
   }
 }
