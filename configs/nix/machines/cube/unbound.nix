@@ -13,6 +13,9 @@
     checkconf = false;
     settings = {
       server = {
+        # I don't have v6 at home. this will certainly never become a funny
+        # prank against me.
+        do-ip6 = false;
         interface = "192.168.0.40";
         access-control = [
           "127.0.0.0/8 allow"
