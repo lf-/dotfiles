@@ -144,7 +144,7 @@
     art
 
     kiwix
-    filelight
+    # filelight
 
     yt-dlp
   ];
@@ -182,6 +182,8 @@
     10.254.98.1 captiveportal-login.vpl.ca
     172.18.1.110 iceportal.de
   '';
+
+  jade.dev.withHsutils = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

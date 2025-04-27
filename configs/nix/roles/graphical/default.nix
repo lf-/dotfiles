@@ -29,7 +29,7 @@ in
         zoom-us
 
         # editors
-        kdePackages.kdenlive
+        # kdePackages.kdenlive
         spotify
         libreoffice
         gimp
