@@ -34,7 +34,6 @@
 
 [blame]
 	coloring = highlightRecent
-	ignoreRevsFile = .git-blame-ignore-revs
 
 [core]
 	pager = delta

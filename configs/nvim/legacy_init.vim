@@ -105,6 +105,7 @@ function! s:configure_highlights() abort
     " someone made this the same colour as the background, which is rather
     " objectionable if programs ever use it
     let g:terminal_color_8 = g:terminal_color_15
+    let g:terminal_color_6 = color_helper#hex_color_darken(g:terminal_color_6, 0.30)
   endif
 
   let s:normal_bg = toupper(synIDattr(synIDtrans(hlID("Normal")), 'bg#'))
