@@ -98,7 +98,7 @@ _completion_sync:zsh_autocomplete_compat_reload(){
   # Instead of waiting for the pre-cmd hook to fire, we want it to execute right now.
 
   # Find the autocomplete hook if present
-  local precmd=${(M)precmd_functions:#.autocomplete:*}
+  local precmd=${(M)precmd_functions:#.autocomplete*precmd}
   # If the plugin is already fully initialized, then the relevant functions have been undefined and we need to re-initialize it from the start.
   if [[ -z $precmd ]]; then
     # In this case the named directory "~zsh-autocomplete" will be present, which we can use to reload regardless of install location
@@ -111,9 +111,9 @@ _completion_sync:zsh_autocomplete_compat_reload(){
       _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: re-initializing zsh-autocomplete via 'source ~zsh-autocomplete/zsh-autocomplete.plugin.zsh'"
       source ~zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
-      precmd=${(M)precmd_functions:#.autocomplete:*}
+      precmd=${(M)precmd_functions:#.autocomplete*precmd}
       if [[ -z $precmd ]]; then
-        _completion_sync:debug_log ':completion-sync:compinit:compat:zsh-autocomplete' "compat: zsh-autocomplete: unable to detect plugin setup functions even after reinitializing, disabling compat"
+        echo "completion-sync: compat: zsh-autocomplete: unable to detect plugin setup functions even after reinitializing, disabling compat"
         _completion_sync:zsh_autocomplete_compat_disable
         return 1
       fi
