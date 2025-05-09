@@ -85,6 +85,9 @@ actions = [
     SymlinkAction('ipython/startup', '~/.ipython/profile_default/startup'),
 
     MkdirAction('~/.config/alacritty'),
+
+    # n.b. nix.conf here is a directory
+    SymlinkAction('nix.conf', '~/.config/nix'),
 ] + when_nixos(lambda: [], lambda: [
     SymlinkAction('librespot/librespot.service', '~/.config/systemd/user')
 ])
