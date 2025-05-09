@@ -175,7 +175,6 @@
           (import ./overlays/vendor-pkgs.nix)
           lix-module.overlays.default
           (import ./overlays/lix-curl-testing.nix)
-          (import ./overlays/git-interactive.nix)
         ];
         inherit system;
       };
