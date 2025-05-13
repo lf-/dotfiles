@@ -10,7 +10,7 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      ghcVer = "ghc94";
+      ghcVer = "ghc98";
 
       out = system:
         let
@@ -44,7 +44,7 @@
                 haskell-language-server
                 fourmolu
                 cabal-install
-                proto-lens-protoc
+                # proto-lens-protoc
               ] ++ (with pkgs; [
                 bashInteractive
                 nix-prefetch-git

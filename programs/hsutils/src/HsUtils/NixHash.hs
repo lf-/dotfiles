@@ -8,12 +8,13 @@ import Data.Vector qualified as V
 import Import
 import RIO.Text qualified as T
 import Data.ByteString.Base64 (encodeBase64)
+import Data.Base64.Types (extractBase64)
 
 data HashWithAlgorithm = SHA256 Hash deriving (Show)
 
 -- | Generates a [W3C SRI](https://www.w3.org/TR/SRI/) for some hash
 hashToSri :: HashWithAlgorithm -> Text
-hashToSri (SHA256 (Hash h)) = "sha256-" <> encodeBase64 h
+hashToSri (SHA256 (Hash h)) = "sha256-" <> extractBase64 (encodeBase64 h)
 
 -- omits eout to supposedly avoid offensive words in hashes
 base32Chars :: Vector Word8
