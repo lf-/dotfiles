@@ -45,6 +45,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   xunit-viewer
 
   jujutsu
+  graphite-cli
 
   rage
   age-plugin-yubikey
