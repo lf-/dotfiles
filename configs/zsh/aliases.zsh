@@ -35,3 +35,14 @@ function man() {
     fi
 }
 
+function removepath() {
+    excl=()
+    for item in "${path[@]}"; do
+        if [[ "${item}" =~ "$1" ]]; then
+            echo "remove: ${item}" >&2
+            excl+=("${item}")
+        fi
+    done
+    path=(${path:|excl})
+}
+
