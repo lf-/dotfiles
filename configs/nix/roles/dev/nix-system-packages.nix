@@ -37,7 +37,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     gdb
     jq
     graphviz
-    ctags
+    universal-ctags
     moreutils
     git-lfs
     socat

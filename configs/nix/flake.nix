@@ -1,7 +1,7 @@
 {
   description = "Computers with the nixos";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";
@@ -174,7 +174,6 @@
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
           lix-module.overlays.default
-          (import ./overlays/lix-curl-testing.nix)
         ];
         inherit system;
       };
