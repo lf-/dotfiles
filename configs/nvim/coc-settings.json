@@ -105,6 +105,7 @@
     ],
     "rust-analyzer.cargo.unsetTest": ["ed25519-dalek", "core"],
     "yaml.schemaStore.enable": true,
+    "yaml.schemaStore.url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/api/json/catalog.json",
     "yaml.trace.server": "verbose",
     "sumneko-lua.enableNvimLuaDev": true,
     "Lua.telemetry.enable": false,
