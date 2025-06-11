@@ -5,6 +5,7 @@
     "list.maxPreviewHeight": 25,
     "rust-analyzer.diagnostics.disabled": ["incorrect-ident-case"],
     "rust-analyzer.procMacro.attributes.enable": true,
+    "rust-analyzer.procMacro.enable": true,
     "rust-analyzer.server.extraEnv": {
         "CARGO_REGISTRIES_CRATES_IO_PROTOCOL": "sparse",
         "RA_LOG": "info,salsa::derived::slot=warn,chalk_recursive=warn,hir_ty::traits=warn,flycheck=trace,rust_analyzer::main_loop=warn,ide_db::apply_change=warn,project_model=debug,proc_macro_api=debug,hir_expand::db=error,ide_assists=debug,ide=debug",
@@ -76,8 +77,6 @@
                     }
                 },
             },
-            "trace.server": "verbose",
-            "trace.server.verbosity": "verbose",
         },
         "typst": {
             "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
@@ -86,6 +85,11 @@
         "gopls": {
             "command": "gopls",
             "filetypes": ["go"],
+        },
+        "terraform": {
+            "command": "terraform-ls",
+            "args": ["serve"],
+            "filetypes": ["terraform"],
         }
     },
     "semanticTokens.enable": true,

@@ -79,6 +79,9 @@ require 'nvim-treesitter.configs'.setup {
         use_virtual_text = true,
         lint_events = { "BufWrite", "CursorHold" },
     },
+    matchup = {
+        enable = true,
+    },
 }
 
 require 'treesitter-context'.setup {
