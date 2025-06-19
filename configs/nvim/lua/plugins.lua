@@ -8,6 +8,7 @@ return {
     local_plugin('flattened'),
     local_plugin('nvim-git-linky'),
     local_plugin('vim-indent-guides'),
+    local_plugin('nix-drv.nvim'),
 
     'tomtom/tcomment_vim',
     'tpope/vim-surround',
