@@ -62,6 +62,9 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   vim-swapfile-header
   nvremote
 
+  # Python package manager
+  uv
+
   pycrashreport
 
   awscli2
