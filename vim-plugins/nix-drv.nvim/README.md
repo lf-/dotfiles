@@ -2,6 +2,9 @@
 
 This plugin allows you to simply open .drv files from /nix/store and have them show as the mostly readable JSON format rather than the raw ATerm format.
 
+To use it, simply open a `.drv` file.
+It's helpful to use `gf` or `C-w f` to open using the path under the cursor.
+
 ## TODOs
 
 - Shell quoting is wrong if you are opening a .drv file with quotes in it or similar.
