@@ -100,6 +100,7 @@ dotconfigs = [
     'gdb',
     'gh',
     'git',
+    'jj',
     'lolcate',
     'mpv',
     'nvim',

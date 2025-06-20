@@ -1,0 +1,20 @@
+[snapshot]
+# auto-track things EXCEPT in repo root
+auto-track = "glob:*/**/*"
+
+[templates]
+commit_trailers = '''
+if(
+  !trailers.contains_key("Change-Id"),
+  format_gerrit_change_id_trailer(self)
+)
+'''
+
+[user]
+name = "Jade Lovelace"
+email = "software@lfcode.ca"
+
+[[--scope]]
+--when.repositories = ["~/lix"]
+[--scope.user]
+email = "lix@jade.fyi"
