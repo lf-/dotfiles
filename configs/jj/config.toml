@@ -1,5 +1,10 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[core]
+fsmonitor = "watchman"
+
 [snapshot]
-# auto-track things EXCEPT in repo root
+# auto-track things EXCEPT in repo root where I keep putting junk files
 auto-track = "glob:*/**/*"
 
 [templates]
@@ -9,6 +14,21 @@ if(
   format_gerrit_change_id_trailer(self)
 )
 '''
+draft_commit_description = '''
+concat(
+  coalesce(description, default_commit_description, "\n"),
+  surround(
+    "\nJJ: This commit contains the following changes:\n", "",
+    indent("JJ:     ", diff.stat(72)),
+  ),
+  "\nJJ: ignore-rest\n",
+  diff.git(),
+)
+'''
+
+[git]
+private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
+push-bookmark-prefix = "jade/push-"
 
 [user]
 name = "Jade Lovelace"

@@ -78,6 +78,11 @@
                 },
             },
         },
+        "toml": {
+            "command": "taplo",
+            "args": ["lsp", "stdio"],
+            "filetypes": ["toml"],
+        },
         "typst": {
             "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
             "filetypes": ["typst"],
