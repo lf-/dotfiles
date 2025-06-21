@@ -517,10 +517,10 @@ augroup('formatoptions', function(autocmd)
         'FileType',
         {
             callback = function()
-                if vim.o.filetype == 'gitcommit' then
+                if vim.o.filetype == 'gitcommit' or vim.o.filetype == 'jjdescription' then
                     return
                 end
-                if vim.o.filetype == 'text' or vim.o.filetype == 'markdown' then
+                if vim.o.filetype == 'text' then
                     bufopt.textwidth = 79
                     return
                 end
