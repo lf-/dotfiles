@@ -1,6 +1,6 @@
 { pkgs, config, lib, ... }:
 let
-  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; };
+  hsutilsOverlay = import ../../../../programs/hsutils/overlay.nix { ghcVer = "ghc98"; };
 
   common-dev-pkgs = import ./common-packages.nix { inherit pkgs; inherit (cfg) withHsutils withGui; inherit (config.jade.dep-inject) qyriad-nur; };
   nix-system-packages = import ./nix-system-packages.nix { inherit pkgs; nixos = true; };

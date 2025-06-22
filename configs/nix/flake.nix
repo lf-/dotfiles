@@ -170,7 +170,7 @@
           (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
           (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
           (import ./overlays/polkadots.nix { inherit polkadots; })
-          (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc96"; })
+          (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc98"; })
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
           lix-module.overlays.default
