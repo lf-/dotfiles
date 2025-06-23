@@ -1,4 +1,10 @@
-{ config, lib, nixpkgs, pkgs, ... }:
+{
+  config,
+  lib,
+  nixpkgs,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ../../roles/dev
@@ -26,7 +32,10 @@
 
   programs.vtune.enable = true;
 
-  boot.initrd.availableKernelModules = [ "aesni_intel" "cryptd" ];
+  boot.initrd.availableKernelModules = [
+    "aesni_intel"
+    "cryptd"
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot = {
@@ -35,12 +44,66 @@
   };
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.blacklistedKernelModules = [ "nouveau" ];
-
-  programs.steam.enable = true;
-
   # for accelerated video decode. really this should be automatic.
   hardware.opengl.extraPackages = with pkgs; [ intel-media-driver ];
+
+  # hm does this fix game gremlins? https://gitlab.freedesktop.org/drm/amd/-/issues/2516
+  boot.kernelParams = [ "gpu_sched.sched_policy=0" ];
+
+  programs.steam = {
+    enable = true;
+    gamescopeSession = {
+      enable = true;
+    };
+  };
+
+  services.udev.extraRules = ''
+    # logic analyzer
+    ATTRS{idVendor} == "0925", ATTRS{idProduct} == "3881", TAG += "uaccess"
+
+    # fpga
+    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
+
+    # nvidia
+    # ATTR{device}=="0x249d", ATTR{vendor}=="0x10de", ATTR{power/control} := "auto"
+  '';
+
+  boot.blacklistedKernelModules = [ "nouveau" ];
+
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    powerManagement = {
+      enable = true;
+      finegrained = true;
+    };
+    dynamicBoost.enable = true;
+    modesetting.enable = true;
+    open = true;
+
+    prime = {
+      nvidiaBusId = "PCI:1:0:0";
+      intelBusId = "PCI:0:2:0";
+      offload.enable = true;
+      offload.enableOffloadCmd = true;
+    };
+
+    nvidiaSettings = true;
+  };
+
+  specialisation.nvidia-proprietary.configuration = {
+    hardware.nvidia.open = lib.mkForce false;
+  };
+
+  programs.gamescope = {
+    enable = true;
+    capSysNice = true;
+
+    env = {
+      __NV_PRIME_RENDER_OFFLOAD = "1";
+      __VK_LAYER_NV_optimus = "NVIDIA_only";
+      __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    };
+  };
 
   networking.hostName = "icecream";
 
@@ -84,37 +147,6 @@
 
   virtualisation.podman = {
     enable = true;
-  };
-
-  services.udev.extraRules = ''
-    # logic analyzer
-    ATTRS{idVendor} == "0925", ATTRS{idProduct} == "3881", TAG += "uaccess"
-
-    # fpga
-    ACTION=="add", SUBSYSTEM=="usb", ATTRS{idVendor}=="09fb", TAG+="uaccess", SYMLINK+="usbblaster"
-
-    # nvidia
-    # ATTR{device}=="0x249d", ATTR{vendor}=="0x10de", ATTR{power/control} := "auto"
-  '';
-
-  services.xserver.videoDrivers = [ "nvidia" ];
-  hardware.nvidia = {
-    powerManagement = {
-      enable = true;
-      finegrained = true;
-    };
-    dynamicBoost.enable = true;
-    modesetting.enable = true;
-    open = true;
-
-    prime = {
-      nvidiaBusId = "PCI:1:0:0";
-      intelBusId = "PCI:0:2:0";
-      offload.enable = true;
-      offload.enableOffloadCmd = true;
-    };
-
-    nvidiaSettings = true;
   };
 
   services.hardware.openrgb.enable = true;
