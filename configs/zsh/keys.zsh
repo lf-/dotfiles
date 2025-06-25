@@ -1,3 +1,6 @@
+# shift-space in CSI u mode: https://www.leonerd.org.uk/hacks/fixterms/
+bindkey '^[[32;2u' magic-space
+
 bindkey -M vicmd "?" history-incremental-pattern-search-backward
 bindkey -M vicmd "/" history-incremental-pattern-search-forward
 
