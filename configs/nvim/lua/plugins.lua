@@ -45,6 +45,8 @@ return {
     'RRethy/nvim-treesitter-textsubjects',
     'nvim-treesitter/nvim-treesitter-context',
     'p00f/nvim-ts-rainbow',
+    -- Shows which key you can press next
+    'folke/which-key.nvim',
 
     -- File types
     'LnL7/vim-nix',

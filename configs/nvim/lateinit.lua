@@ -251,6 +251,7 @@ opt.mousemodel = 'extend'
 
 -- Also use opts-tags in nixpkgs. This solution is kinda janky but whatever.
 vim.opt.tags:append('opts-tags')
+vim.opt.tags:append('nix-tags')
 
 -- See https://github.com/neovim/neovim/issues/10223#issuecomment-703544303
 if vim.env.WAYLAND_DISPLAY then
