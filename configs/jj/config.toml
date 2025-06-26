@@ -1,8 +1,5 @@
 "$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
 
-[core]
-fsmonitor = "watchman"
-
 [snapshot]
 # auto-track things EXCEPT in repo root where I keep putting junk files
 auto-track = "glob:*/**/*"
