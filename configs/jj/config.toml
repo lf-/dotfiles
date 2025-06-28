@@ -27,6 +27,10 @@ concat(
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 push-bookmark-prefix = "jade/push-"
 
+[ui]
+pager = "delta"
+diff-formatter = ":git"
+
 [user]
 name = "Jade Lovelace"
 email = "software@lfcode.ca"
