@@ -19,8 +19,8 @@ zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme \
 # completions
 zmodule zsh-users/zsh-completions --fpath src
 zmodule completion
-# disabled: https://github.com/BronzeDeer/zsh-completion-sync/issues/1
-# zmodule zsh-completion-sync
+# needs hacking (to run late; in zshrc): https://github.com/BronzeDeer/zsh-completion-sync/issues/1
+zmodule BronzeDeer/zsh-completion-sync -d
 
 zmodule zsh-users/zsh-syntax-highlighting
 zmodule zsh-users/zsh-autosuggestions

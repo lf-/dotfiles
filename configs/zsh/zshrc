@@ -4,6 +4,7 @@ export ZIM_HOME="$HOME/.local/share/zim"
 zstyle ':zim:zmodule' use 'degit'
 zstyle ':zim' 'disable-version-check' 'true'
 zstyle ':completion-sync:*:onchange' debug true
+zstyle ':completion-sync:*' debug true
 
 # Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
@@ -42,3 +43,5 @@ if [[ -v __ETC_PROFILE_NIX_SOURCED ]]; then
 fi
 
 unsetopt extendedglob
+# Disabled due to bad performance bug: https://github.com/BronzeDeer/zsh-completion-sync/issues/1
+# source "${ZIM_HOME}/modules/zsh-completion-sync/zsh-completion-sync.plugin.zsh"
