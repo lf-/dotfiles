@@ -14,7 +14,7 @@ local nvim_call = vim.api.nvim_call_function
 require 'nvim-treesitter.configs'.setup {
     ensure_installed = "all",
     sync_install = false,
-    ignore_install = { "scfg", "smali", "norg" }, -- List of parsers to ignore installing
+    ignore_install = { "scfg", "smali", "norg", "ipkg" }, -- List of parsers to ignore installing
     highlight = {
         enable = true,
         -- breaks if handled by anything but the delicate
