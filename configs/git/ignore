@@ -28,3 +28,5 @@ core.[0-9]*
 # this is obviously absurd, but it's used for doing crimes to Sapling
 .sl/
 .git/
+# this is slightly less absurd but nonetheless exists for doing horrible things to jj
+.jj/
