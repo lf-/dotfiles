@@ -7,7 +7,8 @@ let
   pyPkgs =
     ppkgs: with ppkgs; [
       ipython
-      ipython-sql
+      # Busted for some reason
+      # ipython-sql
       # jacked on macos currently https://github.com/NixOS/nixpkgs/issues/185918
       # pgcli
       requests

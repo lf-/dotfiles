@@ -349,6 +349,7 @@ nnoremap("<Leader><C-p>", "<Cmd>lua find_files_relative()<cr>")
 nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
 nnoremap("<space>*", "<Cmd>Telescope grep_string<cr>")
 nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
+nnoremap("<space>r", "<Cmd>Telescope resume<cr>")
 nnoremap("<space>t", '', {
     callback = function ()
         require('telescope.builtin').tags({
