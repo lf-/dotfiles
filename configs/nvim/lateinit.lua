@@ -577,6 +577,9 @@ augroups.setfiletypes('filetypedetection', {
 
     -- typst files are misdetected as sql
     {'*.typ', 'typst'},
+
+    -- Buck extension language is just bazel
+    {'*.bxl', 'bzl'},
 })
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)
