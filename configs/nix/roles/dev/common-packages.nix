@@ -38,9 +38,15 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   postgres-lsp
   hyperfine
   taplo
-  cargo-nextest
+  # Source code line counter
+  tokei
 
+  # Better rust test runner
+  cargo-nextest
+  # Runs cargo check when you save
   cargo-watch
+  # Rust snapshot test runner
+  cargo-insta
 
   xonsh
 
