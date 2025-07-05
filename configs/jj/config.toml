@@ -4,10 +4,13 @@
 # auto-track things EXCEPT in repo root where I keep putting junk files
 auto-track = "glob:*/**/*"
 
+[gerrit]
+enabled = false
+
 [templates]
 commit_trailers = '''
 if(
-  !trailers.contains_key("Change-Id"),
+  config("gerrit.enabled").as_boolean() && !trailers.contains_key("Change-Id"),
   format_gerrit_change_id_trailer(self)
 )
 '''
@@ -31,9 +34,16 @@ push-bookmark-prefix = "jade/push-"
 pager = "delta"
 diff-formatter = ":git"
 
+default-command = "log"
+
 [user]
 name = "Jade Lovelace"
 email = "software@lfcode.ca"
+
+[fix.tools.rustfmt]
+command = ["rustfmt", "+nightly", "--emit", "stdout"]
+patterns = ["glob:'**/*.rs'"]
+enabled = false
 
 [[--scope]]
 --when.repositories = ["~/lix"]
