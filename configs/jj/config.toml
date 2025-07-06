@@ -36,6 +36,10 @@ diff-formatter = ":git"
 
 default-command = "log"
 
+[aliases]
+# jj jj jj commit
+jj = []
+
 [user]
 name = "Jade Lovelace"
 email = "software@lfcode.ca"
