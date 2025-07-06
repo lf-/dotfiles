@@ -6,7 +6,7 @@ let
   restartUnits = [ "kanidm.service" ];
   port = 53423;
 
-  renewalScript = pkgs.substituteAll {
+  renewalScript = pkgs.replaceVars {
     src = ./on-renew.sh;
     isExecutable = true;
     path = [ config.systemd.package pkgs.coreutils pkgs.util-linux ];
