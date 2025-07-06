@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+replacements=(
+    -e
+    's/std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>/std::string/g'
+    -e
+    's/std::__1::basic_string_view<char, std::__1::char_traits<char>>/std::string_view/g'
+    # FIXME: fix stuff like
+    # <std::__1::vector<nix::Symbol, std::__1::allocator<nix::Symbol>>::push_back[abi:v160006](nix::Symbol&&)+0x48>
+    # unfortunately this is impossible to parse with regex since it needs to
+    # maintain a state stack to match the <>s. a better tool would have to be
+    # written.
+)
+
+should_cxxfilt=1
+
+do_demangle() {
+    if [[ $should_cxxfilt == 1 ]]; then
+        llvm-cxxfilt "$@"
+    else
+        cat
+    fi
+}
+
+while [[ "$#" -gt 0 ]]; do
+    arg="$1"
+    shift
+    case "$arg" in
+        --)
+            break
+            ;;
+        --no-cxxfilt)
+            should_cxxfilt=0
+            ;;
+        *)
+            # unshift it, we are done
+            set -- "$arg" "$@"
+            break
+            ;;
+    esac
+done
+
+do_demangle "$@" | sed "${replacements[@]}"
