@@ -1,9 +1,23 @@
 _zimfw_tool_git() {
   # This runs in a subshell
-  readonly -i SUBMODULES=${5}
-  readonly  DIR=${1} URL=${2} TYPE=${3} ONPULL=${6}
-  REV=${4}
-  case ${_zaction} in
+  readonly -i SUBMODULES=${6}
+  readonly ACTION=${1} DIR=${2} URL=${3} TYPE=${4} ONPULL=${7}
+  REV=${5}
+  case ${ACTION} in
+    pre|prereinstall)
+      local premsg
+      if [[ ${ACTION} == pre ]] premsg=" Use zmodule option ${_zbold}-z${_znormalred}|${_zbold}--frozen${_znormalred} to disable this error or run ${_zbold}zimfw reinstall${_znormalred} to reinstall."
+      if [[ -e ${DIR} ]]; then
+        if [[ ! -r ${DIR}/.git ]]; then
+          _zimfw_print_error 'Module was not installed using git.'${premsg}
+          return 1
+        fi
+        if [[ ${URL} != $(command git -C ${DIR} config --get remote.origin.url) ]]; then
+          _zimfw_print_error 'The git URL does not match. Expected '${URL}.${premsg}
+          return 1
+        fi
+      fi
+      ;;
     install)
       if ERR=$(command git clone ${REV:+-b} ${REV} -q --config core.autocrlf=false ${${SUBMODULES:#0}:+--recursive} -- ${URL} ${DIR} 2>&1); then
         _zimfw_pull_print_okay Installed
@@ -13,14 +27,6 @@ _zimfw_tool_git() {
       fi
       ;;
     check|update)
-      if [[ ! -r ${DIR}/.git ]]; then
-        _zimfw_print -u2 -PR <%= clear_line %>"%F{yellow}<%= warn %>%B${_zname}:%b Module was not installed using git. Will not try to ${_zaction}. Use zmodule option %B-z%b|%B--frozen%b to disable this warning.%f"
-        return 0
-      fi
-      if [[ ${URL} != $(command git -C ${DIR} config --get remote.origin.url) ]]; then
-        _zimfw_print_error "URL does not match. Expected ${URL}. Will not try to ${_zaction}."
-        return 1
-      fi
       if ! ERR=$(command git -C ${DIR} fetch -pqt origin 2>&1); then
         _zimfw_print_error 'Error during git fetch' ${ERR}
         return 1
@@ -40,7 +46,7 @@ _zimfw_tool_git() {
           fi
         fi
         TO_REV=${REV}@{u}
-        if [[ ${_zaction} == check ]]; then
+        if [[ ${ACTION} == check ]]; then
           readonly -i BEHIND=$(command git -C ${DIR} rev-list --count ${REV}..${TO_REV} -- 2>/dev/null)
           if (( BEHIND )); then
             _zimfw_print_okay "Update available [behind ${BEHIND}]"
@@ -52,7 +58,7 @@ _zimfw_tool_git() {
         fi
       else
         if [[ ${REV} == $(command git -C ${DIR} describe --tags --exact-match 2>/dev/null) ]]; then
-          if [[ ${_zaction} == check ]]; then
+          if [[ ${ACTION} == check ]]; then
             _zimfw_print_okay 'Already up to date' 1
             return 0
           else
@@ -60,13 +66,17 @@ _zimfw_tool_git() {
             return ${?}
           fi
         fi
-        if [[ ${_zaction} == check ]]; then
+        if [[ ${ACTION} == check ]]; then
           _zimfw_print_okay 'Update available'
           return 4
         fi
         TO_REV=${REV}
       fi
-      LOG=$(command git -C ${DIR} log --graph --color --format='%C(yellow)%h%C(reset) %s %C(cyan)(%cr)%C(reset)' ..${TO_REV} -- 2>/dev/null)
+      if [[ -z ${NO_COLOR} && -t 1 ]]; then
+        LOG=$(command git -C ${DIR} log --graph --color --format='%C(yellow)%h%C(reset) %s %C(cyan)(%cr)%C(reset)' ..${TO_REV} -- 2>/dev/null)
+      else
+        LOG=$(command git -C ${DIR} log --graph --format='%h %s (%cr)' ..${TO_REV} -- 2>/dev/null)
+      fi
       if ! ERR=$(command git -C ${DIR} checkout -q ${REV} -- 2>&1); then
         _zimfw_print_error 'Error during git checkout' ${ERR}
         return 1

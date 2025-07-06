@@ -1,14 +1,18 @@
 _zimfw_upgrade() {
-  local -r ztarget=${ZIM_HOME}/zimfw.zsh zurl=https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh.gz
+  local -r ztarget=${__ZIMFW_FILE:A} zurl=https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh.gz
+  if [[ ! -w ${ztarget:h} ]]; then
+    print -u2 -R "${_zred}No write permission to ${_zbold}${ztarget:h}${_znormalred}. Will not try to upgrade.${_znormal}"
+    return 1
+  fi
   {
-    if (( ${+commands[curl]} )); then
+    if [[ ${+commands[curl]} -ne 0 && -x ${commands[curl]} ]]; then
       command curl -fsSL -o ${ztarget}.new.gz ${zurl} || return 1
     else
       local zopt
       if (( _zprintlevel <= 1 )) zopt=-q
       if ! command wget -nv ${zopt} -O ${ztarget}.new.gz ${zurl}; then
         if (( _zprintlevel <= 1 )); then
-          print -u2 -PR "%F{red}<%= failed %>Failed to download %B${zurl}%b. Use %B-v%b option to see details.%f"
+          print -u2 -R "${_zred}Failed to download ${_zbold}${zurl}${_znormalred}. Use ${_zbold}-v${_znormalred} option to see details.${_znormal}"
         fi
         return 1
       fi
@@ -17,7 +21,7 @@ _zimfw_upgrade() {
     # .latest_version can be outdated and will yield a false warning if zimfw is
     # upgraded before .latest_version is refreshed. Bad thing about having a cache.
     _zimfw_mv ${ztarget}{.new,} && command rm -f ${ZIM_HOME}/.latest_version && \
-        _zimfw_print -P '<%= done %>Done with upgrade.'
+        _zimfw_print 'Done with upgrade.'
   } always {
     command rm -f ${ztarget}.new{,.gz}
   }

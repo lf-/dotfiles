@@ -9,41 +9,136 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _No unreleased changes._
 
+## [1.18.0] - 2025-03-20
+
+Changes in this release are one more little step towards better adherence to the
+[command line interface guidelines].
+
+### Added
+- `--help` and `--version` actions. These are aliases to the already existing
+  `help` and `version` actions.
+
+### Changed
+- Disable color output when executed through a pipe or as a non-TTY ssh command.
+
+## [1.17.1] - 2025-02-12
+
+### Fixed
+- Create `ZIM_HOME` if it does not exist.
+- Simplify output. Don't send any ANSI escape codes to the terminal when
+  `NO_COLOR` is set.
+
+## [1.17.0] - 2025-01-16
+
+### Added
+- Also list not installed modules with `list` action, when not in verbose mode.
+- `auto` tool in `zmodule`, which auto detects the best tool available for
+  installing a new module or the tool used when an existing module was
+  installed. This is now the default tool and makes life automatically easier
+  for users without git installed.
+
+### Fixed
+- Print help or version even if `ZIM_HOME` is not set.
+- "no such file or directory: /path/to/.zdegit" error when installing a new
+  module with the degit tool.
+
+## [1.16.0] - 2024-11-25
+
+### Added
+- Also output zimfw config and zimfw.zsh script paths in `info` action,
+  following symlinks if any.
+- Don't output colors if `NO_COLOR` environment variable is set to a non-empty
+  value.
+
+## [1.15.1] - 2024-10-10
+
+### Fixed
+- Preserve original module if reinstall fails instead of removing it first.
+
+## [1.15.0] - 2024-10-08
+
+### Added
+- `reinstall` action, that removes and then installs again the modules that
+  failed any of the checks: (See [#542](https://github.com/zimfw/zimfw/issues/542))
+  - module was installed with the defined tool,
+  - module URL matches the defined one.
+- `--if-ostype` option to `zmodule`. This option is equivalent to
+  `--if "[[ \${OSTYPE} == ${1} ]]"`.
+
+### Changed
+- Ask before uninstalling each unused module, instead of asking just once for
+  all.
+- Add disclaimer comment at beginning of .zimrc file.
+
+## [1.14.0] - 2024-06-25
+
+### Changed
+- Don't expand `${HOME}` in the init.zsh script. (See
+  [#509](https://github.com/zimfw/zimfw/issues/509))
+- Don't allow calling `zmodule` from the command line. Let it fail with "command
+  not found" instead, as it's intended to be used only in the .zimrc script.
+- `ZIM_HOME` must be defined before sourcing zimfw.zsh. All documentation was
+  already doing so, hence not considering this as a breaking change.
+- Allow zimfw.zsh to exist anywhere else, not only inside `ZIM_HOME`. This
+  enables installing the zimfw.zsh script independently with a package manager.
+- Don't try to upgrade if sourced zimfw.zsh is not in a writable path.
+- Don't try actions that write to `ZIM_HOME` if user has no write permissions
+  there.
+
+### Fixed
+- Update error messages to hopefully make it clearer when either the git or the
+  degit tool is being used.
+- Set read permissions to generated init.zsh script, so it can be read from
+  other users.
+
+## [1.13.1] - 2024-04-28
+
+### Fixed
+- The `--strip` option in tar command is not BSD compatible.
+
+## [1.13.0] - 2024-02-17
+
+### Added
+- `--if-command` option to `zmodule`. This option is equivalent to
+  `--if "(( \${+commands[${1}]} ))"`.
+- `mkdir` tool option in `zmodule` that creates an empty directory. This allows
+  creating modules that contain only externally generated files.
+
+## [1.12.1] - 2023-09-16
+
+### Fixed
+- Expansion of prompt sequences in print statements causing text between
+  backticks to be executed by the shell.
+
 ## [1.12.0] - 2023-07-17
 
 ### Added
-
 - `check-version` action, that immediately checks if a new version of `zimfw` is
   available and returns code 4 if there is one.
 - `check` action, that checks if there are updates available for current modules.
 - Output of `LANG` and `LC_*` parameters in `info` action.
 
 ### Changed
-
 - Don't resolve symlinks when building init.zsh.
 
 ### Fixed
-
 - Show warning when there's no write permission to compile Zsh scripts.
 
 ## [1.11.3] - 2023-02-26
 
 ### Deprecated
-
-- The `zmodule check-dumpfile` action. The [completion] module alone now handles
+- `check-dumpfile` action. The [completion] module alone now handles
   checking the dumpfile. (See
   [zimfw/completion#12](https://github.com/zimfw/completion/pull/12))
 
 ## [1.11.2] - 2023-02-16
 
 ### Fixed
-
 - Quote path names in init.zsh to properly handle path names with spaces.
 
 ## [1.11.1] - 2023-02-04
 
 ### Fixed
-
 - Use `_zim_dumpfile_fpath` defined by the completion module
   [here](https://github.com/zimfw/completion/blob/33737e8c15fa8dba9af47bef8408b1af2599c21b/init.zsh#L11),
   right before `compinit` is run, to more accurately do `zimfw check-dumpfile`.
@@ -51,7 +146,6 @@ _No unreleased changes._
 ## [1.11.0] - 2022-12-18
 
 ### Added
-
 - `--if` option to `zmodule` that will only initialize the module root if the
   specified test returns a zero exit status. The test is evaluated at every new
   terminal startup.
@@ -61,14 +155,12 @@ _No unreleased changes._
 ## [1.10.0] - 2022-09-27
 
 ### Added
-
 - `--root` option to `zmodule`. Combined with the ability to call `zmodule`
   multiple times for the same module, this allows initializing from multiple
   roots in repositories like prezto or ohmyzsh. Also, `--on-pull` and `--disable`
   now work on a per-module-root basis.
 
 ### Changed
-
 - Show `OSTYPE`, `TERM`, `TERM_PROGRAM` and `TERM_PROGRAM_VERSION` environment
   variables instead of calling the `uname -a` command to show system info in the
   `zimfw info` action.
@@ -76,7 +168,6 @@ _No unreleased changes._
 ## [1.9.1] - 2022-05-24
 
 ### Fixed
-
 - Override repository options along multiple `zmodule` calls with the same
   module name.
 - Show already installed modules skipped with install action and `-v`.
@@ -87,14 +178,12 @@ _No unreleased changes._
 ## [1.9.0] - 2022-05-09
 
 ### Added
-
 - `--on-pull` option to `zmodule`, which allows setting a command that is always
   triggered after the module is installed or updated.
 
 ## [1.8.0] - 2022-01-25
 
 ### Added
-
 - `check-dumpfile` action. It runs in the build, install and update actions, and
   checks if a new completion configuration needs to be dumped. It's intended to
   be used with `compinit -C`, so no checks are done during the shell startup.
@@ -105,7 +194,6 @@ _No unreleased changes._
 ## [1.7.0] - 2022-01-12
 
 ### Changed
-
 - The output of `zimfw init` to be friendlier to the terminal startup screen
   when called without `-q`.
 - Only compile scripts via the `zimfw` tool after actions where scripts can
@@ -114,7 +202,7 @@ _No unreleased changes._
   [here](https://github.com/zimfw/completion/blob/9386a76eac3f55b1c04d57d26238f725b4b3ba25/init.zsh#L10-L11).
 - Don't compile user Zsh startup scripts anymore
   (See [#450](https://github.com/zimfw/zimfw/pull/450)). This means you can:
-  - either manually delete the compiled files, as they won't be updated by Zim
+  - either manually delete the compiled files, as they won't be updated by zimfw
     anymore (recommended):
     ```
     for zfile in ${ZDOTDIR:-${HOME}}/.z(shenv|profile|shrc|login|logout); do
@@ -186,7 +274,6 @@ _No unreleased changes._
 - Force `core.autocrlf=false` when doing `git clone`.
   (See [#404](https://github.com/zimfw/zimfw/issues/404))
 - Allow uninstalling modules with custom names that have a slash.
-
 
 ## [1.4.3] - 2021-03-19
 
@@ -315,7 +402,7 @@ Take your time to review the updated [README.md] and the changes listed below.
 - The Zim "core" is reduced to a single file, namely zimfw.zsh, that is
   self-updated without requiring git. With this, `ZIM_HOME` is not (the root of)
   a git repo anymore.
-- Zsh and modules are configured in .zshrc instead of .zimrc.
+- Zsh and modules are initialized in .zshrc instead of .zimrc.
 - .zimrc is not sourced during Zsh startup anymore, and only contains the module
   definitions.
 - Zim's init.zsh and login_init.zsh scripts are generated by the `zimfw` CLI
@@ -346,6 +433,7 @@ Take your time to review the updated [README.md] and the changes listed below.
 - `ZIM_HOME` is set in .zshenv instead of .zshrc. The issue was that the
   variable was not available in .zlogin in non-interactive login shells.
 
+[command line interface guidelines]: https://clig.dev
 [completion]: https://github.com/zimfw/completion
 [README.md]: https://github.com/zimfw/zimfw/blob/master/README.md
 [environment]: https://github.com/zimfw/environment
@@ -354,7 +442,17 @@ Take your time to review the updated [README.md] and the changes listed below.
 [termtitle]: https://github.com/zimfw/termtitle
 [s1ck94]: https://github.com/zimfw/s1ck94
 
-[Unreleased]: https://github.com/zimfw/zimfw/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/zimfw/zimfw/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/zimfw/zimfw/compare/v1.17.1...v1.18.0
+[1.17.1]: https://github.com/zimfw/zimfw/compare/v1.17.0...v1.17.1
+[1.17.0]: https://github.com/zimfw/zimfw/compare/v1.16.0...v1.17.0
+[1.16.0]: https://github.com/zimfw/zimfw/compare/v1.15.1...v1.16.0
+[1.15.1]: https://github.com/zimfw/zimfw/compare/v1.15.0...v1.15.1
+[1.15.0]: https://github.com/zimfw/zimfw/compare/v1.14.0...v1.15.0
+[1.14.0]: https://github.com/zimfw/zimfw/compare/v1.13.1...v1.14.0
+[1.13.1]: https://github.com/zimfw/zimfw/compare/v1.13.0...v1.13.1
+[1.13.0]: https://github.com/zimfw/zimfw/compare/v1.12.1...v1.13.0
+[1.12.1]: https://github.com/zimfw/zimfw/compare/v1.12.0...v1.12.1
 [1.12.0]: https://github.com/zimfw/zimfw/compare/v1.11.3...v1.12.0
 [1.11.3]: https://github.com/zimfw/zimfw/compare/v1.11.2...v1.11.3
 [1.11.2]: https://github.com/zimfw/zimfw/compare/v1.11.1...v1.11.2

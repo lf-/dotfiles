@@ -17,7 +17,7 @@
 What is Zim?
 ------------
 Zim is a Zsh configuration framework that bundles a [plugin manager](#usage),
-useful [modules], and a wide variety of [themes], without compromising on [speed].
+useful [modules] and a wide variety of [themes], without compromising on [speed].
 
 Check how Zim compares to other frameworks and plugin managers:
 
@@ -29,6 +29,7 @@ Table of Contents
 -----------------
 * [Installation](#installation)
   * [Automatic installation](#automatic-installation)
+  * [Homebrew](#homebrew)
   * [Manual installation](#manual-installation)
     * [Set up `~/.zshrc`](#set-up-zshrc)
     * [Create `~/.zimrc`](#create-zimrc)
@@ -47,16 +48,45 @@ Installing Zim is easy. You can choose either the automatic or manual method bel
 This will install a predefined set of modules and a theme for you.
 
 * With `curl`:
-
-      curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
+  ```zsh
+  curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
+  ```
 
 * With `wget`:
-
-      wget -nv -O - https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
+  ```zsh
+  wget -nv -O - https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
+  ```
 
 Restart your terminal and you're done. Enjoy your Zsh IMproved! Take some time
-to tweak your [`~/.zshrc`](#set-up-zshrc) file, and to also check the available
+to tweak your [`~/.zshrc`](#set-up-zshrc) file and to also check the available
 [modules] and [themes] you can add to your [`~/.zimrc`](#create-zimrc).
+
+### Homebrew
+
+1. Install zimfw with brew:
+    ```zsh
+    brew install --formula zimfw
+    ```
+
+2. Add the following to your `~/.zshrc`:
+   ```zsh
+   ZIM_HOME=~/.zim
+   # Install missing modules and update ${ZIM_HOME}/init.zsh if missing or outdated.
+   if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+     source /path/to/zimfw.zsh init
+   fi
+   # Initialize modules.
+   source ${ZIM_HOME}/init.zsh
+   ```
+   replacing `/path/to/zimfw.zsh` with the path where brew installed the script,
+   which is shown in the brew formula caveats. It is usually:
+   * `/opt/homebrew/opt/zimfw/share/zimfw.zsh` on Apple Silicon macOS,
+   * `/usr/local/opt/zimfw/share/zimfw.zsh` on Intel macOS,
+   * `/home/linuxbrew/.linuxbrew/opt/zimfw/share/zimfw.zsh` on Linux.
+
+3. [Create your `~/.zimrc` file](#create-zimrc)
+
+4. Restart your terminal and you're done. Enjoy your Zsh IMproved!
 
 ### Manual installation
 
@@ -75,23 +105,24 @@ to tweak your [`~/.zshrc`](#set-up-zshrc) file, and to also check the available
 
 Add the lines below to your `~/.zshrc` file, in the following order:
 
-1. To use our `degit` tool by default to install modules:
+1. To set where the zimfw plugin manager configuration file will be located:
    ```zsh
-   zstyle ':zim:zmodule' use 'degit'
-   ````
-   This is optional, and only required if you don't have `git` installed (yes,
-   Zim works even without `git`!)
+   ZIM_CONFIG_FILE=~/.config/zsh/zimrc
+   ```
+   This is optional. The value of `ZIM_CONFIG_FILE` can be any path your user
+   has at least read access to. By default, the file must be at `~/.zimrc`, if
+   the `ZDOTDIR` environment variable is not defined. Otherwise, it must be at
+   `${ZDOTDIR}/.zimrc`.
 
-2. To set where the directory used by Zim will be located:
+2. To set the directory where the zimfw plugin manager will keep necessary files:
    ```zsh
    ZIM_HOME=~/.zim
    ```
    The value of `ZIM_HOME` can be any directory your user has write access to.
    You can even set it to a cache directory like `${XDG_CACHE_HOME}/zim` or
-   `~/.cache/zim` if you also include the step below, that automatically
-   downloads the `zimfw` plugin manager.
+   `~/.cache/zim`.
 
-3. To automatically download the `zimfw` plugin manager if missing:
+3. To automatically download the zimfw plugin manager if missing:
    ```zsh
    # Download zimfw plugin manager if missing.
    if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
@@ -107,20 +138,25 @@ Add the lines below to your `~/.zshrc` file, in the following order:
          https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
    fi
    ```
-   This is optional. If you choose to not include this step, you should manually
-   download the `zimfw.zsh` script once and keep it at `${ZIM_HOME}`.
+   This is optional. Alternatively, you can download the `zimfw.zsh` script
+   anywhere your user has write access to: just replace the occurrences of
+   `${ZIM_HOME}/zimfw.zsh` by the preferred path, like `/usr/local/share/zimfw/zimfw.zsh`
+   for example. If you choose to not include this step, you should manually
+   download the `zimfw.zsh` script once and keep it at the preferred path.
 
 4. To automatically install missing modules and update the static initialization
    script if missing or outdated:
    ```zsh
-   # Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
-   if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZDOTDIR:-${HOME}}/.zimrc ]]; then
-     source ${ZIM_HOME}/zimfw.zsh init -q
+   # Install missing modules and update ${ZIM_HOME}/init.zsh if missing or outdated.
+   if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+     source ${ZIM_HOME}/zimfw.zsh init
    fi
    ```
    This step is optional, but highly recommended. If you choose to not include
-   it, you must remember to manually run `zimfw install` every time after you
-   update your [`~/.zimrc`](#create-zimrc) file.
+   it, you must remember to manually run `zimfw install` every time you update
+   your [`~/.zimrc`](#create-zimrc) file. If you have chosen to keep the
+   `zimfw.zsh` in a different path as mentioned in the previous step, replace
+   `${ZIM_HOME}/zimfw.zsh` by the chosen path.
 
 5. To source the static script, that will initialize your modules:
    ```zsh
@@ -130,31 +166,131 @@ Add the lines below to your `~/.zshrc` file, in the following order:
 
 #### Create `~/.zimrc`
 
-You must create your `.zimrc` file at `~/.zimrc`, if the `ZDOTDIR` environment
-variable is not defined. Otherwise, it must be at `${ZDOTDIR}/.zimrc`. It's
-referred to as `~/.zimrc` in the documentation for the sake of simplicity.
+This file configures the zimfw plugin manager. It's referred to as `~/.zimrc`
+in the documentation for the sake of simplicity, but the actual location of the
+file is defined by the following rules:
 
-You can start with just:
+1. You can define the full path and name of the file with a `ZIM_CONFIG_FILE`
+   environment variable. For example:
+   ```zsh
+   ZIM_CONFIG_FILE=~/.config/zsh/zimrc
+   ```
+
+2. Or, if you defined a `ZDOTDIR` environment variable, then the file must be at
+   `${ZDOTDIR}/.zimrc`
+
+3. Otherwise, it must be at at `~/.zimrc`, which is it's default location.
+
+As for the contents of the file, you can start with just:
 ```zsh
+# Fish-like syntax highlighting for Zsh.
 zmodule zsh-users/zsh-syntax-highlighting
+# Fish-like autosuggestions for Zsh.
+zmodule zsh-users/zsh-autosuggestions
+```
+
+If you also want saner defaults:
+```zsh
+#
+# Modules
+#
+
+# Sets sane Zsh built-in environment options.
+zmodule environment
+# Applies correct bindkeys for input events.
+zmodule input
+# Utility aliases and functions. Adds colour to ls, grep and less.
+zmodule utility
+
+#
+# Modules that must be initialized last
+#
+
+# Fish-like syntax highlighting for Zsh.
+zmodule zsh-users/zsh-syntax-highlighting
+# Fish-like autosuggestions for Zsh.
 zmodule zsh-users/zsh-autosuggestions
 ```
 
 If you also want one of our prompt [themes]:
-```
+```zsh
+#
+# Modules
+#
+
+# Sets sane Zsh built-in environment options.
+zmodule environment
+# Applies correct bindkeys for input events.
+zmodule input
+# Utility aliases and functions. Adds colour to ls, grep and less.
+zmodule utility
+
+#
+# Prompt
+#
+
+# Exposes to prompts how long the last command took to execute, used by asciiship.
+zmodule duration-info
+# Exposes git repository status information to prompts, used by asciiship.
+zmodule git-info
+# A heavily reduced, ASCII-only version of the Spaceship and Starship prompts.
 zmodule asciiship
+
+#
+# Modules that must be initialized last
+#
+
+# Fish-like syntax highlighting for Zsh.
 zmodule zsh-users/zsh-syntax-highlighting
+# Fish-like autosuggestions for Zsh.
 zmodule zsh-users/zsh-autosuggestions
 ```
 
 If you want to use our [completion] module too, instead of using `compinit` directly:
 ```zsh
+#
+# Modules
+#
+
+# Sets sane Zsh built-in environment options.
+zmodule environment
+# Applies correct bindkeys for input events.
+zmodule input
+# Utility aliases and functions. Adds colour to ls, grep and less.
+zmodule utility
+
+#
+# Prompt
+#
+
+# Exposes to prompts how long the last command took to execute, used by asciiship.
+zmodule duration-info
+# Exposes git repository status information to prompts, used by asciiship.
+zmodule git-info
+# A heavily reduced, ASCII-only version of the Spaceship and Starship prompts.
 zmodule asciiship
+
+#
+# Completion
+#
+
+# Additional completion definitions for Zsh.
 zmodule zsh-users/zsh-completions --fpath src
+# Enables and configures smart and extensive tab completion.
+# completion must be sourced after all modules that add completion definitions.
 zmodule completion
+
+#
+# Modules that must be initialized last
+#
+
+# Fish-like syntax highlighting for Zsh.
+# zsh-users/zsh-syntax-highlighting must be sourced after completion
 zmodule zsh-users/zsh-syntax-highlighting
+# Fish-like autosuggestions for Zsh.
 zmodule zsh-users/zsh-autosuggestions
 ```
+
 The [completion] module calls `compinit` for you. You should remove any
 `compinit` calls from your `~/.zshrc` when you use this module. The modules will
 be initialized in the order they are defined, and [completion] must be
@@ -166,15 +302,15 @@ define the modules you want to use.
 
 Usage
 -----
-The `zimfw` plugin manager installs your modules at `${ZIM_HOME}/modules`, and
+The zimfw plugin manager installs your modules at `${ZIM_HOME}/modules` and
 builds a static script at `${ZIM_HOME}/init.zsh` that will initialize them. Your
 modules are defined in your `~/.zimrc` file.
 
 The `~/.zimrc` file must contain `zmodule` calls to define the modules to be
-initialized. The initialization will be done in the same order it's defined.
+initialized. The modules will be initialized in the same order they're defined.
 
-The `~/.zimrc` file is not sourced during Zsh startup, and it's only used to
-configure the `zimfw` plugin manager.
+The `~/.zimrc` file is not sourced during Zsh startup and it's only used to
+configure the zimfw plugin manager.
 
 Check [examples of `~/.zimrc` files](#create-zimrc) above.
 
@@ -188,7 +324,7 @@ Below are some usage examples:
   * A module at an absolute path, that is already installed:
     `zmodule /usr/local/share/zsh-autosuggestions`
   * A module with a custom fpath: `zmodule zsh-users/zsh-completions --fpath src`
-  * A module with a custom initialization file, and with git submodules disabled:
+  * A module with a custom initialization file and with git submodules disabled:
     `zmodule spaceship-prompt/spaceship-prompt --source spaceship.zsh --no-submodules` or
     `zmodule spaceship-prompt/spaceship-prompt --name spaceship --no-submodules`
   * A module with two custom initialization files:
@@ -224,63 +360,79 @@ Below are some usage examples:
 Add <b>zmodule</b> calls to your <b>~/.zimrc</b> file to define the modules to be initialized. The initiali-
 zation will be done in the same order it&apos;s defined.
 
-  &lt;url&gt;                      Module absolute path or repository URL. The following URL formats
-                             are equivalent: <b>foo</b>, <b>zimfw/foo</b>, <b>https://github.com/zimfw/foo.git</b>.
+  &lt;url&gt;                      Module absolute path or repository URL. The following are equiva-
+                             lent: <b>&apos;foo&apos;</b>, <b>&apos;zimfw/foo&apos;</b>, <b>&apos;https://github.com/zimfw/foo.git</b>&apos;.
                              If an absolute path is given, the module is considered externally
-                             installed, and won&apos;t be installed or updated by zimfw.
-  <b>-n</b>|<b>--name</b> &lt;module_name&gt;    Set a custom module name. Default: the last component in &lt;url&gt;.
-                             Slashes can be used inside the name to organize the module into
-                             subdirectories. The module will be installed at
+                             installed and won&apos;t be installed or updated by zimfw.
+  <b>-n</b>, <b>--name</b> &lt;module_name&gt;   Set a custom module name. Default: the last component in &lt;url&gt;.
+                             Slashes can be used inside &lt;module_name&gt; to organize the module
+                             into subdirectories. The module will be installed at
                              <b>${ZIM_HOME}/</b>&lt;module_name&gt;.
-  <b>-r</b>|<b>--root</b> &lt;path&gt;           Relative path to the module root.
+  <b>-r</b>, <b>--root</b> &lt;path&gt;          Relative path to the module root.
 
 Per-module options:
-  <b>-b</b>|<b>--branch</b> &lt;branch_name&gt;  Use specified branch when installing and updating the module.
+  <b>-b</b>, <b>--branch</b> &lt;branch_name&gt;
+                             Use specified branch when installing and updating the module.
                              Overrides the tag option. Default: the repository default branch.
-  <b>-t</b>|<b>--tag</b> &lt;tag_name&gt;        Use specified tag when installing and updating the module. Over-
+  <b>-t</b>, <b>--tag</b> &lt;tag_name&gt;       Use specified tag when installing and updating the module. Over-
                              rides the branch option.
-  <b>-u</b>|<b>--use</b> &lt;<b>git</b>|<b>degit</b>&gt;       Install and update the module using the defined tool. Default is
-                             either defined by <b>zstyle &apos;:zim:zmodule&apos; use &apos;</b>&lt;<b>git</b>|<b>degit</b>&gt;<b>&apos;</b>, or <b>git</b>
-                             if none is provided.
-                             <b>git</b> requires git itself. Local changes are preserved on updates.
-                             <b>degit</b> requires curl or wget, and currently only works with GitHub
+  <b>-u</b>, <b>--use</b> &lt;tool_name&gt;      Install and update the module using the defined tool. Default is
+                             either defined using <b>zstyle &apos;:zim:zmodule&apos; use &apos;</b>&lt;tool_name&gt;<b>&apos;</b> or
+                             set to <b>&apos;auto&apos;</b>. The tools available are:
+                             <b>&apos;auto&apos;</b> tries to auto detect the tool to be used. When installing
+                             a new module, <b>&apos;git&apos;</b> will be used if the git command is available,
+                             otherwise <b>&apos;degit&apos;</b> will be used.
+                             <b>&apos;git&apos;</b> uses the git command. Local changes are preserved on up-
+                             dates.
+                             <b>&apos;degit&apos;</b> uses curl or wget, and currently only works with GitHub
                              URLs. Modules install faster and take less disk space. Local
                              changes are lost on updates. Git submodules are not supported.
-  <b>--no-submodules</b>            Don&apos;t install or update git submodules.
-  <b>-z</b>|<b>--frozen</b>                Don&apos;t install or update the module.
+                             <b>&apos;mkdir&apos;</b> creates an empty directory. The &lt;url&gt; is only used to set
+                             the module name. Use the <b>-c</b>, <b>--cmd</b> option or <b>--on-pull</b> option to
+                             execute the desired command to generate the module files.
+      <b>--no-submodules</b>        Don&apos;t install or update git submodules.
+  <b>-z</b>, <b>--frozen</b>               Don&apos;t install or update the module.
 
   The per-module options above are carried over multiple zmodule calls for the same module.
   Modules are uniquely identified by their name.
 
 Per-module-root options:
-  <b>--if</b> &lt;test&gt;                Will only initialize module root if specified test returns a zero
+      <b>--if</b> &lt;test&gt;            Will only initialize module root if specified test returns a zero
                              exit status. The test is evaluated at every new terminal startup.
-  <b>--on-pull</b> &lt;command&gt;        Execute command after installing or updating the module. The com-
+      <b>--if-command</b> &lt;cmd_name&gt;
+                             Will only initialize module root if specified external command is
+                             available. This is evaluated at every new terminal startup.
+                             Equivalent to <b>--if &apos;(( \${+commands[</b>&lt;cmd_name&gt;<b>]} ))&apos;</b>.
+      <b>--if-ostype</b> &lt;ostype&gt;   Will only initialize module root if <b>OSTYPE</b> is equal to the given
+                             expression. This is evaluated at every new terminal startup.
+                             Equivalent to <b>--if &apos;[[ \${OSTYPE} == </b>&lt;ostype&gt;<b> ]]&apos;</b>.
+      <b>--on-pull</b> &lt;command&gt;    Execute command after installing or updating the module. The com-
                              mand is executed in the module root directory.
-  <b>-d</b>|<b>--disabled</b>              Don&apos;t initialize the module root or uninstall the module.
+  <b>-d</b>, <b>--disabled</b>             Don&apos;t initialize the module root or uninstall the module.
 
   The per-module-root options above are carried over multiple zmodule calls for the same mod-
   ule root.
 
 Per-call initialization options:
-  <b>-f</b>|<b>--fpath</b> &lt;path&gt;          Will add specified path to fpath. The path is relative to the
-                             module root directory. Default: <b>functions</b>, if the subdirectory
+  <b>-f</b>, <b>--fpath</b> &lt;path&gt;         Will add specified path to fpath. The path is relative to the
+                             module root directory. Default: <b>&apos;functions&apos;</b>, if the subdirectory
                              exists and is non-empty.
-  <b>-a</b>|<b>--autoload</b> &lt;func_name&gt;  Will autoload specified function. Default: all valid names inside
+  <b>-a</b>, <b>--autoload</b> &lt;func_name&gt;
+                             Will autoload specified function. Default: all valid names inside
                              the <b>functions</b> subdirectory, if any.
-  <b>-s</b>|<b>--source</b> &lt;file_path&gt;    Will source specified file. The path is relative to the module
-                             root directory. Default: <b>init.zsh</b>, if a non-empty <b>functions</b> sub-
-                             directory exists, else the largest of the files matching the glob
-                             <b>(init.zsh|</b>&lt;name&gt;<b>.(zsh|plugin.zsh|zsh-theme|sh))</b>, if any.
+  <b>-s</b>, <b>--source</b> &lt;file_path&gt;   Will source specified file. The path is relative to the module
+                             root directory. Default: <b>&apos;init.zsh&apos;</b>, if a non-empty <b>functions</b>
+                             subdirectory exists, else the largest of the files matching the
+                             glob <b>(init.zsh|</b>&lt;name&gt;<b>.(zsh|plugin.zsh|zsh-theme|sh))</b>, if any. The
                              &lt;name&gt; in the glob is resolved to the last component of the mod-
-                             ule name, or the last component of the path to the module root.
-  <b>-c</b>|<b>--cmd</b> &lt;command&gt;         Will execute specified command. Occurrences of the <b>{}</b> placeholder
+                             ule name and the last component of the path to the module root.
+  <b>-c</b>, <b>--cmd</b> &lt;command&gt;        Will execute specified command. Occurrences of the <b>{}</b> placeholder
                              in the command are substituted by the module root directory path.
                              I.e., <b>-s &apos;foo.zsh&apos;</b> and <b>-c &apos;source {}/foo.zsh&apos;</b> are equivalent.
 
   Setting any per-call initialization option above will disable the default values from the
   other per-call initialization options, so only your provided values will be used. I.e. these
-  values are either all automatic, or all manual in each zmodule call. To use default values
+  values are either all automatic or all manual in each zmodule call. To use default values
   and also provided values, use separate zmodule calls.
 </pre>
 
@@ -293,33 +445,45 @@ The Zim plugin manager:
   * Added new modules to `~/.zimrc`? Run `zimfw install`.
   * Removed modules from `~/.zimrc`? Run `zimfw uninstall`.
   * Want to update your modules to their latest revisions? Run `zimfw update`.
-  * Want to upgrade `zimfw` to its latest version? Run `zimfw upgrade`.
-  * For more information about the `zimfw` plugin manager, run `zimfw help`.
+  * Want to upgrade zimfw to its latest version? Run `zimfw upgrade`.
+  * For more information about the zimfw plugin manager, run `zimfw --help`.
 
 Settings
 --------
-Customize path of the directory used by Zim with the `ZIM_HOME` environment
+Set the path of the directory used by zimfw with the `ZIM_HOME` environment
 variable:
 
     ZIM_HOME=~/.zim
 
-By default, the `zimfw` plugin manager configuration file must be at `~/.zimrc`,
+By default, the zimfw plugin manager configuration file must be at `~/.zimrc`,
 if the `ZDOTDIR` environment variable is not defined. Otherwise, it must be at
 `${ZDOTDIR}/.zimrc`. You can customize its full path and name with the
 `ZIM_CONFIG_FILE` environment variable:
 
     ZIM_CONFIG_FILE=~/.config/zsh/zimrc
 
-Modules are installed using `git` by default. If you don't have `git`
-installed, or if you want to take advantage of our degit tool for faster and
+The zimfw plugin manager will detect if `git` is installed and fall back to work without `git`
+with its degit tool. If you want to take advantage of its degit tool regardless for faster and
 lighter module installations, you can set degit as the default tool with:
 
     zstyle ':zim:zmodule' use 'degit'
 
-By default, `zimfw` will check if it has a new version available every 30 days.
-This can be disabled with:
+By default, zimfw will check if it has a new version available every 30 days. If
+the `zimfw.zsh` file cannot be upgraded, because your user does not have write
+access to it, then this will be disabled. This can be manually disabled with:
 
     zstyle ':zim' disable-version-check yes
+
+By default, zimfw will disable color output when executed through a pipe or as a
+non-TTY ssh command. To force disabling color output, prefix the zimfw call with
+`NO_COLOR=1`, like:
+
+    NO_COLOR=1 zimfw install
+
+or add the following to your `.zshrc`, which should also disable color output
+for other tools. See https://no-color.org/
+
+    export NO_COLOR=1
 
 Uninstalling
 ------------

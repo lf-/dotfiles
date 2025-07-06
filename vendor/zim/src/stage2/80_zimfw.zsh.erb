@@ -1,104 +1,139 @@
 zimfw() {
   builtin emulate -L zsh -o EXTENDED_GLOB
-  local -r _zversion='<%= version %>' _zversion_target=${ZIM_HOME}/.latest_version zusage="Usage: %B${0}%b <action> [%B-q%b|%B-v%b]
+  if [[ -z ${NO_COLOR} && -t 1 ]]; then
+    local -r _znormal=$'\E[0m' _zbold=$'\E[1m' _zred=$'\E[31m' _znormalred=$'\E[0;31m' _zgreen=$'\E[32m' _zyellow=$'\E[33m' _znormalyellow=$'\E[0;33m'
+  else
+    local -r _znormal= _zbold= _zred= _znormalred= _zgreen= _zyellow= _znormalyellow=
+  fi
+  local -r _zerror="${_zred}<%= error %>" _zokay="${_zgreen}<%= okay %>${_znormal}" _zwarn="${_zyellow}<%= warn %>"
+  local -r _zconfig=${ZIM_CONFIG_FILE:-<%= home %>/.zimrc} _zversion='<%= version %>'
+  local -r zusage="Usage: ${_zbold}${0}${_znormal} <action> [option]
 
 Actions:
-  %Bbuild%b           Build %B${ZIM_HOME}/init.zsh%b and %B${ZIM_HOME}/login_init.zsh%b.
-                  Also does %Bcompile%b. Use %B-v%b to also see its output.
-  %Bclean%b           Clean all. Does both %Bclean-compiled%b and %Bclean-dumpfile%b.
-  %Bclean-compiled%b  Clean Zsh compiled files.
-  %Bclean-dumpfile%b  Clean completion dumpfile.
-  %Bcompile%b         Compile Zsh files.
-  %Bhelp%b            Print this help.
-  %Binfo%b            Print Zim and system info.
-  %Blist%b            List all modules currently defined in %B${ZIM_CONFIG_FILE:-<%= home %>/.zimrc}%b.
-                  Use %B-v%b to also see the modules details.
-  %Binit%b            Same as %Binstall%b, but with output tailored to be used at terminal startup.
-  %Binstall%b         Install new modules. Also does %Bbuild%b, %Bcompile%b. Use %B-v%b to also see their
-                  output, any on-pull output and skipped modules.
-  %Buninstall%b       Delete unused modules. Prompts for confirmation. Use %B-q%b for quiet uninstall.
-  %Bcheck%b           Check if updates for current modules are available. Use %B-v%b to also see
-                  skipped and up to date modules.
-  %Bupdate%b          Update current modules. Also does %Bbuild%b, %Bcompile%b. Use %B-v%b to also see their
-                  output, any on-pull output and skipped modules.
-  %Bcheck-version%b   Check if a new version of zimfw is available.
-  %Bupgrade%b         Upgrade zimfw. Also does %Bcompile%b. Use %B-v%b to also see its output.
-  %Bversion%b         Print zimfw version.
+  ${_zbold}build${_znormal}               Build ${_zbold}${ZIM_HOME}/init.zsh${_znormal} and ${_zbold}${ZIM_HOME}/login_init.zsh${_znormal}.
+                      Also does ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see its output.
+  ${_zbold}clean${_znormal}               Clean all. Does both ${_zbold}clean-compiled${_znormal} and ${_zbold}clean-dumpfile${_znormal}.
+  ${_zbold}clean-compiled${_znormal}      Clean Zsh compiled files.
+  ${_zbold}clean-dumpfile${_znormal}      Clean completion dumpfile.
+  ${_zbold}compile${_znormal}             Compile Zsh files.
+  ${_zbold}info${_znormal}                Print zimfw and system info.
+  ${_zbold}list${_znormal}                List all modules defined in ${_zbold}${_zconfig}${_znormal}.
+                      Use ${_zbold}-v${_znormal} to also see their initialization details.
+  ${_zbold}init${_znormal}                Same as ${_zbold}install${_znormal}, but with output tailored for the terminal startup.
+  ${_zbold}install${_znormal}             Install new modules. Also does ${_zbold}build${_znormal}, ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see their
+                      output, any on-pull output and skipped modules.
+  ${_zbold}reinstall${_znormal}           Reinstall modules that failed check. Prompts for confirmation, unless ${_zbold}-q${_znormal}
+                      is used. Also does ${_zbold}build${_znormal}, ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see their output, any
+                      on-pull output and skipped modules.
+  ${_zbold}uninstall${_znormal}           Delete unused modules. Prompts for confirmation, unless ${_zbold}-q${_znormal} is used.
+  ${_zbold}check${_znormal}               Check if updates for current modules are available. Use ${_zbold}-v${_znormal} to also see
+                      skipped and up to date modules.
+  ${_zbold}update${_znormal}              Update current modules. Also does ${_zbold}build${_znormal}, ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see
+                      their output, any on-pull output and skipped modules.
+  ${_zbold}check-version${_znormal}       Check if a new version of zimfw is available.
+  ${_zbold}upgrade${_znormal}             Upgrade zimfw. Also does ${_zbold}compile${_znormal}. Use ${_zbold}-v${_znormal} to also see its output.
+  ${_zbold}help${_znormal},    ${_zbold}--help${_znormal}     Print this help.
+  ${_zbold}version${_znormal}, ${_zbold}--version${_znormal}  Print zimfw version.
 
 Options:
-  %B-q%b              Quiet (yes to prompts and only outputs errors)
-  %B-v%b              Verbose (outputs more details)"
-  local -Ua _znames _zroot_dirs _zdisabled_root_dirs
-  local -A _zfrozens _ztools _zdirs _zurls _ztypes _zrevs _zsubmodules _zonpulls _zifs
-  local -a _zfpaths _zfunctions _zcmds _zunused_dirs
+  ${_zbold}-q${_znormal}                  Quiet (yes to prompts and only outputs errors)
+  ${_zbold}-v${_znormal}                  Verbose (outputs more details)"
   local -i _zprintlevel=1
   if (( # > 2 )); then
-     print -u2 -PlR "%F{red}${0}: Too many options%f" '' ${zusage}
+     print -u2 -lR "${_zred}${0}: Too many options${_znormal}" '' ${zusage}
      return 2
   elif (( # > 1 )); then
     case ${2} in
       -q) _zprintlevel=0 ;;
       -v) _zprintlevel=2 ;;
       *)
-        print -u2 -PlR "%F{red}${0}: Unknown option ${2}%f" '' ${zusage}
+        print -u2 -lR "${_zred}${0}: Unknown option ${2}${_znormal}" '' ${zusage}
         return 2
         ;;
     esac
   fi
+  case ${1} in
+    help|--help)
+      print -R ${zusage}
+      return
+      ;;
+    version|--version)
+      print -R ${_zversion}
+      return
+      ;;
+  esac
 
-  if ! zstyle -t ':zim' disable-version-check && [[ ${1} != check-version ]]; then
+  if (( ! ${+ZIM_HOME} )); then
+    print -u2 -R "${_zred}${0}: ${_zbold}ZIM_HOME${_znormalred} not defined${_znormal}"
+    return 1
+  fi
+  if [[ ! -e ${ZIM_HOME} ]]; then
+    command mkdir -p ${ZIM_HOME} || return 1
+  fi
+
+  local -r _zversion_target=${ZIM_HOME}/.latest_version
+  if ! zstyle -t ':zim' disable-version-check && \
+      [[ ${1} != check-version && -w ${ZIM_HOME} && -w ${__ZIMFW_FILE:A:h} ]]
+  then
     # If .latest_version does not exist or was not modified in the last 30 days
     [[ -f ${_zversion_target}(#qNm-30) ]]; local -r zversion_check_force=${?}
     _zimfw_check_version ${zversion_check_force} 1
   fi
 
+  if [[ ! -w ${ZIM_HOME} && ${1} == (build|check|init|install|update|reinstall|check-version) ]]; then
+    print -u2 -R "${_zred}${0}: No write permission to ${_zbold}${ZIM_HOME}${_znormalred}. Will not try to ${1}.${_znormal}"
+    return 1
+  fi
+  local -Ua _znames _zroot_dirs _zdisabled_root_dirs
+  local -A _zfrozens _ztools _zdirs _zurls _ztypes _zrevs _zsubmodules _zonpulls _zifs
+  local -a _zfpaths _zfunctions _zcmds _zunused_dirs
   local _zrestartmsg=' Restart your terminal for changes to take effect.'
+  autoload -Uz zargs
   case ${1} in
     build)
-      _zimfw_source_zimrc 2 && _zimfw_build || return 1
+      _zimfw_source_zimrc 1 && _zimfw_build || return 1
       (( _zprintlevel-- ))
       _zimfw_compile
       ;;
     check-dumpfile) _zimfw_check_dumpfile ;;
-    clean) _zimfw_source_zimrc 2 && _zimfw_clean_compiled && _zimfw_clean_dumpfile ;;
-    clean-compiled) _zimfw_source_zimrc 2 && _zimfw_clean_compiled ;;
+    clean) _zimfw_source_zimrc 0 && _zimfw_clean_compiled && _zimfw_clean_dumpfile ;;
+    clean-compiled) _zimfw_source_zimrc 0 && _zimfw_clean_compiled ;;
     clean-dumpfile) _zimfw_clean_dumpfile ;;
-    compile) _zimfw_source_zimrc 2 && _zimfw_compile ;;
-    help) print -PR ${zusage} ;;
+    compile) _zimfw_source_zimrc 0 && _zimfw_compile ;;
     info) _zimfw_info ;;
     list)
-      _zimfw_source_zimrc 3 && zargs -n 1 -- "${_znames[@]}" -- _zimfw_run_list && \
-          _zimfw_list_unuseds ' (unused)'
+      _zimfw_source_zimrc $(( _zprintlevel > 1 )) && \
+          zargs -n 1 -- "${_znames[@]}" -- _zimfw_run_list && \
+         _zimfw_list_unuseds ' (unused)'
       ;;
     check)
       _zrestartmsg=
       _zimfw_run_tool_action ${1} || return 1
       (( _zprintlevel-- ))
-      _zimfw_print -PR "<%= done %>Done with ${1}." # Only printed in verbose mode
+      _zimfw_print -R "Done with ${1}." # Only printed in verbose mode
       ;;
     init)
       _zrestartmsg=
       _zimfw_run_tool_action install || return 1
       (( _zprintlevel-- ))
-      _zimfw_print -PR "<%= done %>Done with install." # Only printed in verbose mode
-      _zimfw_source_zimrc 2 && _zimfw_build && _zimfw_compile
+      _zimfw_print 'Done with install.' # Only printed in verbose mode
+      _zimfw_source_zimrc 1 && _zimfw_build && _zimfw_compile
       ;;
-    install|update)
+    install|update|reinstall)
       _zimfw_run_tool_action ${1} || return 1
-      _zimfw_print -PR "<%= done %>Done with ${1}.${_zrestartmsg}"
+      _zimfw_print -R "Done with ${1}.${_zrestartmsg}"
       (( _zprintlevel-- ))
-      _zimfw_source_zimrc 2 && _zimfw_build && _zimfw_compile
+      _zimfw_source_zimrc 1 && _zimfw_build && _zimfw_compile
       ;;
-    uninstall) _zimfw_source_zimrc 2 && _zimfw_list_unuseds && _zimfw_uninstall ;;
+    uninstall) _zimfw_source_zimrc 0 && _zimfw_list_unuseds && _zimfw_uninstall ;;
     check-version) _zimfw_check_version 1 ;;
     upgrade)
       _zimfw_upgrade || return 1
       (( _zprintlevel-- ))
-      _zimfw_source_zimrc 2 && _zimfw_compile
+      _zimfw_source_zimrc 0 && _zimfw_compile
       ;;
-    version) print -PR ${_zversion} ;;
     *)
-      print -u2 -PlR "%F{red}${0}: Unknown action ${1}%f" '' ${zusage}
+      print -u2 -lR "${_zred}${0}: Unknown action ${1}${_znormal}" '' ${zusage}
       return 2
       ;;
   esac
