@@ -85,7 +85,7 @@ else
 
   local position_format
   if zstyle -s ':zim:git-info:position' format 'position_format'; then
-    cmds+=("print -n 'p:'; command git describe --contains --all HEAD 2>/dev/null; print")
+    cmds+=("print -n 'p:'; command git describe --contains 2>/dev/null; print")
   fi
 fi
 
@@ -105,12 +105,12 @@ if ! zstyle -t ':zim:git-info' verbose; then
   local indexed_format
   zstyle -s ':zim:git-info:indexed' format 'indexed_format'
   if [[ -n ${indexed_format} || (${dirty} -eq 0 && (-n ${dirty_format} || -n ${clean_format})) ]]; then
-    cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD &>/dev/null; print \${?}")
+    cmds+=("print -n 'i:'; command git diff-index --no-ext-diff --quiet --cached --ignore-submodules=${ignore_submodules} HEAD -- &>/dev/null; print \${?}")
   fi
 else
   local -i indexed unindexed untracked
   # Get current status.
-  while IFS= read -r line; do
+  command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null | while IFS= read -r line; do
     if [[ ${line:0:2} == '??' ]]; then
       (( untracked++ ))
     else
@@ -118,7 +118,7 @@ else
       if [[ ${line:1:1} != ' ' ]] (( unindexed++ ))
     fi
     (( dirty++ ))
-  done < <(command git status --porcelain --ignore-submodules=${ignore_submodules} 2>/dev/null)
+  done
 
   # Format indexed.
   if (( indexed )); then

@@ -20,7 +20,7 @@ if zstyle -t ':zim:prompt-pwd' git-root; then
 else
   __current_dir=${(%):-%${__tail_len}~}
 fi
-zstyle -s ':zim:prompt-pwd:__separator' format '__separator' || __separator=/
+zstyle -s ':zim:prompt-pwd:separator' format '__separator' || __separator=/
 zstyle -s ':zim:prompt-pwd:fish-style' dir-length '__dir_len' || __dir_len=0
 if [[ ${__dir_len} -gt 0 || ${__separator} != / ]]; then
   local __current_dirs=("${(@s:/:)__current_dir}")

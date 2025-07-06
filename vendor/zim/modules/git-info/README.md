@@ -5,8 +5,6 @@ Exposes git repository status information to prompts.
 
 Many thanks to [Sorin Ionescu] and [Colin Hebert] for the original code.
 
-Git **1.7.2** is the [minimum required version].
-
 Settings
 --------
 
@@ -44,7 +42,7 @@ following syntax to define custom styles for each context you want displayed:
 | --------- | :--: | -----------------------------------------------------------
 | action    |  %s  | Special action name (see *Special action contexts* below)
 | ahead     |  %A  | Commits ahead of remote count
-| behind    |  %B  | Commits behind of remote count
+| behind    |  %B  | Commits behind remote count
 | diverged  |  %V  | Diverged commits (both ahead and behind are yield when it's not defined)
 | branch    |  %b  | Branch name
 | commit    |  %c  | Commit short hash (when in 'detached HEAD' state)
@@ -52,7 +50,7 @@ following syntax to define custom styles for each context you want displayed:
 | dirty     |  %D  | Dirty state (count with untracked files when verbose mode enabled)
 | indexed   |  %i  | Indexed files (count when verbose mode enabled)
 | unindexed |  %I  | Unindexed files (count when verbose mode enabled)
-| position  |  %p  | Commits from nearest tag count (when in 'detached HEAD' state)
+| position  |  %p  | Name of tag that contains current commit (when in 'detached HEAD' state)
 | remote    |  %R  | Remote name
 | stashed   |  %S  | Stashed states count
 | untracked |  %u  | Untracked files count (only when verbose mode enabled)
@@ -122,5 +120,4 @@ RPS1='${(e)git_info[rprompt]}'
 
 [Sorin Ionescu]: https://github.com/sorin-ionescu
 [Colin Hebert]: https://github.com/ColinHebert
-[minimum required version]: https://github.com/sorin-ionescu/prezto/issues/219
 ['detached HEAD' state]: https://git-scm.com/docs/git-checkout#_detached_head

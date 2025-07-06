@@ -254,10 +254,9 @@ _zsh_highlight_main__is_runnable() {
 _zsh_highlight_main__is_redirection() {
   # A redirection operator token:
   # - starts with an optional single-digit number;
-  # - then, has a '<' or '>' character;
-  # - is not a process substitution [<(...) or >(...)].
-  # - is not a numeric glob <->
-  [[ $1 == (<0-9>|)(\<|\>)* ]] && [[ $1 != (\<|\>)$'\x28'* ]] && [[ $1 != *'<'*'-'*'>'* ]]
+  # - is one of the tokens listed in zshmisc(1)
+  # - however (z) normalizes ! to |
+  [[ ${1#[0-9]} == (\<|\<\>|(\>|\>\>)(|\|)|\<\<(|-)|\<\<\<|\<\&|\&\<|(\>|\>\>)\&(|\|)|\&(\>|\>\>)(|\||\!)) ]]
 }
 
 # Resolve alias.
@@ -372,6 +371,7 @@ _zsh_highlight_highlighter_main_paint()
     'ifne' :n # moreutils 0.62-1
     'grc' :se # grc - a "generic colouriser" (that's their spelling, not mine)
     'cpulimit' elp:ivz # cpulimit 0.2
+    'ktrace' fgpt:aBCcdiT
   )
   # Commands that would need to skip one positional argument:
   #    flock

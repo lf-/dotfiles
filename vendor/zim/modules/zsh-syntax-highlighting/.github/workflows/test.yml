@@ -20,6 +20,7 @@ jobs:
       matrix:
         version:
           - master
+          - 5.9
           - 5.8.1
           - 5.8
           - 5.7.1
@@ -56,7 +57,7 @@ jobs:
     container:
       image: ghcr.io/zsh-users/zsh:${{ matrix.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: install_packages bsdmainutils make procps
       - run: make test
 
@@ -67,9 +68,8 @@ jobs:
     steps:
       -
         name: Notify IRC
-        uses: Gottox/irc-message-action@v1
+        uses: Gottox/irc-message-action@v2
         with:
-          server: irc.libera.chat
           channel: '#zsh-syntax-highlighting'
           nickname: zsyh-gh-bot
           message: '${{ github.ref }} failed tests: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'

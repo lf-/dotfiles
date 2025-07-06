@@ -1,6 +1,15 @@
 # Changes in HEAD
 
 
+- Highlight `&>` `>&|` `>&!` `&>|` and `&>!` as redirection.
+  [#942]
+
+
+# Changes in 0.8.0
+
+This is a stable bugfix and feature release.  Major new features and changes include:
+
+
 ## Changes fixed as part of the switch to zle-line-pre-redraw
 
 The changes in this section were fixed by switching to a `zle-line-pre-redraw`-based
@@ -55,6 +64,31 @@ Whilst under development, the new implementation was known as the
 ## Other changes
 
 - Add issue #712 to the previous release's changelog (hereinafter).
+
+- Fix highlighting when using an alias twice inside another alias
+  [#769, #775]
+
+- Remove lint warning for `env` followed by a pipe
+  [#797]
+
+- Recognize `proxychains` as a precommand
+  [#814, #914]
+
+- Honor shwordsplit when expanding parameters
+  [#687, #818]
+
+- Skip highlighting when keys are still pending in more cases
+  [#835]
+
+- Recognize `grc` as a precommand
+
+- Recognize `torsocks` and `torift` as precommands
+  [#898]
+
+- Recognize `cpulimit` as a precommand
+  [#897]
+
+- Recognize `ktrace` as a precommand
 
 
 # Changes in 0.8.0-alpha1-pre-redrawhook
@@ -167,6 +201,8 @@ to issue #418.
   [#669]
 
 - Recognize `env` as a precommand (e.g., `env FOO=bar ls`)
+
+- Recognize `ionice` as a precommand
 
 - Recognize `strace` as a precommand
 
@@ -735,7 +771,7 @@ in this area.
 
 ## Developer-visible changes:
 
-- Test harness converted to [TAP](http://testanything.org/tap-specification.html) format
+- Test harness converted to [TAP](https://testanything.org/tap-specification.html) format
   (d99aa58aaaef, et seq)
 
 - Run each test in a separate subprocess, isolating them from each other

@@ -49,12 +49,13 @@ To set both to be case sensitive, use:
 
     zstyle ':zim:*' case-sensitivity sensitive
 
-Add the zstyles to your `~/.zshrc` before where the modules are initialized.
+Add the zstyles to your `~/.zshrc` before the modules are initialized.
 
 Zsh options
 -----------
 
   * `ALWAYS_TO_END` moves cursor to end of word if a full completion is inserted.
+  * `COMPLETE_IN_WORD` does completion from both ends for the cursor.
   * `NO_CASE_GLOB` makes globbing case insensitive (unless configured as above).
   * `NO_LIST_BEEP` doesn't beep on ambiguous completions.
 

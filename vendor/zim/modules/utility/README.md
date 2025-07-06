@@ -3,7 +3,10 @@ utility
 
 Utility aliases and functions.
 
-Adds colour to `ls`, `grep` and `less`.
+Adds colour to `ls`, `grep` and `less`. To disable colours, add the following to
+your `~/.zshrc` before initialing this module:
+
+    export NO_COLOR=1
 
 If file `${HOME}/.dir_colors` exists, then its configuration will be set using
 `dircolors` (GNU only).

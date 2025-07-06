@@ -3,6 +3,8 @@ How to install
 
 ### Using packages
 
+First, install the package:
+
 * Arch Linux: [community/zsh-syntax-highlighting][arch-package] / [AUR/zsh-syntax-highlighting-git][AUR-package]
 * Debian: `zsh-syntax-highlighting` package [in `stretch`][debian-package] (or in [OBS repository][obs-repository])
 * Fedora: [zsh-syntax-highlighting package][fedora-package-alt] in Fedora 24+ (or in [OBS repository][obs-repository])
@@ -18,11 +20,11 @@ How to install
 
 [arch-package]: https://www.archlinux.org/packages/zsh-syntax-highlighting
 [AUR-package]: https://aur.archlinux.org/packages/zsh-syntax-highlighting-git
-[brew-package]: https://github.com/Homebrew/homebrew-core/blob/master/Formula/zsh-syntax-highlighting.rb
+[brew-package]: https://github.com/Homebrew/homebrew-core/blob/master/Formula/z/zsh-syntax-highlighting.rb
 [debian-package]: https://packages.debian.org/zsh-syntax-highlighting
 [fedora-package]: https://apps.fedoraproject.org/packages/zsh-syntax-highlighting
 [fedora-package-alt]: https://bodhi.fedoraproject.org/updates/?packages=zsh-syntax-highlighting
-[freebsd-port]: http://www.freshports.org/textproc/zsh-syntax-highlighting/
+[freebsd-port]: https://www.freshports.org/textproc/zsh-syntax-highlighting/
 [gentoo-repository]: https://packages.gentoo.org/packages/app-shells/zsh-syntax-highlighting
 [netbsd-port]: http://cvsweb.netbsd.org/bsdweb.cgi/pkgsrc/shells/zsh-syntax-highlighting/
 [obs-repository]: https://software.opensuse.org/download.html?project=shells%3Azsh-users%3Azsh-syntax-highlighting&package=zsh-syntax-highlighting
@@ -32,6 +34,36 @@ How to install
 
 See also [repology's cross-distro index](https://repology.org/metapackage/zsh-syntax-highlighting/versions)
 
+Second, enable zsh-syntax-highlighting by sourcing the script. Running this command on the terminal will add the source line to the end of your .zshrc:
+
+* On most Linux distributions (except perhaps NixOS):
+
+    ```zsh
+    echo "source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ${ZDOTDIR:-$HOME}/.zshrc
+    ```
+
+* NetBSD and OpenBSD:
+
+    ```zsh
+    echo "source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ${ZDOTDIR:-$HOME}/.zshrc
+    ```
+
+* Mac OS X / Homebrew:
+
+    ```zsh
+    echo "source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ${ZDOTDIR:-$HOME}/.zshrc
+    ```
+
+Then restart zsh (such as by opening a new instance of your terminal emulator).
+
+ Alternatively, add the `source` command manually **at the end** of your `.zshrc`:
+
+* On most Linux distributions (except perhaps NixOS):
+`source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh`
+* NetBSD and OpenBSD:
+`source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh`
+
+Then restart zsh.
 
 ### In your ~/.zshrc
 
@@ -108,14 +140,14 @@ Zsh-syntax-highlighting is included with Prezto. See the
 
 Add `zgen load zsh-users/zsh-syntax-highlighting` to the end of your `.zshrc`.
 
+#### [zinit](https://github.com/zdharma-continuum/zinit)
+
+Add `zinit light zsh-users/zsh-syntax-highlighting` to the end of your
+`.zshrc`.
+
 #### [zplug](https://github.com/zplug/zplug)
 
 Add `zplug "zsh-users/zsh-syntax-highlighting", defer:2` to your `.zshrc`.
-
-#### [zplugin](https://github.com/psprint/zplugin)
-
-Add `zplugin load zsh-users/zsh-syntax-highlighting` to the end of your
-`.zshrc`.
 
 
 ### System-wide installation
