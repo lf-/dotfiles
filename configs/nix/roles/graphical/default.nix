@@ -33,7 +33,11 @@ in
         spotify
         libreoffice
         gimp
-        inkscape
+        (inkscape-with-extensions.override {
+          inkscapeExtensions = with pkgs.inkscape-extensions; [
+            inkstitch
+          ];
+        })
         audacity
 
         # document shuffling

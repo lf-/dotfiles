@@ -9,7 +9,7 @@
   imports = [
     ../../roles/dev
     ../../roles/networkmanager
-    #../../roles/hacking
+    ../../roles/hacking
     ../../roles/linux
     ../../roles/users
     ../../roles/kde
@@ -30,7 +30,7 @@
   jade.dev.withHsutils = false;
   jade.dev.withGui = false;
 
-  programs.vtune.enable = true;
+  programs.vtune.enable = false;
 
   boot.initrd.availableKernelModules = [
     "aesni_intel"
@@ -129,6 +129,7 @@
     powertop
 
     libimobiledevice
+    cemu
     # ifuse
     # kio-fuse
   ];
