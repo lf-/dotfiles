@@ -24,7 +24,7 @@ in {
     sddm-autologin.text = lib.mkForce ''
       auth     requisite pam_nologin.so
       auth     optional  ${config.systemd.package}/lib/security/pam_systemd_loadkey.so debug
-      auth     optional  ${pkgs.kdePackages.kwallet-pam}/lib/security/pam_kwallet5.so kwalletd=${pkgs.kdePackages.kwallet}/bin/kwalletd6
+      auth     optional  ${pkgs.kdePackages.kwallet-pam}/lib/security/pam_kwallet5.so
       auth     optional  ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so
       auth     required  pam_succeed_if.so uid >= ${toString sddmCfg.autoLogin.minimumUid} quiet
       auth     required  pam_permit.so
