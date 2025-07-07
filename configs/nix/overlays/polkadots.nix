@@ -6,5 +6,6 @@ final: curr:
     version = "0.0.0";
     doCheck = false;
     src = polkadots;
+    pyproject = false;
   };
 }
