@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+
+import plistlib
+import sys
+import json
+
+with open(sys.argv[1], 'rb') as h:
+    print(json.dumps(plistlib.load(h), default=lambda _: 'not serializable', indent=4))
+
