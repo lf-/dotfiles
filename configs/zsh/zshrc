@@ -1,3 +1,12 @@
+# Workaround for using zsh from nix on macOS/non-NixOS Linux.
+# This is normally done by programs.zsh.enable.
+if [[ -z "${__ETC_ZSHENV_SOURCED:-}" ]]; then
+    # Tell zsh how to find installed completions.
+    for p in ''${(z)NIX_PROFILES}; do
+        fpath=($p/share/zsh/site-functions $p/share/zsh/$ZSH_VERSION/functions $p/share/zsh/vendor-completions $fpath)
+    done
+fi
+
 export ZIM_HOME="$HOME/.local/share/zim"
 
 # don't use git if avoidable
