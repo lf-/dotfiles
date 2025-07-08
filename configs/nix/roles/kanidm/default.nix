@@ -6,13 +6,15 @@ let
   restartUnits = [ "kanidm.service" ];
   port = 53423;
 
-  renewalScript = pkgs.replaceVars {
+  renewalScript = pkgs.replaceVarsWith {
     src = ./on-renew.sh;
     isExecutable = true;
-    path = [ config.systemd.package pkgs.coreutils pkgs.util-linux ];
-    domains = [ thisMachine ];
-    inherit (pkgs) bash;
-    inherit restartUnits;
+    replacements = {
+      path = [ config.systemd.package pkgs.coreutils pkgs.util-linux ];
+      domains = [ thisMachine ];
+      inherit (pkgs) bash;
+      inherit restartUnits;
+    };
   };
 
   package = pkgs.kanidm;
