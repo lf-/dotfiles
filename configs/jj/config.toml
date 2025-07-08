@@ -25,10 +25,10 @@ concat(
   diff.git(),
 )
 '''
+git_push_bookmark = '"jade/push-" ++ change_id.short()'
 
 [git]
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
-push-bookmark-prefix = "jade/push-"
 
 [ui]
 pager = "delta"
