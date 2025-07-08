@@ -9,6 +9,13 @@ if is_work?
   cask 'linear-linear'
   cask 'ngrok'
   cask 'slack'
+else
+  cask 'affinity-designer'
+  cask 'affinity-photo'
+  cask 'signal'
+  # work manages this with mdm
+  cask 'firefox'
+  cask 'bitwarden'
 end
 
 cask 'alacritty'

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-brew bundle check || brew bundle install
-brew bundle cleanup --cask --force
+brew bundle check -v || brew bundle install -v
+brew bundle cleanup --cask
