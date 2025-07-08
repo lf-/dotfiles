@@ -9,7 +9,6 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   atuin
   cmake-language-server
   cntr
-  flyctl
   git-credential-oauth
   git-absorb
   git-revise
@@ -47,6 +46,10 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   cargo-watch
   # Rust snapshot test runner
   cargo-insta
+
+  # idk if this is a good idea due to work having a different build, but it
+  # will make completions work. yolo!
+  buck2
 
   xonsh
 
