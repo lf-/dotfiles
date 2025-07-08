@@ -567,6 +567,9 @@ augroups.setfiletypes('filetypedetection', {
     {'*.cassius', 'css'},
     {'*.hamlet', 'html'},
 
+    -- oh, homebrew...
+    {'Brewfile', 'ruby'},
+
     -- git revise -i has the same syntax as git rebase, to a first degree
     {'git-revise-todo', 'gitrebase'},
 

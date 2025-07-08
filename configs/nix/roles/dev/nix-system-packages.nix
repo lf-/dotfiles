@@ -76,6 +76,9 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
       gnugrep
       # sketchy but necessary tbh
       bashInteractive
+
+      # mac app store cli
+      mas
     ]
   )
 )

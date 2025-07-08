@@ -1,0 +1,30 @@
+require 'socket'
+# hack
+def is_work?
+  Socket.gethostname == 'thinpad.local'
+end
+
+if is_work?
+  cask '1password'
+  cask 'linear-linear'
+  cask 'ngrok'
+  cask 'slack'
+end
+
+cask 'alacritty'
+cask 'alt-tab'
+cask 'dash'
+cask 'element'
+cask 'iterm2'
+cask 'obs'
+cask 'obsidian'
+cask 'spotify'
+cask 'tailscale-app'
+cask 'unnaturalscrollwheels'
+cask 'utm'
+cask 'visual-studio-code'
+cask 'vlc'
+cask 'wireshark-app'
+cask 'zoom'
+
+mas 'Amphetamine', id: 937984704
