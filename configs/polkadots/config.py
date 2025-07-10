@@ -108,6 +108,7 @@ dotconfigs = [
     'powershell',
     'qemu-box',
     'rofi',
+    'ripgrep',
     'sxhkd',
 ]
 

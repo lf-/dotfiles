@@ -1,0 +1,2 @@
+--type-add
+buck:{BUCK,BUCK.v2,*.bzl}
