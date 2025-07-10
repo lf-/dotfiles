@@ -584,6 +584,10 @@ augroups.setfiletypes('filetypedetection', {
 
     -- Buck extension language is just bazel
     {'*.bxl', 'bzl'},
+
+    -- Local envrc files are shell
+    {'.env.local', 'sh'},
+    {'.envrc.local', 'sh'},
 })
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)
