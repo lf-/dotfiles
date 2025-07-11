@@ -172,6 +172,7 @@
           (import ./overlays/polkadots.nix { inherit polkadots; })
           (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc98"; })
           (import ./overlays/jadeware.nix)
+          (import ./overlays/fix-neovim.nix)
           (import ./overlays/vendor-pkgs.nix)
           lix-module.overlays.default
         ];
