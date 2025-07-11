@@ -48,6 +48,9 @@ return {
     -- Shows which key you can press next
     'folke/which-key.nvim',
 
+    -- debug adapter protocol
+    'mfussenegger/nvim-dap',
+
     -- File types
     'LnL7/vim-nix',
     'alx741/yesod.vim',
