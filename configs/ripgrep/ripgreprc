@@ -1,2 +1,2 @@
 --type-add
-buck:{BUCK,BUCK.v2,*.bzl}
+buck:{BUCK,BUCK.v2,*.bzl,*.bxl}
