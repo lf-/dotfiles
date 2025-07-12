@@ -15,8 +15,13 @@ else
   cask 'signal'
   # work manages this with mdm
   cask 'firefox'
-  cask 'bitwarden'
+  cask 'zotero'
+  # non appstore bitwarden doesn't support browser integration
+  mas 'bitwarden', id: 1352778147
 end
+
+# required by all the nonsense below
+brew 'mas'
 
 cask 'alacritty'
 cask 'alt-tab'
@@ -26,7 +31,6 @@ cask 'iterm2'
 cask 'obs'
 cask 'obsidian'
 cask 'spotify'
-cask 'tailscale-app'
 cask 'unnaturalscrollwheels'
 cask 'utm'
 cask 'visual-studio-code'
@@ -35,3 +39,5 @@ cask 'wireshark-app'
 cask 'zoom'
 
 mas 'Amphetamine', id: 937984704
+# non appstore tailscale is missing some funny features. macs are silly.
+mas 'Tailscale', id: 1475387142

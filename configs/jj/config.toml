@@ -41,6 +41,15 @@ default-command = "log"
 jj = []
 give = ['squash', '--use-destination-message', '--from', '@', '--into']
 take = ['squash', '--use-destination-message', '--into', '@', '--from']
+# pre-commit tool: https://github.com/jj-vcs/jj/issues/405#issuecomment-2744406580
+check = [
+  "util",
+  "exec",
+  "--",
+  "bash",
+  "-c",
+  "jj diff -r @ --name-only --no-pager | xargs pre-commit run --files",
+]
 
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669

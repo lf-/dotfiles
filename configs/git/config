@@ -87,6 +87,10 @@
 # 	pushInsteadOf = git://github.com/
 # 	pushInsteadOf = https://github.com/
 
+# Use lix specific git configs in lix repos
+[includeIf "gitdir:~/lix/"]
+    path = ~/lix/.gitconfig
+
 [sendemail.linux]
 	tocmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nol"
 	cccmd ="`pwd`/scripts/get_maintainer.pl --nogit --nogit-fallback --norolestats --nom"

@@ -8,7 +8,7 @@
   "lalrpop.vim": { "branch": "master", "commit": "7073eec8efdeff37cacd4bca378c28dad02c3c14" },
   "lazy.nvim": { "branch": "main", "commit": "6c3bda4aca61a13a9c63f1c1d1b16b9d3be90d7a" },
   "nvim-dap": { "branch": "master", "commit": "cc77338e6e34c79f1c638f51ae4160dc9bfb05de" },
-  "nvim-treesitter": { "branch": "master", "commit": "42fc28ba918343ebfd5565147a42a26580579482" },
+  "nvim-treesitter": { "branch": "master", "commit": "684eeac91ed8e297685a97ef70031d19ac1de25a" },
   "nvim-treesitter-context": { "branch": "master", "commit": "6daca3ad780f045550b820f262002f35175a6c04" },
   "nvim-treesitter-textobjects": { "branch": "master", "commit": "205e3369bc83d8cb83f7409c36120e24611f8c5c" },
   "nvim-treesitter-textsubjects": { "branch": "master", "commit": "abcbb0e537c9c24800b03b9ca33bee5806604629" },
