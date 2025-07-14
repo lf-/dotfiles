@@ -67,4 +67,4 @@ enabled = false
 [[--scope]]
 --when.repositories = ["~/lix"]
 [--scope.user]
-email = "lix@jade.fyi"
+email = "jade@lix.systems"
