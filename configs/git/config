@@ -98,3 +98,8 @@
 # https://github.com/dandavison/delta/discussions/1676
 # [diff "json-diff"]
 # 	command = json-diff --color "$2" "$5" || true
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
