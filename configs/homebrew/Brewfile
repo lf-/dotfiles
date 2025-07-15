@@ -25,6 +25,7 @@ brew 'mas'
 
 cask 'alacritty'
 cask 'alt-tab'
+cask 'inkscape'
 cask 'dash'
 cask 'element'
 cask 'iterm2'
