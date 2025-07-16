@@ -55,7 +55,7 @@
 	default = current
 
 [merge]
-	conflictStyle = zdiff3
+	conflictStyle = diff3
 
 [diff]
 	colorMoved = dimmed-zebra
@@ -82,6 +82,10 @@
 # allow gerrit git hooks to run on git-revise
 [revise "run-hooks"]
 	commit-msg = true
+
+[merge "mergiraf"]
+    name = mergiraf
+    driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
 
 # [url "git@github.com:"]
 # 	pushInsteadOf = git://github.com/

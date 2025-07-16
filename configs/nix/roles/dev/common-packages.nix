@@ -29,6 +29,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # https://github.com/NixOS/nixpkgs/pull/307337
   # diffoscope
   difftastic
+  mergiraf
   ruby-lsp
   rufo
   gopls
