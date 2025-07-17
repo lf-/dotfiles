@@ -39,6 +39,9 @@ return {
     'AndrewRadev/undoquit.vim',
     'MattesGroeger/vim-bookmarks',
 
+    -- GitHub integration
+    'pwntester/octo.nvim',
+
     'nvim-treesitter/nvim-treesitter',
     'nvim-treesitter/playground',
     'nvim-treesitter/nvim-treesitter-textobjects',
