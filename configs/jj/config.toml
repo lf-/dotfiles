@@ -59,6 +59,9 @@ check = [
 name = "Jade Lovelace"
 email = "software@lfcode.ca"
 
+[diff.color-words]
+conflict = "pair"
+
 [fix.tools.rustfmt]
 command = ["rustfmt", "+nightly", "--emit", "stdout"]
 patterns = ["glob:'**/*.rs'"]
