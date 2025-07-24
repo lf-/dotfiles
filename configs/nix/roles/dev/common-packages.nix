@@ -77,6 +77,9 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # Python package manager
   uv
 
+  # facebook yolo run binaries from the internet tool
+  dotslash
+
   pycrashreport
 
   awscli2

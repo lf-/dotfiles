@@ -111,6 +111,8 @@ require('nix-drv').setup {}
 require('octo').setup {
 }
 
+local ts_configs = require('nvim-treesitter.configs')
+
 ----------------------------------------------------------------------
 -- Plugin configs
 ----------------------------------------------------------------------
@@ -488,13 +490,37 @@ augroup('titling', function (autocmd)
     })
 end)
 
-augroup('reload queries on query save', function(autocmd) --https://github.com/nvim-treesitter/nvim-treesitter/issues/3304
+
+local function reload_ts_module(mod)
+    local config_mod = ts_configs.get_module(mod)
+    if not config_mod then
+        return
+    end
+
+    local bufs = config_mod.enabled_buffers or vim.api.nvim_list_bufs()
+
+    for _, bufnr in pairs(bufs) do
+        if ts_configs.is_enabled(mod, nil, bufnr) then
+            ts_configs.detach_module(mod, bufnr)
+            ts_configs.attach_module(mod, bufnr)
+        end
+    end
+end
+
+
+augroup('reload queries on query save', function(autocmd) -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects/issues/787
     autocmd(
-        'BufWrite',
+        'BufWritePost',
         {
             pattern = '*.scm',
             callback = function ()
-                require'nvim-treesitter.query'.invalidate_query_cache()
+                -- private API: https://github.com/neovim/neovim/issues/35056
+                ---@diagnostic disable-next-line: undefined-field
+                vim.treesitter.query.get:clear()
+                reload_ts_module( "textobjects.move")
+                reload_ts_module("textobjects.select")
+                reload_ts_module("textobjects.lsp_interop")
+                reload_ts_module("textobjects.swap")
             end
         }
     )

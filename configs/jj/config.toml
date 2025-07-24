@@ -39,6 +39,12 @@ default-command = "log"
 [aliases]
 # jj jj jj commit
 jj = []
+l = ["log", "-r", "trunk():: & mine()"]
+fetch = ["git", "fetch"]
+fo = ["git", "fetch", "--remote", "origin"]
+fj = ["git", "fetch", "--remote", "jade"]
+po = ["git", "push", "--remote", "origin"]
+pj = ["git", "push", "--remote", "jade"]
 give = ['squash', '--use-destination-message', '--from', '@', '--into']
 take = ['squash', '--use-destination-message', '--into', '@', '--from']
 # pre-commit tool: https://github.com/jj-vcs/jj/issues/405#issuecomment-2744406580
