@@ -40,6 +40,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   taplo
   # Source code line counter
   tokei
+  keep-sorted
 
   # Better rust test runner
   cargo-nextest

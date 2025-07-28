@@ -84,6 +84,10 @@ command = ["nixfmt", "-"]
 patterns = ["glob:'**/*.nix'"]
 enabled = false
 
+[fix.tools.keep-sorted]
+command = ["keep-sorted", "-"]
+enabled = true
+
 [[--scope]]
 --when.repositories = ["~/lix"]
 [--scope.user]
