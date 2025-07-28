@@ -1,0 +1,6 @@
+set confirm off
+set disassemble-next-line auto
+set history save on
+set history size 10000000
+# lol lmao
+add-auto-load-safe-path /nix/store

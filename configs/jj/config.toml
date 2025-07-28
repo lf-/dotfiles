@@ -73,6 +73,11 @@ command = ["rustfmt", "+nightly", "--emit", "stdout"]
 patterns = ["glob:'**/*.rs'"]
 enabled = false
 
+[fix.tools.terraform-fmt]
+command = ["terraform", "fmt", "-"]
+patterns = ["glob:'**/*.tf'"]
+enabled = true
+
 [[--scope]]
 --when.repositories = ["~/lix"]
 [--scope.user]
