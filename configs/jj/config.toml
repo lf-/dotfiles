@@ -44,6 +44,7 @@ fetch = ["git", "fetch"]
 fo = ["git", "fetch", "--remote", "origin"]
 fj = ["git", "fetch", "--remote", "jade"]
 po = ["git", "push", "--remote", "origin"]
+pon = ["git", "push", "--remote", "origin", "--allow-new", "-b"]
 pj = ["git", "push", "--remote", "jade"]
 give = ['squash', '--use-destination-message', '--from', '@', '--into']
 take = ['squash', '--use-destination-message', '--into', '@', '--from']
@@ -77,6 +78,11 @@ enabled = false
 command = ["terraform", "fmt", "-"]
 patterns = ["glob:'**/*.tf'"]
 enabled = true
+
+[fix.tools.nixfmt-rfc-style]
+command = ["nixfmt", "-"]
+patterns = ["glob:'**/*.nix'"]
+enabled = false
 
 [[--scope]]
 --when.repositories = ["~/lix"]
