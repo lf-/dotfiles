@@ -86,6 +86,9 @@ enabled = false
 
 [fix.tools.keep-sorted]
 command = ["keep-sorted", "-"]
+# i wonder if this is a good idea to throw *all* files through this. there's no
+# pattern for "no binary files".
+patterns = ["glob:'**/*'"]
 enabled = true
 
 [[--scope]]
