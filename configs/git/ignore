@@ -30,3 +30,4 @@ core.[0-9]*
 .git/
 # this is slightly less absurd but nonetheless exists for doing horrible things to jj
 .jj/
+$.jj/

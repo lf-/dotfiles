@@ -42,6 +42,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   tokei
   keep-sorted
 
+  gitoxide
+
   # Better rust test runner
   cargo-nextest
   # Runs cargo check when you save
