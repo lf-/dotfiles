@@ -48,7 +48,7 @@ return {
     'nvim-treesitter/nvim-treesitter-context',
     'p00f/nvim-ts-rainbow',
     -- Shows which key you can press next
-    'folke/which-key.nvim',
+    {'folke/which-key.nvim', enabled = false },
 
     -- debug adapter protocol
     'mfussenegger/nvim-dap',
