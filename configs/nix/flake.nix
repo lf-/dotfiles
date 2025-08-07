@@ -120,6 +120,13 @@
           lix-module.nixosModules.default
         ];
       };
+      nixosConfigurations.thinnernix = nixpkgs.lib.nixosSystem {
+        modules = [
+          ./machines/thinnernix
+          dep-inject
+          lix-module.nixosModules.default
+        ];
+      };
       nixosConfigurations.voracle = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
         modules = [
