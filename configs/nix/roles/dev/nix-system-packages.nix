@@ -70,7 +70,10 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     [
       openssh
       coreutils-full
-      gitFull
+      # lol, lmao: undocumented horrifying toolchain bug that looks something like:
+      # https://github.com/NixOS/nixpkgs/issues/320900
+      # gitFull
+      git
 
       gnused
       gnugrep
