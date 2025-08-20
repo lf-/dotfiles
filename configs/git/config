@@ -23,6 +23,7 @@
 	tlog = log --graph --oneline --all
 	leash = push --force-with-lease
 	fulllog = log --format=fuller --full-diff --patch
+	fetchpr = "!f() { remote=\"${2:-origin}\"; git fetch \"${remote}\" \"+refs/pull/$1/head:refs/remotes/${remote}/pr$1\"; }; f"
 
 [commit]
 	# show both diff between index and HEAD and diff between worktree and index
