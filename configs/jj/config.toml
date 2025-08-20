@@ -26,6 +26,14 @@ concat(
 )
 '''
 git_push_bookmark = '"jade/push-" ++ change_id.short()'
+# if there's no description, show the diffstat
+log = '''
+builtin_log_compact
+++ if(
+    !description && !empty,
+    diff.summary(),
+)
+'''
 
 [git]
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
