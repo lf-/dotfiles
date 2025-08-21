@@ -227,11 +227,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1755723354,
-        "narHash": "sha256-g7H27G9eCkW3ROwau1KhVnICLY6cUzJiLmlaOtH2ngo=",
-        "rev": "61955d0a40766d68c8fc30fd10608d7a903986ab",
+        "lastModified": 1755827507,
+        "narHash": "sha256-Uy8Xd8ofiuwquDnpDSVIH5slTSFqAYQwCWAkFa9plF4=",
+        "rev": "a84355a813f57b919d5c676224ed9ea40b3e52ac",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/61955d0a40766d68c8fc30fd10608d7a903986ab.tar.gz?rev=61955d0a40766d68c8fc30fd10608d7a903986ab"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/a84355a813f57b919d5c676224ed9ea40b3e52ac.tar.gz?rev=a84355a813f57b919d5c676224ed9ea40b3e52ac"
       },
       "original": {
         "type": "tarball",
@@ -252,11 +252,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1755717379,
-        "narHash": "sha256-WrF1SLjKi+hekNpWyRFuyJXcdHA7v/mTc/R7HChLmcA=",
-        "rev": "616e6319f3a4dfb2f1f5627b1e7e0d1afb3f5f6d",
+        "lastModified": 1755826886,
+        "narHash": "sha256-AzCj0tc+JHFg74VqvLYgro5xSJ6eT0NoS6zxhavc4eo=",
+        "rev": "71bd6a06def2404b7e0f68e57bf5a08c634f5041",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/616e6319f3a4dfb2f1f5627b1e7e0d1afb3f5f6d.tar.gz?rev=616e6319f3a4dfb2f1f5627b1e7e0d1afb3f5f6d"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/71bd6a06def2404b7e0f68e57bf5a08c634f5041.tar.gz?rev=71bd6a06def2404b7e0f68e57bf5a08c634f5041"
       },
       "original": {
         "type": "tarball",
@@ -281,18 +281,15 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1755615617,
-        "narHash": "sha256-HMwfAJBdrr8wXAkbGhtcby1zGFvs+StOp19xNsbqdOg=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
+        "lastModified": 1755682354,
+        "narHash": "sha256-AU6EqTVZNuNXrNVmVJ0J3QAuK/RezRzQqlJokCSey2M=",
         "rev": "20075955deac2583bb12f07151c2df830ef346b4",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-25.11pre846535.20075955deac/nixexprs.tar.xz?rev=20075955deac2583bb12f07151c2df830ef346b4"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
     "nixpkgs-stable": {
