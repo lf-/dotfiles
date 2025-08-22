@@ -63,7 +63,7 @@ check = [
   "--",
   "bash",
   "-c",
-  "jj diff -r @ --name-only --no-pager | xargs pre-commit run --files",
+  "jj diff -r \"${1:-ancestors(@) ~ ancestors(trunk())}\" --name-only --no-pager | xargs pre-commit run --files",
 ]
 pr = ["util", "exec", "jj-pr"]
 
@@ -92,6 +92,16 @@ enabled = true
 command = ["nixfmt", "-"]
 patterns = ["glob:'**/*.nix'"]
 enabled = false
+
+[fix.tools.buildifier-build]
+command = ["buildifier", "-type=build", "-"]
+patterns = ["glob:'**/BUCK'", "glob:'**/BUILD'"]
+enabled = true
+
+[fix.tools.buildifier-bzl]
+command = ["buildifier", "-type=bzl", "-"]
+patterns = ["glob:'**/*.bzl'", "glob:'**/*.bxl'"]
+enabled = true
 
 [fix.tools.keep-sorted]
 command = ["keep-sorted", "-"]

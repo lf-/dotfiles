@@ -55,6 +55,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # idk if this is a good idea due to work having a different build, but it
   # will make completions work. yolo!
   buck2
+  bazel-buildtools
 
   xonsh
 
