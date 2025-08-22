@@ -313,6 +313,11 @@ _G.find_files_relative = function()
         cwd = require 'telescope.utils'.buffer_dir()
     })
 end
+_G.live_grep_relative = function()
+    require('telescope.builtin').live_grep({
+        cwd = require 'telescope.utils'.buffer_dir()
+    })
+end
 
 -- Make all of these global so I can just add a mapping and copy it from the rc
 -- file without restarting the editor
@@ -349,10 +354,25 @@ nnoremap("<Leader>op", "<Cmd>:sp output:///rust-analyzer<cr>")
 nnoremap("<Leader>oh", "<Cmd>:sp output:///languageserver.haskell<cr>")
 nnoremap("<Leader>hl", "<Cmd>:call CocAction('toggleService', 'languageserver.haskell')<cr>")
 
+--- DAP bindings
+nnoremap("<Leader>dn", "<Cmd>:DapStepOver<cr>")
+nnoremap("<Leader>ds", "<Cmd>:DapStepInto<cr>")
+nnoremap("<Leader>do", "<Cmd>:DapStepInto<cr>")
+nnoremap("<Leader>dc", "<Cmd>:DapContinue<cr>")
+nnoremap("<Leader>db", "<Cmd>:DapToggleBreakpoint<cr>")
+nnoremap("<Leader>dr", "<Cmd>:DapToggleRepl<cr>")
+nnoremap("<Leader>dK", "", {
+    callback = function ()
+        require('dap.ui.widgets').hover()
+    end,
+})
+
 -- telescope
 nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
-nnoremap("<Leader><C-p>", "<Cmd>lua find_files_relative()<cr>")
+nnoremap("<Leader><C-p>", "", { callback = find_files_relative })
 nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
+nnoremap("<space>G", "", { callback = live_grep_relative })
+nnoremap("<space>C", "<Cmd>Telescope commands<cr>")
 nnoremap("<space>*", "<Cmd>Telescope grep_string<cr>")
 nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
 nnoremap("<space>r", "<Cmd>Telescope resume<cr>")
