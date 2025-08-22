@@ -65,6 +65,7 @@ check = [
   "-c",
   "jj diff -r @ --name-only --no-pager | xargs pre-commit run --files",
 ]
+pr = ["util", "exec", "jj-pr"]
 
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669

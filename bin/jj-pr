@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+import re
+
+GH_USER_REGEX = re.compile(r"^(https://github\.com/|git@github\.com:)([^/]+)/.*")
+
+
+def jj_log(template: str, rev: str) -> list[str]:
+    return subprocess.check_output(
+        [
+            "jj",
+            "--ignore-working-copy",
+            "--quiet",
+            "log",
+            "--no-graph",
+            "--template",
+            template,
+            "-r",
+            rev,
+        ],
+        text=True,
+    ).split(" ")
+
+
+def jj_remotes() -> dict[str, str]:
+    return {
+        name: url
+        for (name, url) in (
+            l.split(" ", 1)
+            for l in subprocess.check_output(
+                [
+                    "jj",
+                    "--ignore-working-copy",
+                    "--quiet",
+                    "git",
+                    "remote",
+                    "list",
+                ],
+                text=True,
+            ).splitlines()
+        )
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Create a pull request with jj")
+    ap.add_argument("rev", help="Revision to PR")
+    args, rest = ap.parse_known_intermixed_args()
+
+    bookmarks = jj_log("local_bookmarks", args.rev)
+    remote_bookmarks = jj_log("remote_bookmarks", args.rev)
+    if len(bookmarks) != 1:
+        raise ValueError(f"Wrong number of bookmarks there buddy: {bookmarks}")
+
+    # find current pr
+    candidate_remote_bookmarks = [
+        tuple(bm.rsplit("@", 1)) for bm in remote_bookmarks if not bm.endswith("@git")
+    ]
+
+    if len(candidate_remote_bookmarks) > 1:
+        raise ValueError(
+            f"More bookmarks on this commit than there should be: {candidate_remote_bookmarks}"
+        )
+
+    # find the pr then
+    bookmark, remote = candidate_remote_bookmarks[0]
+    remotes = jj_remotes()
+    url = remotes[remote]
+    m = GH_USER_REGEX.match(url)
+    assert m
+    user = m.group(2)
+
+    github_branch = f'{user}:{bookmark}'
+
+    if len(candidate_remote_bookmarks) == 1:
+        pr_view = [
+            "gh",
+            "pr",
+            "view",
+            "--json",
+            "url,title",
+            "--template",
+            '{{ .url }}: {{ .title }}',
+            github_branch,
+        ]
+        res = subprocess.call(pr_view)
+        if res == 0:
+            # well it exists, we're done here
+            return
+
+    # make a pr!
+    subprocess.call(["gh", "pr", "create", "--head", github_branch, *rest])
+
+
+if __name__ == "__main__":
+    main()
