@@ -1,0 +1,6 @@
+if [[ -n "$PS1" ]]; then
+    if [[ -e ~/.nix-profile/etc/profile.d/bash_completion.sh ]]; then
+        # shellcheck disable=SC1090
+        source ~/.nix-profile/etc/profile.d/bash_completion.sh
+    fi
+fi

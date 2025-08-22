@@ -153,3 +153,9 @@ zshs = [
 for zsh in zshs:
     actions.append(SymlinkAction(f'zsh/{zsh}', f'~/.{zsh}'))
 
+bashes = [
+    'bashrc',
+]
+
+for bash in bashes:
+    actions.append(SymlinkAction(f'bash/{bash}', f'~/.{bash}'))
