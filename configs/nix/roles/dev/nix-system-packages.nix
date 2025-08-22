@@ -17,7 +17,7 @@ let
       dbus-python
 
       pip
-      yapf
+      ruff
 
       numpy
     ];

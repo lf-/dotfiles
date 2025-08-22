@@ -105,7 +105,7 @@
     "codeLens.enable": true,
     // Get it from direnv, not from random shell env
     "python.pythonPath": "_pyright_python",
-    "python.formatting.provider": "yapf",
+    "python.formatting.provider": "ruff",
     "workspace.rootPatterns": [
         ".python-root",
         ".git",
