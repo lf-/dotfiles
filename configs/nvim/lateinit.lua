@@ -570,6 +570,18 @@ augroup('formatoptions', function(autocmd)
             end
         }
     )
+    -- tree sitter queries
+    autocmd(
+        'FileType',
+        {
+            pattern = 'query',
+            callback = function()
+                bufopt.shiftwidth = 2
+                bufopt.tabstop = 2
+                bufopt.softtabstop = 2
+            end,
+        }
+    )
     autocmd(
         'FileType',
         {
