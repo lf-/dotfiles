@@ -70,8 +70,10 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     [
       openssh
       coreutils-full
-      # lol, lmao: undocumented horrifying toolchain bug that looks something like:
+      # lol, lmao: horrifying toolchain bug:
       # https://github.com/NixOS/nixpkgs/issues/320900
+      # which seems to hit a similar bug as
+      # https://github.com/NixOS/nixpkgs/issues/208951
       # gitFull
       git
 
