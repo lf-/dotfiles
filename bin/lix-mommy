@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# this is a JOKE
+
+CARGO_MOMMYS_ACTUAL=nix cargo-mommy "$@"

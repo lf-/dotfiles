@@ -50,6 +50,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   cargo-watch
   # Rust snapshot test runner
   cargo-insta
+  cargo-mommy
 
   # idk if this is a good idea due to work having a different build, but it
   # will make completions work. yolo!
