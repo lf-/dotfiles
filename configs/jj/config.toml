@@ -33,6 +33,19 @@ builtin_log_compact
     !description && !empty,
     diff.summary(),
 )
+++ if(
+    conflict,
+    self.files(
+        "all()"
+    ).filter(
+        |file| file.conflict()
+    ).map(
+        |file| label(
+            "conflict",
+            concat("conflict ", file.path())
+        )
+    ).join("\n")
+)
 '''
 
 [git]
@@ -66,6 +79,7 @@ check = [
   "jj diff -r \"${1:-ancestors(@) ~ ancestors(trunk())}\" --name-only --no-pager | xargs pre-commit run --files",
 ]
 pr = ["util", "exec", "jj-pr"]
+rev-parse = ["show", "--template", "commit_id", "--no-patch"]
 
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669
