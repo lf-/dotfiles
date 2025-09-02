@@ -7,7 +7,8 @@ let
 in
 with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   atuin
-  cmake-language-server
+  # broken
+  # cmake-language-server
   cntr
   git-credential-oauth
   git-absorb
@@ -41,6 +42,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # Source code line counter
   tokei
   keep-sorted
+  bat
 
   gitoxide
 
