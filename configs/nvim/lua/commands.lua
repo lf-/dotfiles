@@ -29,6 +29,13 @@ nvim_new_command('CopyPath', function(args)
     end,
     { nargs = 0 })
 
+nvim_new_command('BuckTarget', function(args)
+        local fullpath = vim.fn.expand('%:p')
+        -- I am well aware this is jank
+        vim.api.nvim_exec2(([[!buck2 uquery --console simple -v0 'owner("%s")' 2>/dev/null]]):format(fullpath), { output = false })
+    end,
+    { nargs = 0 })
+
 nvim_new_command('TSClearParsers', function(args)
         local directory = ts_configs.get_parser_install_dir()
         if directory ~= nil then
