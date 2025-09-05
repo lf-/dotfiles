@@ -646,6 +646,7 @@ augroups.setfiletypes('filetypedetection', {
 
     -- Buck extension language is just bazel
     {'*.bxl', 'bzl'},
+    {'PACKAGE', 'bzl'},
 
     -- Local envrc files are shell
     {'.env.local', 'sh'},
