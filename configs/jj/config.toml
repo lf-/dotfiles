@@ -85,6 +85,7 @@ rt = ["rebase", "-d", "trunk()"]
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669
 'why_immutable(r)' = '(r & immutable()) | roots(r:: & immutable_heads())'
+'T' = 'trunk()'
 
 [user]
 name = "Jade Lovelace"

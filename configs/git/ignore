@@ -12,6 +12,7 @@ a.vim
 tags
 tags-haskell
 *.nixops
+buck-out/
 result
 result-*
 *~

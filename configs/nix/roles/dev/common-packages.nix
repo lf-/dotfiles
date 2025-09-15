@@ -11,6 +11,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # cmake-language-server
   cntr
   git-credential-oauth
+  git-credential-manager
   git-absorb
   git-revise
   gitleaks
