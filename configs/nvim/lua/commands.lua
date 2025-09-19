@@ -3,6 +3,7 @@ local nvim_new_command = vim.api.nvim_create_user_command or function() end
 local uv = vim.loop
 local Path = require('plenary.path')
 local ts_configs = require('nvim-treesitter.configs')
+require('jade.rename_module')
 
 local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)
@@ -50,3 +51,4 @@ nvim_new_command('Light', function(args)
         vim.api.nvim_exec('colorscheme PaperColor', false)
     end,
     { nargs = 0 })
+
