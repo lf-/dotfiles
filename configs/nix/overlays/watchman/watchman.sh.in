@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export TMPDIR="${XDG_STATE_HOME:-$HOME/.local/state}/watchman"
+mkdir -p "$TMPDIR"
+exec @watchman@/bin/@exe@ "$@"

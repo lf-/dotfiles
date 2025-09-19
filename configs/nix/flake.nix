@@ -180,6 +180,7 @@
           (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc98"; })
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
+          (import ./overlays/watchman)
           lix-module.overlays.default
         ];
         inherit system;
