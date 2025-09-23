@@ -26,8 +26,6 @@ in
     enableUserSlices = true;
   };
 
-  systemd.enableCgroupAccounting = true;
-
   systemd.services.nix-daemon = {
     serviceConfig = {
       Slice = "lowprio.slice";
