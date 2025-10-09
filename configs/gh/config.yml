@@ -14,6 +14,6 @@ aliases:
     # token may not have privs. try
     # gh auth refresh -h github.com -s delete_repo
     repoDelete: 'api -X DELETE repos/$1'
-    fork: repo fork --remote-name lf- --remote
+    fork: repo fork --remote-name jade --remote
     my-prs: pr list -A @me
 version: "1"
