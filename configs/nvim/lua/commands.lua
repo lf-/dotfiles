@@ -4,7 +4,6 @@ local uv = vim.loop
 local Path = require('plenary.path')
 local ts_configs = require('nvim-treesitter.configs')
 require('jade.haskell')
-require('jade.buck2')
 
 local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)

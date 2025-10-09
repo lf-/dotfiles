@@ -27,7 +27,7 @@ CONTENTS                                                *indent-guides-contents*
 
 Indent Guides is a plugin for visually displaying indent levels in Vim.
 
-Features:~
+Features: ~
   * Can detect both tab and space indent styles.
   * Automatically inspects your colorscheme and picks appropriate colors.
   * Probably doesn't work on non-neovim, I haven't tried it at least.

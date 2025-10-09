@@ -1,7 +1,7 @@
-function local_plugin(name)
+local function local_plugin(name, ...)
     -- XXX: this is a holdover from packer using the nvim pack functionality
     -- which lazy seems to not use. idk man.
-    return { dir = vim.fn.stdpath('config') .. '/pack/plugins/start/' .. name }
+    return { dir = vim.fn.stdpath('config') .. '/pack/plugins/start/' .. name, ... }
 end
 
 return {
@@ -9,6 +9,7 @@ return {
     local_plugin('nvim-git-linky'),
     local_plugin('vim-indent-guides'),
     local_plugin('nix-drv.nvim'),
+    local_plugin('buck2.nvim'),
 
     'tomtom/tcomment_vim',
     'tpope/vim-surround',
@@ -22,7 +23,7 @@ return {
     'tpope/vim-fugitive',
     'tpope/vim-eunuch',
 
-    'nvim-lua/plenary.nvim',
+    { 'nvim-lua/plenary.nvim', lazy = true },
     'nvim-telescope/telescope.nvim',
     'nvim-telescope/telescope-fzy-native.nvim',
 
