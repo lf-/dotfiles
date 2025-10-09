@@ -372,6 +372,13 @@ nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
 nnoremap("<Leader><C-p>", "", { callback = find_files_relative })
 nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
 nnoremap("<space>G", "", { callback = live_grep_relative })
+nnoremap("<space>f", "", {
+    callback = function()
+        require('telescope.builtin').live_grep {
+            grep_open_files = true
+        }
+    end
+})
 nnoremap("<space>C", "<Cmd>Telescope commands<cr>")
 nnoremap("<space>*", "<Cmd>Telescope grep_string<cr>")
 nnoremap("<space>b", "<Cmd>Telescope buffers<cr>")
