@@ -79,7 +79,7 @@ check = [
   "jj diff -r \"${1:-ancestors(@) ~ ancestors(trunk())}\" --name-only --no-pager | xargs pre-commit run --files",
 ]
 pr = ["util", "exec", "jj-pr"]
-rev-parse = ["show", "--template", "commit_id", "--no-patch"]
+rev-parse = ["log", "--no-graph", "--template", 'commit_id ++ "\n"', "--revisions"]
 rt = ["rebase", "-d", "trunk()"]
 
 [revset-aliases]
