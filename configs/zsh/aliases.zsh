@@ -26,11 +26,11 @@ function ndr() {
 }
 
 function buck() {
-    noglob buck "$@"
+    noglob command buck "$@"
 }
 
 function buck2() {
-    noglob buck2 "$@"
+    noglob command buck2 "$@"
 }
 
 # Make man pages a reasonable width to actually read them
