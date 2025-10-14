@@ -391,6 +391,7 @@ nnoremap("<space>t", '', {
         })
     end
 })
+nnoremap("<space>T", "<Cmd>Telescope treesitter<cr>")
 
 -- replace the word under the cursor with ,s
 nnoremap("<Leader>s", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]])

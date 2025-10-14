@@ -116,7 +116,24 @@
     "yaml.schemaStore.enable": true,
     "yaml.schemaStore.url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/api/json/catalog.json",
     "yaml.trace.server": "verbose",
+
+    "workspace.ignoredFolders": [
+        "$HOME",
+        "$HOME/.cargo/**",
+        "$HOME/.rustup/**",
+        "$HOME/pkg/mod/**",
+        "$HOMEBREW_PREFIX/**",
+        "/nix/store/**",
+        "**/.direnv/**",
+    ],
+
+    // Seems to cause it to look in the nix store which is bad.
+    "Lua.workspace.ignoreDir": [
+        ".vscode",
+        ".direnv"
+    ],
     "sumneko-lua.enableNvimLuaDev": true,
+    "Lua.hint.paramName": "All",
     "Lua.telemetry.enable": false,
     "Lua.runtime.version": "LuaJIT",
     "Lua.runtime.pathStrict": false,

@@ -3,7 +3,8 @@ local nvim_new_command = vim.api.nvim_create_user_command or function() end
 local uv = vim.loop
 local Path = require('plenary.path')
 local ts_configs = require('nvim-treesitter.configs')
-require('jade.rename_module')
+require('jade.haskell')
+require('jade.buck2')
 
 local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)
@@ -27,13 +28,6 @@ make_telescope_command('FC', 'find_files', {
 nvim_new_command('CopyPath', function(args)
         local fullpath = vim.fn.expand('%:p')
         vim.fn.setreg('+', fullpath)
-    end,
-    { nargs = 0 })
-
-nvim_new_command('BuckTarget', function(args)
-        local fullpath = vim.fn.expand('%:p')
-        -- I am well aware this is jank
-        vim.api.nvim_exec2(([[!buck2 uquery --console simple -v0 'owner("%s")' 2>/dev/null]]):format(fullpath), { output = false })
     end,
     { nargs = 0 })
 
