@@ -15,6 +15,9 @@ jobs:
           diagnostic-endpoint: ''
           source-url: '${{ inputs.nix_installer || format(''https://install.lix.systems/lix/lix-installer-{0}-{1}'', fromJSON(''{"X64":"x86_64","X86":"i686","ARM64":"aarch64","ARM":"armv7l"}'')[runner.arch], fromJSON(''{"Linux":"linux","macOS":"darwin","Windows":"windows"}'')[runner.os]) }}'
       - uses: actions/checkout@v4
+      - run: |
+          git config --global user.name 'jade.fyi copybara'
+          git config --global user.email 'copybara@noreply.jade.fyi'
       - name: Run copybara
         run: |
           nix run ./configs/nix#pkgs.ci.copybara-workflow
