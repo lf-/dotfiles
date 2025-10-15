@@ -10,3 +10,8 @@
 - Find the target owning a file using `:BuckTarget`.
 
 [buck2]: https://buck2.build
+
+## Contributing
+
+This project is a Copybara export from <https://github.com/lf-/dotfiles>.
+It is significantly easier for Jade if you send her patches on that repo for now, but patches *are* accepted here.

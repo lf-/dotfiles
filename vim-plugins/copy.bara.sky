@@ -1,0 +1,57 @@
+# Copybara configuration file.
+# Samples:
+# - https://gbmc.googlesource.com/gbmcweb/+/18b9660b19781b7ae1feefc6f68cd7771761ea63/copy.bara.sky
+# - https://github.com/cap-collectif/copybara-action/blob/cdde3b5cd2e350bf0fa2978c03fe9ca2f67fe3ae/src/copy.bara.sky.ts#L39
+#
+# Run initially with e.g.:
+# copybara --force --ignore-noop -v --init-history ./vim-plugins/copy.bara.sky buck2_nvim_to_local refs/heads/wip
+
+# local source of truth
+LOCAL_SOT = 'file:///Users/jade/.dotfiles'
+LOCAL_DEST = 'file:///tmp/copybara.test'
+
+AUTHORING = authoring.pass_thru(default = 'jade.fyi Copybara <copybara@noreply.jade.fyi>')
+
+def includes(name):
+    return glob([
+        'LICENSE',
+        'vim-plugins/{}/**'.format(name),
+    ])
+
+def basic_transforms(name):
+    return [
+        core.move('vim-plugins/{}'.format(name), ''),
+    ]
+
+
+def vim_plugin_workflow(name, **kwargs):
+    escaped_name = name.replace('.', '_')
+    origin_files = includes(name)
+    forward_transforms = basic_transforms(name)
+
+    core.workflow(
+        name = '{}_to_local'.format(escaped_name),
+        description = 'Copy {} to a local directory, for testing'.format(name),
+        origin = git.origin(LOCAL_SOT),
+        origin_files = origin_files,
+        destination = git.destination(LOCAL_DEST, fetch = 'main', push = 'main'),
+        # To initialize an export for the first time in a tractable time.
+        mode = 'SQUASH',
+        authoring = AUTHORING,
+        transformations = forward_transforms,
+        **kwargs,
+    )
+
+    core.workflow(
+        name = '{}_to_github'.format(escaped_name),
+        description = 'Copy {} to its GitHub destination'.format(name),
+        origin = git.github_origin('https://github.com/lf-/dotfiles'),
+        origin_files = origin_files,
+        destination = git.github_destination('https://github.com/lf-/{}'.format(name)),
+        mode = 'ITERATIVE',
+        authoring = AUTHORING,
+        transformations = forward_transforms,
+        **kwargs,
+    )
+
+vim_plugin_workflow('buck2.nvim')
