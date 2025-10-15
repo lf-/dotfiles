@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - jade/losing-it
 
 jobs:
   copybara:
@@ -30,7 +31,9 @@ jobs:
       # single repo. that's unhelpful!
       - name: Set up token globally
         run: |
-          tok_b64=$(echo "x-access-token:${{ steps.get-github-token.outputs.token }}" | base64)
+          # make sure that we are never set -x here
+          set +x
+          tok_b64=$(echo -n "x-access-token:${{ steps.get-github-token.outputs.token }}" | base64)
           # don't leak it!
           echo "::add-mask::$tok_b64"
           git config --global 'http.https://github.com/.extraheader' "AUTHORIZATION: basic ${tok_b64}"
