@@ -47,7 +47,7 @@ def vim_plugin_workflow(name, **kwargs):
         description = 'Copy {} to its GitHub destination'.format(name),
         origin = git.github_origin('https://github.com/lf-/dotfiles'),
         origin_files = origin_files,
-        destination = git.github_destination('https://github.com/lf-/{}'.format(name)),
+        destination = git.github_destination('https://github.com/lf-/{}'.format(name), fetch = 'main', push = 'main'),
         mode = 'ITERATIVE',
         authoring = AUTHORING,
         transformations = forward_transforms,

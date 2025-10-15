@@ -1,0 +1,20 @@
+name: Copybara
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  copybara:
+    name: Copybara
+    runs-on: ubuntu-latest
+    steps:
+      # Quality Code taken from https://github.com/lilyinstarlight/foosteros/blob/bdfcbca5a0b0124f8519b57217891efb6508f124/.github/workflows/checks.yml
+      - uses: DeterminateSystems/nix-installer-action@v16
+        with:
+          diagnostic-endpoint: ''
+          source-url: '${{ inputs.nix_installer || format(''https://install.lix.systems/lix/lix-installer-{0}-{1}'', fromJSON(''{"X64":"x86_64","X86":"i686","ARM64":"aarch64","ARM":"armv7l"}'')[runner.arch], fromJSON(''{"Linux":"linux","macOS":"darwin","Windows":"windows"}'')[runner.os]) }}'
+      - uses: actions/checkout@v4
+      - name: Run copybara
+        run: |
+          nix run ./configs/nix#pkgs.ci.copybara-workflow

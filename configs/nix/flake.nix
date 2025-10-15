@@ -181,14 +181,17 @@
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
           (import ./overlays/watchman)
+          # FIXME: this is obviously nonsense and this other stuff should just
+          # get migrated later.
+          (import ./overlays/packages.nix)
           lix-module.overlays.default
         ];
         inherit system;
       };
     in
     {
-      inherit pkgs;
       legacyPackages = {
+        inherit pkgs;
         nix-on-droid = pkgs.pkgsCross.aarch64-multiplatform.callPackage ./packages/nix-on-droid {
           nixpkgsInput = nixpkgs;
           inherit lix nix-on-droid;
