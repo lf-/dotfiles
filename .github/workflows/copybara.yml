@@ -26,7 +26,17 @@ jobs:
         with:
           token: ${{ steps.get-github-token.outputs.token }}
 
-      - run: |
+      # of course actions/checkout does this for you but only locally for the
+      # single repo. that's unhelpful!
+      - name: Set up token globally
+        run: |
+          tok_b64=$(echo "x-access-token:${{ steps.get-github-token.outputs.token }}" | base64)
+          # don't leak it!
+          echo "::add-mask::$tok_b64"
+          git config --global 'http.https://github.com/.extraheader' "AUTHORIZATION: basic ${tok_b64}"
+
+      - name: git config
+        run: |
           git config --global user.name 'jade.fyi copybara'
           git config --global user.email 'copybara@noreply.jade.fyi'
 
