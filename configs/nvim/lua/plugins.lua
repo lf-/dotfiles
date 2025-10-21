@@ -10,6 +10,7 @@ return {
     local_plugin('vim-indent-guides'),
     local_plugin('nix-drv.nvim'),
     local_plugin('buck2.nvim'),
+    local_plugin('haskell.nvim'),
 
     'tomtom/tcomment_vim',
     'tpope/vim-surround',

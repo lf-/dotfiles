@@ -3,7 +3,6 @@ local nvim_new_command = vim.api.nvim_create_user_command or function() end
 local uv = vim.loop
 local Path = require('plenary.path')
 local ts_configs = require('nvim-treesitter.configs')
-require('jade.haskell')
 
 local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)

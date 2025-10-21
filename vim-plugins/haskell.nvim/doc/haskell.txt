@@ -1,0 +1,57 @@
+*haskell.nvim*                                      haskell utilities for neovim
+
+==============================================================================
+CONTENTS                                                      *haskell-contents*
+
+  1. Introduction.......................... |haskell-introduction|
+  2. Commands.............................. |haskell-commands|
+  3. License............................... |haskell-license|
+
+==============================================================================
+1. INTRODUCTION                                           *haskell-introduction*
+
+Haskell is a fun programming language to write, which some people also write
+professionally for fun.
+
+This plugin requires https://github.com/nvim-treesitter/nvim-treesitter.
+
+Features: ~
+  * Rename Haskell modules with `:HsRename` (with tab completion!).
+  * Switch between source and test with `:HsTest`.
+
+==============================================================================
+2. COMMANDS                                                   *haskell-commands*
+
+:HsRename                                                           *:HsRename*
+  Renames the current module and renames the file. Try tab completion.
+  Requires https://github.com/tpope/vim-eunuch
+
+:HsTest                                                            *:BuckOpen*
+  Switches between the spec and the source files.
+
+==============================================================================
+3. LICENSE                                                     *haskell-license*
+
+The MIT License
+
+Copyright (c) 2025 Jade Lovelace
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+vim:tw=78:ts=8:noet:ft=help:norl:
