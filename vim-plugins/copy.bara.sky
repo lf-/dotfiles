@@ -55,3 +55,4 @@ def vim_plugin_workflow(name, **kwargs):
     )
 
 vim_plugin_workflow('buck2.nvim')
+vim_plugin_workflow('haskell.nvim')
