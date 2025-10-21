@@ -25,7 +25,7 @@ vim.api.nvim_create_user_command('HsRename', function(args)
     {
         nargs = 1,
         complete = function(...)
-            require('jade.haskell')
+            return require('jade.haskell')
                 .rename_module_complete(...)
         end
     })
