@@ -1,12 +1,6 @@
 local Job = require("plenary.job")
 local M = {}
 
-local function err_log(...)
-	vim.schedule_wrap(function(...)
-		vim.api.nvim_err_writeln(table.concat({ ... }, " "))
-	end)(...)
-end
-
 --- @param cmd table<string>
 --- @param on_result any completion callback
 function M.buck2(cmd, on_result)
@@ -17,11 +11,12 @@ function M.buck2(cmd, on_result)
 		enable_recording = true,
 		on_exit = function(j, return_val)
 			if return_val ~= 0 then
-				err_log(
-					"buck2 failed:\ncommand: buck2",
-					table.concat(new_cmd, " "),
-					"\noutput:",
-					table.concat(j:stderr_result(), "\n")
+				vim.notify(
+					"buck2 failed:\ncommand: buck2 "
+						.. table.concat(new_cmd, " ")
+						.. "\noutput:"
+						.. table.concat(j:stderr_result(), "\n"),
+					vim.log.levels.ERROR
 				)
 				return
 			end
