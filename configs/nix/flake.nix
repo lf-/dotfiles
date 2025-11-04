@@ -104,6 +104,14 @@
           lix-module.nixosModules.default
         ];
       };
+      nixosConfigurations.snow-bot = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./machines/snow-bot
+          dep-inject
+          lix-module.nixosModules.default
+        ];
+      };
       nixosConfigurations.icecream = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
