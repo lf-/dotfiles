@@ -82,7 +82,7 @@ procOne d =
       )
   where
     parseTerminated endTime = withObject "terminated" \o -> do
-      status <- o .: "status"
+      status <- o .:? "status" .!= "???"
       pure $ Terminate TerminateEvent {..}
     parseStarted startTime = withObject "started" \o -> do
       exe <- o .: "execution"
