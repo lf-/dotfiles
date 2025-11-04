@@ -2,6 +2,22 @@
 
 [buck2] integration for neovim.
 
+Quick start with [lazy.nvim][lazy]:
+
+```lua
+require("lazy").setup {
+  {
+    "nvim-lua/plenary.nvim",
+    lazy = true,
+  },
+  {
+    "lf-/buck2.nvim",
+  },
+}
+```
+
+[lazy]: https://github.com/folke/lazy.nvim
+
 ## What's in here
 
 - Open Buck files corresponding to a target with `:BuckOpen`
