@@ -2,12 +2,8 @@
   "nodes": {
     "agenix": {
       "inputs": {
-        "darwin": [
-          "flake-utils"
-        ],
-        "home-manager": [
-          "flake-utils"
-        ],
+        "darwin": [],
+        "home-manager": [],
         "nixpkgs": [
           "nixpkgs"
         ],
