@@ -5,11 +5,11 @@ args=(
     --target-host thinnernix
     --use-substitutes
     --sudo
-    -L
     --flake .#thinnernix
+    --fast
 )
 
 op="${1:-switch}"
 shift
 
-nixos-rebuild-ng "$op" "$@" "${args[@]}"
+nixos-rebuild "$op" "$@" "${args[@]}"
