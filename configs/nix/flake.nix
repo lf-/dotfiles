@@ -154,21 +154,6 @@
         ];
       };
 
-      devShells.x86_64-linux =
-        let
-          system = "x86_64-linux";
-          pkgs = import nixpkgs { inherit system; overlays = [ lix-module.overlays.default ]; };
-        in
-        {
-          default = pkgs.mkShell {
-            packages = with pkgs; [
-              nixos-rebuild
-              agenix.packages.${system}.default
-              age
-              bashInteractive
-            ];
-          };
-        };
     } // (flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = import nixpkgs {
@@ -190,6 +175,17 @@
       };
     in
     {
+      devShells = {
+        default = pkgs.mkShell {
+          packages = with pkgs; [
+            nixos-rebuild
+            agenix.packages.${system}.default
+            age
+            bashInteractive
+          ];
+        };
+      };
+
       legacyPackages = {
         inherit pkgs;
         nix-on-droid = pkgs.pkgsCross.aarch64-multiplatform.callPackage ./packages/nix-on-droid {

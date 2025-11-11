@@ -28,7 +28,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
   [
     direnv
 
-    gitAndTools.delta
+    delta
     ripgrep
 
     dtach

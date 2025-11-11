@@ -78,6 +78,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 
   clangbuildanalyzer
 
+  comma
+
   nvimsplit
   vim-swapfile-header
   nvremote

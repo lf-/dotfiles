@@ -11,7 +11,7 @@
 let
   host = "git.jade.fyi";
   baseDir = "/data/forgejo";
-  meilisearchSecretsDir = "/run/meilisearch/secrets";
+  meilisearchSecretsDir = "/run/meilisearch-secrets";
   meilisearchMasterKey = "${meilisearchSecretsDir}/master.key";
   meilisearchConnString = "${meilisearchSecretsDir}/conn-string";
 in
