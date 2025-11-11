@@ -45,6 +45,9 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   keep-sorted
   bat
 
+  # fuzzy finder
+  skim
+
   gitoxide
 
   # Better rust test runner

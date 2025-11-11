@@ -14,7 +14,8 @@ zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme \
     -s completion.zsh \
     -s keys.zsh \
     -s prompt_config.zsh \
-    -s aliases.zsh
+    -s aliases.zsh \
+    -s skim.zsh
 
 # completions
 zmodule zsh-users/zsh-completions --fpath src
