@@ -5,14 +5,13 @@ in {
     source-code-pro
     iosevka-bin
     iosevkaTerm
-    ubuntu_font_family
+    ubuntu-classic
     source-han-sans
     source-sans
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-cjk-serif
-    noto-fonts-emoji
-    noto-fonts-extra
+    noto-fonts-color-emoji
     liberation_ttf
     dejavu_fonts
     libertine

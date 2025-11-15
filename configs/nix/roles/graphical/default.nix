@@ -88,10 +88,10 @@ in
     })
     {
       environment.systemPackages = with pkgs; [
-        firefox-wayland
+        firefox
         chromium
         alacritty
-        glxinfo
+        mesa-demos
         xsel
         xclip
         wl-clipboard
