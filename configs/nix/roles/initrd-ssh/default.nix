@@ -1,13 +1,43 @@
 { lib, pkgs, ... }:
-let creds = import ../../lib/creds.nix;
+let
+  creds = import ../../lib/creds.nix;
 in
 {
   boot.initrd = {
     systemd = {
       enable = true;
+      services = {
+        systemd-networkd = {
+          # show network logs on the console
+          serviceConfig = {
+            StandardOutput = "journal+console";
+            StandardError = "journal+console";
+          };
+        };
+      };
+
+      contents = {
+        "/etc/motd".text = ''
+          Run `systemctl default` to unlock the disk :)
+        '';
+      };
+
+      network.networks."99-ethernet-default-dhcp" = {
+        matchConfig = {
+          Type = "ether";
+          Kind = "!*"; # physical interfaces have no kind
+        };
+        DHCP = "yes";
+        networkConfig = {
+          IPv6PrivacyExtensions = "kernel";
+          MulticastDNS = true;
+        };
+      };
     };
+
     network = {
       enable = true;
+
       ssh = {
         enable = true;
         authorizedKeys = creds.jade.sshKeys;
@@ -20,7 +50,7 @@ in
     };
     services.resolved = {
       # FIXME: broken due to transitive dependency on local-fs.target
-      enable = false;
+      enable = true;
     };
   };
   boot.initrd.secrets = {

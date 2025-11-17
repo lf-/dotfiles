@@ -1,7 +1,7 @@
 {
   description = "Computers with the nixos";
   inputs = {
-    nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    nixpkgs.url = "https://channels.nixos.org/nixos-unstable-small/nixexprs.tar.xz";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";
