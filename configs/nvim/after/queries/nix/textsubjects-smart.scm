@@ -13,3 +13,6 @@
  (#make-range! "range" @_start @_end)
 )
 
+((binding_set binding: (_) @_start @_end)
+ (#make-range! "range" @_start @_end)
+)

@@ -50,7 +50,11 @@ return {
     'nvim-treesitter/nvim-treesitter-context',
     'p00f/nvim-ts-rainbow',
     -- Shows which key you can press next
-    {'folke/which-key.nvim', enabled = false },
+    {'folke/which-key.nvim', opts = {
+            -- broken due to OSC52 safety over ssh
+            plugins = { registers = false }
+        }
+    },
 
     -- debug adapter protocol
     'mfussenegger/nvim-dap',
