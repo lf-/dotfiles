@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 
+export LC_GOOEYD_SOCK
 if [[ -z "$LC_GOOEYD_SOCK" ]]; then
-    echo 'missing LC_GOOEYD_SOCK env-var'
+    if command -v gooeyd >/dev/null; then
+        coproc gooeyfd { exec gooeyd --random-socket; }
+        IFS= read -r -u "${gooeyfd[0]}" sock
+        LC_GOOEYD_SOCK=$(echo "$sock" | cut -f2 -d=)
+    else
+        echo "No gooeyd here, no clipboard support available" >&2
+    fi
 fi
 
 localsock="$LC_GOOEYD_SOCK"
 export LC_GOOEYD_SOCK=/tmp/gooeyd-$RANDOM
-exec ssh -o SendEnv=LC_GOOEYD_SOCK -R "$LC_GOOEYD_SOCK:$localsock" "$@"
+[[ -n "$gooeyfd_PID" ]] && echo "gooeyd pid: $gooeyfd_PID"
+ssh -o SendEnv=LC_GOOEYD_SOCK -R "$LC_GOOEYD_SOCK:$localsock" "$@"
+[[ -n "$gooeyfd_PID" ]] && kill -TERM "$gooeyfd_PID"
