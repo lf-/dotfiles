@@ -21,6 +21,15 @@ let
 
       numpy
     ];
+
+  # https://github.com/NixOS/nixpkgs/pull/462090
+  horribleHackToFixPythonWithPackages =
+    ppkgs:
+    ppkgs.overrideAttrs (oldAttrs: {
+      postBuild =
+        assert !(lib.hasInfix "--resolve-argv0" oldAttrs.postBuild);
+        lib.replaceString "--inherit-argv0" "--inherit-argv0 --resolve-argv0" oldAttrs.postBuild;
+    });
   inherit (pkgs) lib stdenv;
 in
 lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
@@ -55,7 +64,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     pipenv
     poetry
 
-    (python3.withPackages pyPkgs)
+    (horribleHackToFixPythonWithPackages (python3.withPackages pyPkgs))
   ]
   ++ import ../base/packages.nix { inherit pkgs; }
   ++ lib.optionals (!stdenv.isDarwin) (
