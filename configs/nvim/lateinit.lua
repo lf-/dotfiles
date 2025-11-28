@@ -554,12 +554,6 @@ augroup('reload queries on query save', function(autocmd) -- https://github.com/
     )
 end)
 
-vim.filetype.add({
-    extension = {
-        xsh = 'xonsh'
-    }
-})
-
 augroup('filetype syntax', function(autocmd)
     autocmd(
         'FileType',
@@ -630,37 +624,43 @@ augroup('formatoptions', function(autocmd)
     )
 end)
 
-augroups.setfiletypes('filetypedetection', {
-    -- shakespearean templates ≈ their respective languages, and I'd rather have
-    -- shitty highlighting than no highlighting
-    {'*.julius', 'javascript'},
-    {'*.cassius', 'css'},
-    {'*.hamlet', 'html'},
+vim.filetype.add({
+    extension = {
+        xsh = 'xonsh',
 
-    -- oh, homebrew...
-    {'Brewfile', 'ruby'},
+        -- shakespearean templates ≈ their respective languages, and I'd rather have
+        -- shitty highlighting than no highlighting
+        julius = 'javascript',
+        cassius = 'css',
+        hamlet = 'html',
 
-    -- git revise -i has the same syntax as git rebase, to a first degree
-    {'git-revise-todo', 'gitrebase'},
+        -- typst files are misdetected as sql
+        typ = 'typst',
 
-    -- new style git config does not get filetype'd properly
-    {'*/git/config', 'gitconfig'},
+        -- Buck extension language is just bazel
+        bxl = 'bzl',
+        -- Not bazel, but starlark
+        sky = 'starlark',
+    },
+    filename = {
+        ['PACKAGE'] = 'bzl',
 
-    -- coc-settings is actually json+comments
-    {'coc-settings.json', 'jsonc'},
+        -- coc-settings is actually json+comments
+        ['coc-settings.json'] = 'jsonc',
 
-    -- typst files are misdetected as sql
-    {'*.typ', 'typst'},
+        -- Local envrc files are shell
+        ['.env.local'] = 'sh',
+        ['.envrc.local'] = 'sh',
 
-    -- Buck extension language is just bazel
-    {'*.bxl', 'bzl'},
-    {'PACKAGE', 'bzl'},
-    -- Not bazel, but starlark
-    {'*.sky', 'starlark'},
-
-    -- Local envrc files are shell
-    {'.env.local', 'sh'},
-    {'.envrc.local', 'sh'},
+        -- git revise -i has the same syntax as git rebase, to a first degree
+        ['git-revise-todo'] = 'gitrebase',
+        -- oh, homebrew...
+        ['Brewfile'] = 'ruby',
+    },
+    pattern = {
+        -- new style git config does not get filetype'd properly
+        ['*/git/config'] = 'gitconfig',
+    }
 })
 
 vim.api.nvim_exec('runtime lateinit-site.lua', false)

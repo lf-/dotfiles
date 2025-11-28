@@ -29,7 +29,7 @@ return {
     'nvim-telescope/telescope-fzy-native.nvim',
 
     -- completion
-    {'neoclide/coc.nvim', branch = 'release'},
+    { 'neoclide/coc.nvim',     branch = 'release' },
     'mattn/emmet-vim',
 
     -- UI
@@ -50,10 +50,15 @@ return {
     'nvim-treesitter/nvim-treesitter-context',
     'p00f/nvim-ts-rainbow',
     -- Shows which key you can press next
-    {'folke/which-key.nvim', opts = {
-            -- broken due to OSC52 safety over ssh
-            plugins = { registers = false }
-        }
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        opts = {
+            plugins = {
+                -- broken due to OSC52 safety over ssh
+                registers = false,
+            },
+        },
     },
 
     -- debug adapter protocol
