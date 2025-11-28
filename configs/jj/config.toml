@@ -48,6 +48,15 @@ builtin_log_compact
 )
 '''
 
+[template-aliases]
+# Extract `[DUX-1234]` or `DUX-1234` at the start of a description into
+# `DUX-1234`.
+"jira_issue_prefix(description)" = '''
+  description
+    .match(regex:'^\[?[[:upper:]]+-[[:digit:]]+\]?[[:blank:]]+')
+    .replace(regex:'[[:blank:]\[\]]+', "")
+'''
+
 [git]
 private-commits = "description(glob:'wip:*') | description(glob:'private:*')"
 
@@ -81,6 +90,8 @@ check = [
 pr = ["util", "exec", "jj-pr"]
 rev-parse = ["log", "--no-graph", "--template", 'commit_id ++ "\n"', "--revisions"]
 rt = ["rebase", "-d", "trunk()"]
+tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
+init = ["git", "init", "--colocate"]
 
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669
