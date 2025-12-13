@@ -16,7 +16,7 @@ return {
     'tpope/vim-surround',
     'godlygeek/tabular',
     -- Better functionality for the % motion
-    'andymass/vim-matchup',
+    -- 'andymass/vim-matchup',
 
     'jbyuki/instant.nvim',
 
