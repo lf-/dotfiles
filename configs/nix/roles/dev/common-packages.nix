@@ -48,6 +48,9 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # fuzzy finder
   skim
 
+  # lean version manager
+  elan
+
   # silly file copier
   copyparty-min
 
