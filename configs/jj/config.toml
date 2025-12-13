@@ -92,6 +92,7 @@ rev-parse = ["log", "--no-graph", "--template", 'commit_id ++ "\n"', "--revision
 rt = ["rebase", "-d", "trunk()"]
 tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
 init = ["git", "init", "--colocate"]
+track = ["bookmark", "track"]
 
 [revset-aliases]
 # https://github.com/jj-vcs/jj/discussions/5669
