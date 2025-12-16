@@ -1,3 +1,4 @@
+#!/usr/bin/env cabal
 {-# LANGUAGE GHC2021 #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -21,7 +22,7 @@ build-depends: aeson
 
 import Control.Monad (msum)
 import Control.Monad.ST (runST)
-import Data.Aeson (KeyValue (..), (.:), (.:?))
+import Data.Aeson (KeyValue (..), (.:), (.:?), (.!=))
 import Data.Aeson qualified as A
 import Data.Aeson.KeyMap qualified as KM
 import Data.Aeson.Types (parseEither)
@@ -161,7 +162,7 @@ procOne d =
       )
   where
     parseTerminated endTime = A.withObject "terminated" \o -> do
-      status <- o .: "status"
+      status <- o .:? "status" .!= "???"
       pure $ Terminate TerminateEvent {..}
     parseStarted startTime = A.withObject "started" \o -> do
       exe <- o .: "execution"

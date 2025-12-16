@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-exec watchman-make -p '**/*.hs' '**/BUCK' '**/*.bzl' --run "${*@Q}"
+exec watchman-make -p '**/*.cabal' '**/*.hs' '**/BUCK' '**/*.bzl' --run "${*@Q}"
