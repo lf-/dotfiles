@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - vim-plugins/**
+      - .github/**
 
 jobs:
   copybara:
@@ -16,11 +19,7 @@ jobs:
           app_id: ${{ secrets.GH_APP_ID }}
           private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
 
-      # Quality Code taken from https://github.com/lilyinstarlight/foosteros/blob/bdfcbca5a0b0124f8519b57217891efb6508f124/.github/workflows/checks.yml
-      - uses: DeterminateSystems/nix-installer-action@v16
-        with:
-          diagnostic-endpoint: ''
-          source-url: '${{ inputs.nix_installer || format(''https://install.lix.systems/lix/lix-installer-{0}-{1}'', fromJSON(''{"X64":"x86_64","X86":"i686","ARM64":"aarch64","ARM":"armv7l"}'')[runner.arch], fromJSON(''{"Linux":"linux","macOS":"darwin","Windows":"windows"}'')[runner.os]) }}'
+      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
 
       - uses: actions/checkout@v4
         with:
