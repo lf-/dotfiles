@@ -12,7 +12,7 @@
       address = "0.0.0.0";
       # FIXME: should reverse-proxy this, really. ugh.
       port = 9999;
-      scope = "/data/webdav";
+      directory = "/data/webdav";
       modify = true;
       auth = true;
       debug = true;
