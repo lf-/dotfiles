@@ -223,11 +223,11 @@
     "lix": {
       "flake": false,
       "locked": {
-        "lastModified": 1765133374,
-        "narHash": "sha256-YB3B2Z8bcsV+v3D3X1ZL6Ok/wER0LR4gLoR7W0Pv7Mg=",
-        "rev": "6410748c9f3bd6688ad0010ec3aa838ac40da10f",
+        "lastModified": 1766264413,
+        "narHash": "sha256-Ipe7pTY1Tl/3OcGQxREkk3KT0rm3dItrtAf5FR3M/v0=",
+        "rev": "39ee6829b29898dd33f16c93e2f961fef9cba170",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/6410748c9f3bd6688ad0010ec3aa838ac40da10f.tar.gz?rev=6410748c9f3bd6688ad0010ec3aa838ac40da10f"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/39ee6829b29898dd33f16c93e2f961fef9cba170.tar.gz?rev=39ee6829b29898dd33f16c93e2f961fef9cba170"
       },
       "original": {
         "type": "tarball",
@@ -248,11 +248,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1764519849,
-        "narHash": "sha256-XnNABKfIYKSimQVvKc9FnlC2H0LurOhd9MS6l0Z67lE=",
-        "rev": "6c95c0b6f73f831226453fc6905c216ab634c30f",
+        "lastModified": 1766242842,
+        "narHash": "sha256-WRWsYt3d4xod9+2SVJ1h7RH+rHo4Fjk/R1neEWdecaE=",
+        "rev": "9b76a77150b4ed4f7066f641f54791b1ac4c778c",
         "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/6c95c0b6f73f831226453fc6905c216ab634c30f.tar.gz?rev=6c95c0b6f73f831226453fc6905c216ab634c30f"
+        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/9b76a77150b4ed4f7066f641f54791b1ac4c778c.tar.gz?rev=9b76a77150b4ed4f7066f641f54791b1ac4c778c"
       },
       "original": {
         "type": "tarball",
@@ -277,11 +277,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1765094762,
-        "narHash": "sha256-w6NDNLBs95nBiNIl7OQDgr7oTT/GekSK0q8PKZm5Nj4=",
-        "rev": "efed18dfab8df143928588590e6093cf99f0e663",
+        "lastModified": 1766254170,
+        "narHash": "sha256-tnP+d+Wuhkl/cXyMBs90r6BygfsxRDJYZ16xpG/o43Y=",
+        "rev": "cab52b36dca5a5a368f05bd03fca0b543b5b9a3e",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable-small/nixos-26.05pre908298.efed18dfab8d/nixexprs.tar.xz?lastModified=1765094762&rev=efed18dfab8df143928588590e6093cf99f0e663"
+        "url": "https://releases.nixos.org/nixos/unstable-small/nixos-26.05pre914610.cab52b36dca5/nixexprs.tar.xz?lastModified=1766254170&rev=cab52b36dca5a5a368f05bd03fca0b543b5b9a3e"
       },
       "original": {
         "type": "tarball",
