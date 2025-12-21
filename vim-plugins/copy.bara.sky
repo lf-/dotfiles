@@ -2,6 +2,8 @@
 # Samples:
 # - https://gbmc.googlesource.com/gbmcweb/+/18b9660b19781b7ae1feefc6f68cd7771761ea63/copy.bara.sky
 # - https://github.com/cap-collectif/copybara-action/blob/cdde3b5cd2e350bf0fa2978c03fe9ca2f67fe3ae/src/copy.bara.sky.ts#L39
+# - https://gbmc.googlesource.com/gPowerD/+/ddf71f581843cdc643e98c55d29755020a754005/google3/production/borg_mgmt/node_proxy/safepower/safepower_agent/copy.bara.sky
+# - https://android.googlesource.com/platform/external/linux-firmware/+/HEAD/copy.bara.sky
 #
 # Run initially with e.g.:
 # copybara --force --validate-starlark --ignore-noop -v --init-history ./vim-plugins/copy.bara.sky buck2_nvim_to_local refs/heads/wip
@@ -12,7 +14,10 @@
 # 	--git-destination-url="$(dirname "$(readlink -f "$0")")" \
 # 	--git-destination-push="${copybara_branch}" \
 # 	"${fw_name}"
-load("//vim-plugins/spdx_checker", "validate_spdx")
+#
+# If you want to do local-destination testing of a remote-origin workflow you
+# can do that with:
+# copybara migrate vim-plugins/copy.bara.sky --to-folder haskell_nvim_to_github refs/heads/main --squash
 
 # local source of truth
 LOCAL_SOT = 'file:///home/jade/.dotfiles'
