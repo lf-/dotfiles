@@ -1,6 +1,9 @@
 { lib, pkgs, ... }:
 let
   creds = import ../../lib/creds.nix;
+
+  # you can unlock non-interactively with `echo password | ssh host-locked
+  # systemd-tty-ask-password-agent --query`
 in
 {
   boot.initrd = {
