@@ -173,7 +173,6 @@
           (import ../../programs/hsutils/overlay.nix { ghcVer = "ghc98"; })
           (import ./overlays/jadeware.nix)
           (import ./overlays/vendor-pkgs.nix)
-          (import ./overlays/watchman)
           # FIXME: this is obviously nonsense and this other stuff should just
           # get migrated later.
           (import ./overlays/packages.nix)

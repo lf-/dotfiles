@@ -132,7 +132,7 @@
     iw
     powertop
 
-    jetbrains.idea-community
+    jetbrains.idea-oss
     ios-webkit-debug-proxy
     libimobiledevice
     ifuse

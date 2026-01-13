@@ -43,12 +43,15 @@
     3979
   ];
 
-  /*environment.systemPackages = with pkgs; [
+  programs.steam.enable = true;
+
+  environment.systemPackages = with pkgs; [
     # i dont want literally any of the gpg stuff, just the agent
     config.programs.gnupg.agent.pinentryPackage
     prismlauncher
     openttd
     virt-manager
+    vesktop
 
     # photography software not written by ridiculously toxic people
     digikam
@@ -63,7 +66,7 @@
     iw
     powertop
 
-    jetbrains.idea-community
+    jetbrains.idea-oss
     ios-webkit-debug-proxy
     libimobiledevice
     ifuse
@@ -78,7 +81,7 @@
     # filelight
 
     yt-dlp
-  ]; */
+  ];
 
   boot.initrd.systemd = {
     enable = true;

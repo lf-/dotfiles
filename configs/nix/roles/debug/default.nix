@@ -5,7 +5,7 @@
     whois
     nethogs
     ethtool
-    dogdns
+    doggo
     bind.dnsutils
     tcpdump
   ];
