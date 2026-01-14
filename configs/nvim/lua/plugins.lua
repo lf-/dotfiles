@@ -21,7 +21,8 @@ return {
     'jbyuki/instant.nvim',
 
     'tpope/vim-dispatch',
-    'tpope/vim-fugitive',
+    -- tpope merge your prs please https://github.com/tpope/vim-fugitive/pull/2218
+    { 'jbyler/vim-fugitive', branch = 'issues/2217', commit = '8be24e3f54376a725c9f9a2f624336a6f332e21d' },
     'tpope/vim-eunuch',
 
     { 'nvim-lua/plenary.nvim', lazy = true },
