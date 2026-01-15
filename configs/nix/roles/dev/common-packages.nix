@@ -11,7 +11,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # cmake-language-server
   cntr
   git-credential-oauth
-  git-credential-manager
+  # broken: https://github.com/NixOS/nixpkgs/issues/483584#issuecomment-3801579720
+  # git-credential-manager
   git-absorb
   git-revise
   gitleaks
@@ -102,6 +103,9 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   pycrashreport
 
   awscli2
+
+  # vibe coding nonsense
+  opencode
 
   # FIXME: this probably should not be in here since it doesn't do much good
   # for VMs. but bleh effort.

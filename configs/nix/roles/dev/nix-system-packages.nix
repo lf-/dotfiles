@@ -36,7 +36,6 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     tmux
     gh
     fd
-    gdb
     jq
     graphviz
     universal-ctags
@@ -63,6 +62,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     with pkgs;
     [
       man-pages
+      gdb
     ]
   )
   # replace apple's bad tools
@@ -83,6 +83,9 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
       # sketchy but necessary tbh
       bashInteractive
       bash-completion
+
+      # proper find
+      findutils
 
       # mac app store cli
       mas
