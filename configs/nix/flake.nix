@@ -166,7 +166,7 @@
     let
       pkgs = import nixpkgs {
         config.allowUnfree = true;
-        overlays = [
+        overlays = (import ./overlays/patches) ++ [
           (import ./overlays/aiopanel.nix { inherit aiobspwm aiopanel; })
           (import ./overlays/gitignore.nix { gitignore = inputs.gitignore; })
           (import ./overlays/polkadots.nix { inherit polkadots; })

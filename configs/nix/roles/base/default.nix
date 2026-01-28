@@ -12,7 +12,7 @@
     import ./packages.nix { inherit pkgs; }
   );
 
-  nixpkgs.overlays = [
+  nixpkgs.overlays = (import ../../overlays/patches) ++ [
     (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })
     (import ../../overlays/vendor-pkgs.nix)
   ];
