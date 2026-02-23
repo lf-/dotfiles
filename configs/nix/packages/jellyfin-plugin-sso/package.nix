@@ -1,19 +1,25 @@
 { lib, fetchFromGitHub, dotnetCorePackages, buildDotnetModule, yq }:
 buildDotnetModule rec {
   pname = "jellyfin-plugin-sso";
-  version = "3.5.2.4";
+  version = "4.0.0.3";
 
   src = fetchFromGitHub {
     owner = "9p4";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-ilpMt/2QbInbRDZMt/W9qwL3D/EOVuZ4jLObdokQ86c=";
+    hash = "sha256-xaOqKX1sRTpFN/SuiYAnIc4wIM4eiz+JMqHWQp2xHf8=";
   };
 
+  prePatch = ''
+    # you dont need f# lol
+    rm -rf SSO-Auth/Lib
+    substituteInPlace SSO-Auth/Api/SSOController.cs --replace-fail 'using SSO_Auth.Lib;' ""
+  '';
+
   projectFile = "SSO-Auth/SSO-Auth.csproj";
-  nugetDeps = ./deps.nix;
-  dotnet-sdk = dotnetCorePackages.sdk_8_0;
-  dotnet-runtime = dotnetCorePackages.aspnetcore_8_0;
+  nugetDeps = ./deps.json;
+  dotnet-sdk = dotnetCorePackages.sdk_9_0;
+  dotnet-runtime = dotnetCorePackages.aspnetcore_9_0;
   dotnetBuildFlags = [ "--no-self-contained" "-p:AssemblyVersion=${version}" "-p:FileVersion=${version}" ];
   dotnetInstallFlags = [ "-p:Version=${version}" ];
 
@@ -36,7 +42,8 @@ buildDotnetModule rec {
   '';
 
   fixupPhase = ''
-    artifacts=("IdentityModel.OidcClient.dll" "IdentityModel.dll" "SSO-Auth.dll" "SSO-Auth.pdb")
+    ls -R $out
+    artifacts=("Duende.IdentityModel.dll" "Duende.IdentityModel.OidcClient.dll" "SSO-Auth.dll" "SSO-Auth.pdb")
     for artifact in "''${artifacts[@]}"; do
       mv $out/lib/jellyfin-plugin-sso/$artifact $out
     done

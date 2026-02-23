@@ -1,4 +1,9 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   cfg = config.jade.kanidm;
   baseDomain = "id.jade.fyi";
@@ -10,28 +15,41 @@ let
     src = ./on-renew.sh;
     isExecutable = true;
     replacements = {
-      path = [ config.systemd.package pkgs.coreutils pkgs.util-linux ];
+      path = [
+        config.systemd.package
+        pkgs.coreutils
+        pkgs.util-linux
+      ];
       domains = [ thisMachine ];
       inherit (pkgs) bash;
       inherit restartUnits;
     };
   };
 
-  package = pkgs.kanidm;
+  package = pkgs.kanidm_1_8;
 
   makeWrapperArgs = "--run ${lib.escapeShellArg ''
     export KANIDM_TLS_KEY=$CREDENTIALS_DIRECTORY/tls.key
     export KANIDM_TLS_CHAIN=$CREDENTIALS_DIRECTORY/tls.crt
   ''}";
 
-  wrapped = pkgs.runCommand "kanidm-wrapped" { buildInputs = [ pkgs.xorg.lndir pkgs.makeWrapper ]; } ''
-    mkdir -p $out
-    lndir ${package} $out
-    rm $out/bin/kanidmd
-    makeWrapper ${package}/bin/kanidmd \
-      $out/bin/kanidmd \
-      ${makeWrapperArgs}
-  '';
+  wrapped =
+    pkgs.runCommand "kanidm-wrapped"
+      {
+        buildInputs = [
+          pkgs.xorg.lndir
+          pkgs.makeWrapper
+        ];
+        passthru = { inherit (package.passthru) eolMessage; };
+      }
+      ''
+        mkdir -p $out
+        lndir ${package} $out
+        rm $out/bin/kanidmd
+        makeWrapper ${package}/bin/kanidmd \
+          $out/bin/kanidmd \
+          ${makeWrapperArgs}
+      '';
 in
 {
   options = {
@@ -59,8 +77,9 @@ in
         bindaddress = "[::1]:${toString port}";
         # tls_chain = "/var/lib/caddy/certs-export/${thisMachine}/${thisMachine}.crt";
         # tls_key = "/var/lib/caddy/certs-export/${thisMachine}/${thisMachine}.key";
-        tls_chain = "/dev/null";
-        tls_key = "/dev/null";
+        # FIXME: hmmmmm this seems like nonsense
+        tls_chain = "/run/credentials/kanidm.service/tls.crt";
+        tls_key = "/run/credentials/kanidm.service/tls.key";
 
         # remember to zfs set recordsize=64k on the dataset
         db_fs_type = "zfs";
@@ -78,6 +97,17 @@ in
     systemd.services.kanidm = {
       serviceConfig = {
         BindPaths = [ "${cfg.dataDir}:/var/lib/kanidm" ];
+        # ARGH!! it bind mounts random shit that doesn't matter based on my
+        # config.
+        BindReadOnlyPaths = lib.mkForce [
+          "/nix/store"
+          # For healthcheck notifications
+          "/run/systemd/notify"
+          "-/etc/resolv.conf"
+          "-/etc/nsswitch.conf"
+          "-/etc/hosts"
+          "-/etc/localtime"
+        ];
 
         LoadCredential = [
           "tls.crt:/var/lib/caddy/certs-export/${thisMachine}/${thisMachine}.crt"
@@ -121,9 +151,8 @@ in
       '';
     };
 
-    security.polkit.extraConfig = builtins.replaceStrings
-      [ "@UNITS@" ]
-      [ (toString restartUnits) ]
-      (builtins.readFile ./polkit-rules.js);
+    security.polkit.extraConfig = builtins.replaceStrings [ "@UNITS@" ] [ (toString restartUnits) ] (
+      builtins.readFile ./polkit-rules.js
+    );
   };
 }

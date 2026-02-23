@@ -118,9 +118,7 @@ in
 
   networking.useNetworkd = true;
 
-  services.resolved.extraConfig = ''
-    DNSStubListener=no
-  '';
+  services.resolved.settings.Resolve.DNSStubListener = "no";
 
   jade.kanidm = {
     enable = true;
@@ -247,6 +245,8 @@ in
   networking.firewall.allowedTCPPorts = [
     80
     443
+    # torrent
+    1337
   ];
   services.caddy = {
     enable = true;

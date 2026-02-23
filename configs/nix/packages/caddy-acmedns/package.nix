@@ -1,8 +1,8 @@
-{ callPackage }:
-callPackage ../caddy-with-plugins/package.nix {
-  externalPlugins = [
-    { name = "acmedns"; repo = "github.com/caddy-dns/acmedns"; version = "v0.3.0"; }
-    { name = "events-exec"; repo = "github.com/mholt/caddy-events-exec"; version = "055bfd2e8b8247533c7a710e11301b7d1645c933"; }
+{ caddy }:
+caddy.withPlugins {
+  plugins = [
+    "github.com/caddy-dns/acmedns@v0.6.0"
+    "github.com/mholt/caddy-events-exec@v0.1.0"
   ];
-  vendorHash = "sha256-8mNRzCx8++RD2/H0SOYeyJDRGYx6tVIPKP81M7l1Sf0=";
+  hash = "sha256-XmgR+KDVQCviuv7xW8D1k9BaNr4HaxEnA80/19SF8uQ=";
 }
