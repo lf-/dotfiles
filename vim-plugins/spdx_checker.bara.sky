@@ -1,0 +1,53 @@
+"""
+SPDX checker for Copybara. This is a much weaker version of reuse lint with the
+intent to catch blatant errors.
+
+We probably could actually verify the correct licenses are in place as well,
+but that's a problem for later.
+"""
+
+ERROR_MSG = \
+"""
+The following files are not compliant with the REUSE specification.
+You can fix them with `reuse annotate`.
+{files}
+"""
+
+def _validate_spdx_impl(ctx):
+    files = ctx.params['files']
+    files = ctx.run(files)
+
+    missing_license = []
+    for f in files:
+        if f.name.endswith('.license'):
+            # already is a license file, don't care
+            continue
+        if f.resolve_sibling(f.name + '.license').exists():
+            # has a license file explicitly
+            continue
+        content = ctx.read_path(f)
+
+        have_copyright = False
+        have_spdx = False
+        for line in content.splitlines()[:10]:
+            if 'SPDX-License-Identifier' in line:
+                have_spdx = True
+            elif 'SPDX-FileCopyrightText' in line:
+                have_copyright = True
+
+        if not (have_spdx and have_copyright):
+            missing_license.append(f)
+
+    if missing_license:
+        fail(ERROR_MSG.format(files='\n'.join(['- ' + str(f) for f in missing_license])))
+
+    return ctx.success()
+
+
+def validate_spdx(files = glob(['**'])):
+    return core.dynamic_transform(
+        impl = _validate_spdx_impl,
+        params = {
+            'files': glob(['**'])
+        },
+    )

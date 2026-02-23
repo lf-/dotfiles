@@ -4,10 +4,18 @@
 # - https://github.com/cap-collectif/copybara-action/blob/cdde3b5cd2e350bf0fa2978c03fe9ca2f67fe3ae/src/copy.bara.sky.ts#L39
 #
 # Run initially with e.g.:
-# copybara --force --ignore-noop -v --init-history ./vim-plugins/copy.bara.sky buck2_nvim_to_local refs/heads/wip
+# copybara --force --validate-starlark --ignore-noop -v --init-history ./vim-plugins/copy.bara.sky buck2_nvim_to_local refs/heads/wip
+#
+# Other clever ideas:
+# https://android.googlesource.com/platform/external/linux-firmware/+/HEAD/run_copybara.sh#46
+# copybara --force migrate copy.bara.sky \
+# 	--git-destination-url="$(dirname "$(readlink -f "$0")")" \
+# 	--git-destination-push="${copybara_branch}" \
+# 	"${fw_name}"
+load("//vim-plugins/spdx_checker", "validate_spdx")
 
 # local source of truth
-LOCAL_SOT = 'file:///Users/jade/.dotfiles'
+LOCAL_SOT = 'file:///home/jade/.dotfiles'
 LOCAL_DEST = 'file:///tmp/copybara.test'
 
 AUTHORING = authoring.pass_thru(default = 'jade.fyi Copybara <copybara@noreply.jade.fyi>')
@@ -17,6 +25,8 @@ def includes(name):
         'LICENSE',
         'vim-plugins/{}/**'.format(name),
     ])
+
+
 
 def basic_transforms(name):
     return [
