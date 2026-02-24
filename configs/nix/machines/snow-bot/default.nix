@@ -83,10 +83,16 @@
     yt-dlp
   ];
 
+  virtualisation.libvirtd = {
+    enable = true;
+  };
+
   boot.initrd.systemd = {
     enable = true;
     emergencyAccess = "$2b$05$1wdLRpAwtirLmS3VniajbOF94vTJCkzbpp4bkQPPhSnUi7ynTJsAG";
   };
+
+  networking.useNetworkd = true;
 
   jade.dev.withHsutils = false;
 

@@ -36,7 +36,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   rufo
   gopls
   python3Packages.python-lsp-server
-  nodePackages.json-diff
+  json-diff
   postgres-language-server
   hyperfine
   taplo
@@ -79,7 +79,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   rage
   age-plugin-yubikey
   age-plugin-tpm
-  kanidm_1_8
+  # kanidm_1_8
 
   sqlite-interactive
 
@@ -117,7 +117,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # qyriad-nur-packages.cinny
 ]) ++ lib.optionals withHaskell [
   shellcheck
-  nodePackages.bash-language-server
+  bash-language-server
   nix-output-monitor
   nix-diff
   niv
