@@ -7,47 +7,112 @@ but that's a problem for later.
 """
 
 ERROR_MSG = \
-"""
+    """
 The following files are not compliant with the REUSE specification.
 You can fix them with `reuse annotate`.
 {files}
 """
 
+# https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/
+# Extremely scuffed parser. You *can* iterate regex matches, but it's a bit of
+# a puzzle box to actually do it.
+LICENSE_ID_RE = re2.compile(r"([A-Za-z0-9.-]+)\+?")
+IGNORED_KWS = ["OR", "AND", "WITH"]
+
+def _all_re_matches(regex, s, group = 0):
+    """
+    Gets all matches of a given regex group out of a matcher.
+    """
+    matcher = regex.matcher(s)
+    matches = []
+    start = None
+    for _ in range(len(s)):
+        if not matcher.find(start = start):
+            break
+        start = matcher.end()
+        matches.append(matcher.group(group))
+    return matches
+
+def parse_licenses(idstring):
+    matches = _all_re_matches(LICENSE_ID_RE, idstring, 1)
+    ret = {}
+    for m in matches:
+        if m in IGNORED_KWS:
+            continue
+        ret[m] = True
+    return ret
+
+def parse_spdx_header(lines):
+    have_copyright = False
+    have_spdx = False
+    licenses_used = {}
+    for line in lines:
+        if "SPDX-License-Identifier" in line:
+            _, _, after = line.partition("SPDX-License-Identifier: ")
+            if licenses_used:
+                fail("duplicate spdx license id line")
+            licenses_used = parse_licenses(after)
+            have_spdx = True
+        elif "SPDX-FileCopyrightText" in line:
+            have_copyright = True
+    return struct(
+        have_spdx = have_spdx,
+        have_copyright = have_copyright,
+        licenses_used = licenses_used,
+    )
+
 def _validate_spdx_impl(ctx):
-    files = ctx.params['files']
+    files = ctx.params["files"]
+
+    # default: LICENSES
+    licenses_dir = ctx.params.get("licenses_dir")
     files = ctx.run(files)
 
-    missing_license = []
+    required_licenses = {}
+    files_without_license = []
     for f in files:
-        if f.name.endswith('.license'):
+        if f.name.endswith(".license"):
             # already is a license file, don't care
             continue
-        if f.resolve_sibling(f.name + '.license').exists():
+        license_sibling = f.resolve_sibling(f.name + ".license")
+        if license_sibling.exists():
             # has a license file explicitly
+            parsed = parse_spdx_header(ctx.read_path(license_sibling).splitlines())
+            if not (parsed.have_spdx and parsed.have_copyright):
+                files_without_license.append(f)
+            required_licenses.update(parsed.licenses_used)
             continue
         content = ctx.read_path(f)
 
-        have_copyright = False
-        have_spdx = False
-        for line in content.splitlines()[:10]:
-            if 'SPDX-License-Identifier' in line:
-                have_spdx = True
-            elif 'SPDX-FileCopyrightText' in line:
-                have_copyright = True
+        parsed = parse_spdx_header(content.splitlines()[:10])
 
-        if not (have_spdx and have_copyright):
-            missing_license.append(f)
+        required_licenses.update(parsed.licenses_used)
+        if not (parsed.have_spdx and parsed.have_copyright):
+            files_without_license.append(f)
 
-    if missing_license:
-        fail(ERROR_MSG.format(files='\n'.join(['- ' + str(f) for f in missing_license])))
+    # FIXME: this isn't asserting that the licenses dir actually exists, so
+    # this may skip on account of files not being there. not ideal!
+    if licenses_dir:
+        for lic in required_licenses.keys():
+            ctx.run(core.move(
+                "{}/{}.txt".format(licenses_dir, lic),
+                "LICENSES/{}.txt".format(lic),
+            ))
+
+    if files_without_license:
+        fail(
+            ERROR_MSG.format(
+                files = "\n".join(["- " + str(f) for f in files_without_license]),
+            ),
+        )
 
     return ctx.success()
 
-
-def validate_spdx(files = glob(['**'])):
+def validate_spdx(files = glob(["**"]), licenses_dir = None):
     return core.dynamic_transform(
         impl = _validate_spdx_impl,
         params = {
-            'files': glob(['**'])
+            "files": files,
+            "licenses_dir": licenses_dir,
         },
     )
