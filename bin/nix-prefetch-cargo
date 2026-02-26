@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""
+Script to generate the cargoLock stuff for nixpkgs.
+"""
+
+import sys
+import json
+import subprocess
+import urllib.parse
+import tomllib
+import argparse
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Prefetch git dependencies from a Cargo.lock file for Nix."
+    )
+    parser.add_argument("lock_file", help="Path to the Cargo.lock file")
+    args = parser.parse_args()
+
+    with open(args.lock_file, "rb") as f:
+        data = tomllib.load(f)
+
+    packages = data.get("package", [])
+    output_hashes = {}
+    prefetch_cache = {}
+
+    for pkg in packages:
+        source = pkg.get("source", "")
+        if not source.startswith("git+"):
+            continue
+
+        # Remove 'git+' prefix
+        stripped_source = source[4:]
+
+        parsed = urllib.parse.urlparse(stripped_source)
+        # The base URL should not have query params or fragments
+        clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
+        # Determine the revision to fetch
+        # 1. Fragment is the "precise" revision (usually a full SHA)
+        # 2. Query parameters (rev, tag, branch, ref) are the symbolic reference
+        rev = parsed.fragment
+        if not rev:
+            query_params = urllib.parse.parse_qs(parsed.query)
+            # Try to find a reference in order of "preciseness"
+            for key in ["rev", "tag", "branch", "ref"]:
+                if key in query_params:
+                    rev = query_params[key][0]
+                    break
+
+        if not rev:
+            print(
+                f"Warning: No revision found for {pkg.get('name')}, skipping",
+                file=sys.stderr,
+            )
+            continue
+
+        name = pkg.get("name")
+        version = pkg.get("version")
+        key = f"{name}-{version}"
+
+        cache_key = (clean_url, rev)
+        if cache_key in prefetch_cache:
+            output_hashes[key] = prefetch_cache[cache_key]
+            continue
+
+        print(f"Prefetching {key} from {clean_url} at {rev}...", file=sys.stderr)
+
+        cmd = [
+            "nix-prefetch-git",
+            "--url",
+            clean_url,
+            "--rev",
+            rev,
+            "--fetch-submodules",
+            "--quiet",
+        ]
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            prefetch_data = json.loads(result.stdout)
+            h = prefetch_data["hash"]
+            output_hashes[key] = h
+            prefetch_cache[cache_key] = h
+        except subprocess.CalledProcessError as e:
+            print(f"Error prefetching {key}: {e.stderr}", file=sys.stderr)
+            continue
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON for {key}", file=sys.stderr)
+            continue
+
+    print("outputHashes = {")
+    for key, h in output_hashes.items():
+        print(f'  "{key}" = "{h}";')
+    print("};")
+
+
+if __name__ == "__main__":
+    main()
