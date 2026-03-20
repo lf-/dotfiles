@@ -1,3 +1,5 @@
 # Local config file, used for work config
 conf.d/local.toml
+
+# Per-repo config
 repos/
