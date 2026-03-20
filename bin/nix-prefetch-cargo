@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
 Script to generate the cargoLock stuff for nixpkgs.
+
+Avoids the tedium and multiple passes of copy pasting documented in:
+https://artemis.sh/2023/07/08/nix-rust-project-with-git-dependencies.html
 """
 
 import sys
