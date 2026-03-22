@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       kernel_version:
-        description: 'Linux kernel version to build'
+        description: 'Linux kernel version to build (for example 6.1.137, 6.8.0, 6.19.8)'
         required: true
         default: '6.1.137'
       tag_latest:
