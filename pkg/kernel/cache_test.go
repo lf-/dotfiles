@@ -24,8 +24,9 @@ func TestListUsesTrackedMetadataOnly(t *testing.T) {
 	entries, err = mgr.List()
 	require.NoError(t, err)
 	require.Len(t, entries, 1)
-	assert.Equal(t, CacheKindVersion, entries[0].Kind)
+	assert.Equal(t, CacheKindRef, entries[0].Kind)
 	assert.Equal(t, "6.1.137", entries[0].Version)
+	assert.Equal(t, ImageReference("6.1.137"), entries[0].SourceRef)
 	assert.Equal(t, "sha256:abc", entries[0].SourceDigest)
 }
 

@@ -12,8 +12,7 @@ import (
 type CacheKind string
 
 const (
-	CacheKindVersion CacheKind = "version"
-	CacheKindRef     CacheKind = "ref"
+	CacheKindRef CacheKind = "ref"
 )
 
 type CachedKernel struct {
@@ -63,6 +62,7 @@ SELECT kind, version, source_ref, source_digest, arch, path, size, created_at, u
 	defer rows.Close()
 
 	var kernels []CachedKernel
+	var stale []cacheRecord
 	for rows.Next() {
 		entry, err := scanCachedKernel(rows)
 		if err != nil {
@@ -70,9 +70,7 @@ SELECT kind, version, source_ref, source_digest, arch, path, size, created_at, u
 		}
 		if _, err := os.Stat(entry.Path); err != nil {
 			if os.IsNotExist(err) {
-				if err := m.deleteRecord(cacheRecord{Kind: entry.Kind, Version: entry.Version, SourceRef: entry.SourceRef, Arch: entry.Arch}); err != nil {
-					return nil, err
-				}
+				stale = append(stale, cacheRecord{SourceRef: entry.SourceRef, Arch: entry.Arch})
 				continue
 			}
 			return nil, errx.Wrap(ErrListKernelCache, err)
@@ -81,6 +79,14 @@ SELECT kind, version, source_ref, source_digest, arch, path, size, created_at, u
 	}
 	if err := rows.Err(); err != nil {
 		return nil, errx.Wrap(ErrListKernelCache, err)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, errx.Wrap(ErrListKernelCache, err)
+	}
+	for _, staleEntry := range stale {
+		if err := m.deleteRecord(staleEntry); err != nil {
+			return nil, err
+		}
 	}
 
 	sort.SliceStable(kernels, func(i, j int) bool {
@@ -103,26 +109,7 @@ func (m *Manager) RemoveVersion(version string) error {
 	if version == "" || filepath.Base(version) != version {
 		return errx.With(ErrRemoveKernel, ": invalid kernel version %q", version)
 	}
-
-	versionDir := filepath.Join(m.cacheDir, "kernels", version)
-	if _, err := os.Stat(versionDir); err != nil {
-		if os.IsNotExist(err) {
-			return errx.With(ErrKernelCacheNotFound, ": %s", version)
-		}
-		return errx.Wrap(ErrRemoveKernel, err)
-	}
-
-	if err := os.RemoveAll(versionDir); err != nil {
-		return errx.Wrap(ErrRemoveKernel, err)
-	}
-
-	if m.db != nil {
-		if _, err := m.db.Exec(`DELETE FROM cached_kernels WHERE kind = ? AND version = ?`, string(CacheKindVersion), version); err != nil {
-			return errx.Wrap(ErrRemoveKernel, err)
-		}
-	}
-
-	return nil
+	return m.RemoveRef(ImageReference(version))
 }
 
 func (m *Manager) RemoveRef(ref string) error {
@@ -130,7 +117,7 @@ func (m *Manager) RemoveRef(ref string) error {
 		return err
 	}
 
-	rows, err := m.db.Query(`SELECT path FROM cached_kernels WHERE kind = ? AND source_ref = ?`, string(CacheKindRef), ref)
+	rows, err := m.db.Query(`SELECT path FROM cached_kernels WHERE source_ref = ?`, ref)
 	if err != nil {
 		return errx.Wrap(ErrRemoveKernel, err)
 	}
@@ -157,7 +144,7 @@ func (m *Manager) RemoveRef(ref string) error {
 		}
 	}
 
-	if _, err := m.db.Exec(`DELETE FROM cached_kernels WHERE kind = ? AND source_ref = ?`, string(CacheKindRef), ref); err != nil {
+	if _, err := m.db.Exec(`DELETE FROM cached_kernels WHERE source_ref = ?`, ref); err != nil {
 		return errx.Wrap(ErrRemoveKernel, err)
 	}
 
@@ -190,7 +177,7 @@ func (m *Manager) reopenDB() error {
 
 func (m *Manager) recordVersionCache(version string, arch Architecture, path string, size int64, sourceRef, sourceDigest string) {
 	_ = m.upsertRecord(cacheRecord{
-		Kind:         CacheKindVersion,
+		Kind:         CacheKindRef,
 		Version:      version,
 		SourceRef:    sourceRef,
 		SourceDigest: sourceDigest,
@@ -217,9 +204,6 @@ func (m *Manager) upsertRecord(record cacheRecord) error {
 	}
 
 	cacheKey := record.SourceRef
-	if record.Kind == CacheKindVersion {
-		cacheKey = record.Version
-	}
 	if cacheKey == "" {
 		return nil
 	}
@@ -258,9 +242,6 @@ func (m *Manager) deleteRecord(record cacheRecord) error {
 	}
 
 	cacheKey := record.SourceRef
-	if record.Kind == CacheKindVersion {
-		cacheKey = record.Version
-	}
 	if _, err := m.db.Exec(`DELETE FROM cached_kernels WHERE cache_key = ? AND arch = ?`, cacheKey, string(record.Arch)); err != nil {
 		return errx.Wrap(ErrWriteKernelMetadata, err)
 	}

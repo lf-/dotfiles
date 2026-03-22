@@ -53,20 +53,14 @@ func runKernelLs(cmd *cobra.Command, args []string) error {
 	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "TYPE\tIDENTIFIER\tSOURCE REF\tARCH\tSIZE")
+	fmt.Fprintln(w, "IDENTIFIER\tARCH\tSIZE")
 	for _, entry := range entries {
-		identifier := entry.Version
-		if entry.Kind == kernel.CacheKindRef {
-			identifier = entry.SourceRef
+		identifier := entry.SourceRef
+		if identifier == "" {
+			identifier = entry.Version
 		}
-		sourceRef := entry.SourceRef
-		if sourceRef == "" {
-			sourceRef = "-"
-		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
-			entry.Kind,
+		fmt.Fprintf(w, "%s\t%s\t%s\n",
 			identifier,
-			sourceRef,
 			entry.Arch,
 			humanizeMB(entry.Size),
 		)
