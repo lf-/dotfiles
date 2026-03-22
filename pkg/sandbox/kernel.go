@@ -2,7 +2,6 @@ package sandbox
 
 import (
 	"context"
-	"os"
 
 	"github.com/jingkaihe/matchlock/pkg/api"
 	"github.com/jingkaihe/matchlock/pkg/kernel"
@@ -52,8 +51,5 @@ func recordKernelResolution(lifecycleStore *lifecycle.Store, ref, path string) {
 }
 
 func defaultKernelRefForRecord() string {
-	if envPath := os.Getenv("MATCHLOCK_KERNEL"); envPath != "" {
-		return envPath
-	}
 	return kernel.ImageReference("")
 }

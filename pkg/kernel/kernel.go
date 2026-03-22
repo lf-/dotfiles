@@ -315,10 +315,6 @@ func (m *Manager) CleanCache(version string) error {
 }
 
 func ResolveKernelPath(ctx context.Context) (string, error) {
-	if envPath := os.Getenv("MATCHLOCK_KERNEL"); envPath != "" {
-		return NewManager().EnsureKernelRef(ctx, CurrentArch(), envPath)
-	}
-
 	mgr := NewManager()
 	return mgr.EnsureKernel(ctx, CurrentArch(), Version)
 }

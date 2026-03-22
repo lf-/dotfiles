@@ -12,8 +12,7 @@ import (
 	"github.com/jingkaihe/matchlock/pkg/kernel"
 )
 
-// DefaultKernelPath returns the path to the kernel image, downloading if needed.
-// It checks in order: MATCHLOCK_KERNEL env, legacy paths, then downloads from OCI.
+// DefaultKernelPath returns the path to the default kernel image, downloading if needed.
 func DefaultKernelPath() string {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()

@@ -100,48 +100,6 @@ func TestCLIRunRejectsRelativeKernelFileRef(t *testing.T) {
 	assert.Contains(t, stderr, "file ref")
 }
 
-func TestCLIRunUsesMatchlockKernelEnvFallbackInLifecycle(t *testing.T) {
-	localKernel := copyCurrentKernelToTemp(t)
-
-	stdout, stderr, exitCode := runCLIEnvWithTimeout(
-		t,
-		2*time.Minute,
-		[]string{"MATCHLOCK_KERNEL=file://" + localKernel},
-		"run",
-		"--image", "alpine:latest",
-		"-d",
-	)
-	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
-	vmID := strings.TrimSpace(stdout)
-	require.NotEmpty(t, vmID, "stdout: %q stderr: %q", stdout, stderr)
-	require.True(t, strings.HasPrefix(vmID, "vm-"), "stdout: %q stderr: %q", stdout, stderr)
-
-	t.Cleanup(func() {
-		_, _, _ = runCLI(t, "kill", vmID)
-		_, _, _ = runCLI(t, "rm", vmID)
-	})
-
-	waitForDetachedVMExecReady(t, vmID)
-	cmdOut, _, execExit := runCLIWithTimeout(t, 30*time.Second, "exec", vmID, "echo", "env-kernel-fallback")
-	require.Equal(t, 0, execExit)
-	assert.Equal(t, "env-kernel-fallback", strings.TrimSpace(cmdOut))
-
-	inspectStdout, _, exitCode := runCLI(t, "inspect", vmID)
-	require.Equal(t, 0, exitCode)
-
-	var inspectOut struct {
-		Lifecycle struct {
-			Resources struct {
-				KernelRef  string `json:"kernel_ref"`
-				KernelPath string `json:"kernel_path"`
-			} `json:"resources"`
-		} `json:"lifecycle"`
-	}
-	require.NoError(t, json.Unmarshal([]byte(inspectStdout), &inspectOut))
-	assert.Equal(t, "file://"+localKernel, inspectOut.Lifecycle.Resources.KernelRef)
-	assert.Equal(t, localKernel, inspectOut.Lifecycle.Resources.KernelPath)
-}
-
 func waitForDetachedVMExecReady(t *testing.T, vmID string) {
 	t.Helper()
 

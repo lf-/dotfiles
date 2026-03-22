@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/jingkaihe/matchlock/pkg/api"
+	"github.com/jingkaihe/matchlock/pkg/kernel"
 	"github.com/jingkaihe/matchlock/pkg/lifecycle"
 )
 
@@ -48,22 +49,19 @@ func TestResolveKernelForConfigUsesExplicitKernelRef(t *testing.T) {
 	assert.Equal(t, localKernel, rec.Resources.KernelPath)
 }
 
-func TestResolveKernelForConfigRecordsEnvFallback(t *testing.T) {
-	home := t.TempDir()
-	t.Setenv("HOME", home)
-	localKernel := filepath.Join(t.TempDir(), "vmlinux")
-	require.NoError(t, os.WriteFile(localKernel, []byte("kernel"), 0644))
-	t.Setenv("MATCHLOCK_KERNEL", "file://"+localKernel)
-
+func TestDefaultKernelRefForRecordUsesDefaultImageReference(t *testing.T) {
 	store := lifecycle.NewStore(t.TempDir())
 	require.NoError(t, store.Init("vm-test", "backend", t.TempDir()))
 
-	path, err := resolveKernelForConfig(context.Background(), &api.Config{}, &Options{}, store)
-	require.NoError(t, err)
-	assert.Equal(t, localKernel, path)
-
 	rec, err := store.Load()
 	require.NoError(t, err)
-	assert.Equal(t, "file://"+localKernel, rec.Resources.KernelRef)
-	assert.Equal(t, localKernel, rec.Resources.KernelPath)
+	assert.Empty(t, rec.Resources.KernelRef)
+	assert.Empty(t, rec.Resources.KernelPath)
+
+	recordKernelResolution(store, defaultKernelRefForRecord(), "/tmp/kernel")
+
+	rec, err = store.Load()
+	require.NoError(t, err)
+	assert.Equal(t, kernel.ImageReference(""), rec.Resources.KernelRef)
+	assert.Equal(t, "/tmp/kernel", rec.Resources.KernelPath)
 }
