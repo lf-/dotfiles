@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -60,6 +61,8 @@ func (a Architecture) OCIPlatform() string {
 type Manager struct {
 	cacheDir string
 	registry string
+	db       *sql.DB
+	initErr  error
 }
 
 type Option func(*Manager)
@@ -85,6 +88,9 @@ func NewManager(opts ...Option) *Manager {
 	for _, opt := range opts {
 		opt(m)
 	}
+	db, err := openKernelDB(m.cacheDir)
+	m.db = db
+	m.initErr = err
 	return m
 }
 
@@ -110,14 +116,18 @@ func (m *Manager) EnsureKernel(ctx context.Context, arch Architecture, version s
 	}
 
 	kernelPath := m.KernelPath(arch, version)
+	imageRef := fmt.Sprintf("%s/kernel:%s", m.registry, version)
 
 	if _, err := os.Stat(kernelPath); err == nil {
+		m.recordVersionCache(version, arch, kernelPath, sizeOnDisk(kernelPath), imageRef, "")
 		return kernelPath, nil
 	}
 
-	if err := m.download(ctx, arch, version, kernelPath); err != nil {
+	digest, size, err := m.download(ctx, arch, version, kernelPath)
+	if err != nil {
 		return "", errx.Wrap(ErrDownloadKernel, err)
 	}
+	m.recordVersionCache(version, arch, kernelPath, size, imageRef, digest)
 
 	return kernelPath, nil
 }
@@ -141,12 +151,15 @@ func (m *Manager) EnsureKernelRef(ctx context.Context, arch Architecture, ref st
 
 	destPath := m.KernelRefPath(arch, trimmed)
 	if _, err := os.Stat(destPath); err == nil {
+		m.recordRefCache(trimmed, arch, destPath, sizeOnDisk(destPath), "")
 		return destPath, nil
 	}
 
-	if err := m.downloadRef(ctx, arch, trimmed, destPath); err != nil {
+	digest, size, err := m.downloadRef(ctx, arch, trimmed, destPath)
+	if err != nil {
 		return "", errx.Wrap(ErrDownloadKernel, err)
 	}
+	m.recordRefCache(trimmed, arch, destPath, size, digest)
 
 	return destPath, nil
 }
@@ -157,21 +170,21 @@ func (m *Manager) KernelRefPath(arch Architecture, ref string) string {
 	return filepath.Join(m.cacheDir, "kernels", "refs", refHash, arch.KernelFilename())
 }
 
-func (m *Manager) download(ctx context.Context, arch Architecture, version string, destPath string) error {
+func (m *Manager) download(ctx context.Context, arch Architecture, version string, destPath string) (string, int64, error) {
 	imageRef := fmt.Sprintf("%s/kernel:%s", m.registry, version)
 	return m.downloadRef(ctx, arch, imageRef, destPath)
 }
 
-func (m *Manager) downloadRef(ctx context.Context, arch Architecture, imageRef, destPath string) error {
+func (m *Manager) downloadRef(ctx context.Context, arch Architecture, imageRef, destPath string) (string, int64, error) {
 
 	ref, err := name.ParseReference(imageRef)
 	if err != nil {
-		return errx.With(ErrParseReference, " %s: %w", imageRef, err)
+		return "", 0, errx.With(ErrParseReference, " %s: %w", imageRef, err)
 	}
 
 	platform, err := v1.ParsePlatform(arch.OCIPlatform())
 	if err != nil {
-		return errx.Wrap(ErrParsePlatform, err)
+		return "", 0, errx.Wrap(ErrParsePlatform, err)
 	}
 
 	desc, err := remote.Get(ref,
@@ -180,63 +193,64 @@ func (m *Manager) downloadRef(ctx context.Context, arch Architecture, imageRef, 
 		remote.WithPlatform(*platform),
 	)
 	if err != nil {
-		return errx.Wrap(ErrGetDescriptor, err)
+		return "", 0, errx.Wrap(ErrGetDescriptor, err)
 	}
+	sourceDigest := desc.Digest.String()
 
 	img, err := desc.Image()
 	if err != nil {
-		return errx.Wrap(ErrGetImage, err)
+		return "", 0, errx.Wrap(ErrGetImage, err)
 	}
 
 	layers, err := img.Layers()
 	if err != nil {
-		return errx.Wrap(ErrGetLayers, err)
+		return "", 0, errx.Wrap(ErrGetLayers, err)
 	}
 
 	if len(layers) == 0 {
-		return ErrNoLayers
+		return "", 0, ErrNoLayers
 	}
 
 	layer := layers[0]
 	rc, err := layer.Uncompressed()
 	if err != nil {
-		return errx.Wrap(ErrUncompressLayer, err)
+		return "", 0, errx.Wrap(ErrUncompressLayer, err)
 	}
 	defer rc.Close()
 
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-		return errx.Wrap(ErrCreateDirectory, err)
+		return "", 0, errx.Wrap(ErrCreateDirectory, err)
 	}
 
 	// Read layer content into buffer to try multiple formats
 	content, err := io.ReadAll(rc)
 	if err != nil {
-		return errx.Wrap(ErrReadLayer, err)
+		return "", 0, errx.Wrap(ErrReadLayer, err)
 	}
 
 	kernelFilename := arch.KernelFilename()
 
 	// Try gzipped tarball first (new format)
 	if err := extractKernelFromTarGz(content, destPath, kernelFilename); err == nil {
-		return nil
+		return sourceDigest, sizeOnDisk(destPath), nil
 	}
 
 	// Try plain tarball (uncompressed)
 	if err := extractKernelFromTar(content, destPath, kernelFilename); err == nil {
-		return nil
+		return sourceDigest, sizeOnDisk(destPath), nil
 	}
 
 	// Fallback: treat as raw kernel binary (old format)
 	tmpPath := destPath + ".tmp"
 	if err := os.WriteFile(tmpPath, content, 0644); err != nil {
-		return errx.Wrap(ErrWriteKernel, err)
+		return "", 0, errx.Wrap(ErrWriteKernel, err)
 	}
 	if err := os.Rename(tmpPath, destPath); err != nil {
 		os.Remove(tmpPath)
-		return errx.Wrap(ErrRenameKernel, err)
+		return "", 0, errx.Wrap(ErrRenameKernel, err)
 	}
 
-	return nil
+	return sourceDigest, sizeOnDisk(destPath), nil
 }
 
 func extractKernelFromTarGz(data []byte, destPath, kernelFilename string) error {
@@ -356,4 +370,12 @@ func parseFileRef(ref string) (string, error) {
 		return "", errx.With(ErrInvalidKernelRef, ": file path must be absolute")
 	}
 	return path, nil
+}
+
+func sizeOnDisk(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
 }

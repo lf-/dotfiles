@@ -4,6 +4,12 @@ import "errors"
 
 var (
 	ErrDownloadKernel       = errors.New("download kernel")
+	ErrKernelMetadataInit   = errors.New("initialize kernel metadata")
+	ErrListKernelCache      = errors.New("list kernel cache")
+	ErrReadKernelMetadata   = errors.New("read kernel metadata")
+	ErrWriteKernelMetadata  = errors.New("write kernel metadata")
+	ErrRemoveKernel         = errors.New("remove kernel")
+	ErrKernelCacheNotFound  = errors.New("kernel cache entry not found")
 	ErrInvalidKernelRef     = errors.New("invalid kernel reference")
 	ErrKernelPath           = errors.New("resolve kernel path")
 	ErrKernelNotFoundOnDisk = errors.New("kernel file not found")
