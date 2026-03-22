@@ -31,6 +31,76 @@ func copyCurrentKernelToTemp(t *testing.T) string {
 	return dst
 }
 
+func assertKernelMetadata(t *testing.T, vmID, expectedRef, expectedPath string) {
+	t.Helper()
+
+	getStdout, _, exitCode := runCLI(t, "get", vmID)
+	require.Equal(t, 0, exitCode)
+
+	var getOut struct {
+		Config struct {
+			Kernel map[string]interface{} `json:"kernel"`
+		} `json:"config"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(getStdout), &getOut))
+	require.NotNil(t, getOut.Config.Kernel)
+	assert.Equal(t, expectedRef, getOut.Config.Kernel["ref"])
+
+	inspectStdout, _, exitCode := runCLI(t, "inspect", vmID)
+	require.Equal(t, 0, exitCode)
+
+	var inspectOut struct {
+		Lifecycle struct {
+			Resources struct {
+				KernelRef  string `json:"kernel_ref"`
+				KernelPath string `json:"kernel_path"`
+			} `json:"resources"`
+		} `json:"lifecycle"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(inspectStdout), &inspectOut))
+	assert.Equal(t, expectedRef, inspectOut.Lifecycle.Resources.KernelRef)
+	assert.Equal(t, expectedPath, inspectOut.Lifecycle.Resources.KernelPath)
+}
+
+func createWithOptions(t *testing.T, opts sdk.CreateOptions) *sdk.Client {
+	t.Helper()
+
+	if opts.CPUs == 0 {
+		opts.CPUs = acceptanceDefaultCPUs
+	}
+
+	client, err := sdk.NewClient(matchlockConfig(t))
+	require.NoError(t, err, "NewClient")
+
+	t.Cleanup(func() {
+		_ = client.Close(0)
+		_ = client.Remove()
+	})
+
+	type createResult struct {
+		id  string
+		err error
+	}
+
+	done := make(chan createResult, 1)
+	go func() {
+		id, createErr := client.Create(opts)
+		done <- createResult{id: id, err: createErr}
+	}()
+
+	select {
+	case result := <-done:
+		require.NoError(t, result.err, "Create")
+		require.NotEmpty(t, result.id)
+	case <-time.After(launchTimeout):
+		_ = client.Close(0)
+		_ = client.Remove()
+		require.FailNowf(t, "Create timed out", "image=%s timeout=%s", opts.Image, launchTimeout)
+	}
+
+	return client
+}
+
 func TestCLIRunWithKernelFileRefPersistsKernelMetadata(t *testing.T) {
 	localKernel := copyCurrentKernelToTemp(t)
 
@@ -56,33 +126,7 @@ func TestCLIRunWithKernelFileRefPersistsKernelMetadata(t *testing.T) {
 	cmdOut, _, execExit := runCLIWithTimeout(t, 30*time.Second, "exec", vmID, "echo", "kernel-file-ref")
 	require.Equal(t, 0, execExit)
 	assert.Equal(t, "kernel-file-ref", strings.TrimSpace(cmdOut))
-
-	getStdout, _, exitCode := runCLI(t, "get", vmID)
-	require.Equal(t, 0, exitCode)
-
-	var getOut struct {
-		Config struct {
-			Kernel map[string]interface{} `json:"kernel"`
-		} `json:"config"`
-	}
-	require.NoError(t, json.Unmarshal([]byte(getStdout), &getOut))
-	require.NotNil(t, getOut.Config.Kernel)
-	assert.Equal(t, "file://"+localKernel, getOut.Config.Kernel["ref"])
-
-	inspectStdout, _, exitCode := runCLI(t, "inspect", vmID)
-	require.Equal(t, 0, exitCode)
-
-	var inspectOut struct {
-		Lifecycle struct {
-			Resources struct {
-				KernelRef  string `json:"kernel_ref"`
-				KernelPath string `json:"kernel_path"`
-			} `json:"resources"`
-		} `json:"lifecycle"`
-	}
-	require.NoError(t, json.Unmarshal([]byte(inspectStdout), &inspectOut))
-	assert.Equal(t, "file://"+localKernel, inspectOut.Lifecycle.Resources.KernelRef)
-	assert.Equal(t, localKernel, inspectOut.Lifecycle.Resources.KernelPath)
+	assertKernelMetadata(t, vmID, "file://"+localKernel, localKernel)
 }
 
 func TestCLIRunRejectsRelativeKernelFileRef(t *testing.T) {
@@ -114,7 +158,7 @@ func waitForDetachedVMExecReady(t *testing.T, vmID string) {
 	require.FailNowf(t, "timed out waiting for detached sandbox exec readiness", "vmID=%s", vmID)
 }
 
-func TestGoSDKKernelRefPersistsInStateAndLifecycle(t *testing.T) {
+func TestGoSDKWithKernelPersistsInStateAndLifecycle(t *testing.T) {
 	t.Parallel()
 
 	localKernel := copyCurrentKernelToTemp(t)
@@ -126,31 +170,47 @@ func TestGoSDKKernelRefPersistsInStateAndLifecycle(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 0, result.ExitCode)
 	assert.Equal(t, "sdk-kernel-ref", strings.TrimSpace(result.Stdout))
+	assertKernelMetadata(t, vmID, "file://"+localKernel, localKernel)
+}
 
-	getStdout, _, exitCode := runCLI(t, "get", vmID)
-	require.Equal(t, 0, exitCode)
+func TestGoSDKCreateOptionsKernelRefPersistsInStateAndLifecycle(t *testing.T) {
+	t.Parallel()
 
-	var getOut struct {
-		Config struct {
-			Kernel map[string]interface{} `json:"kernel"`
-		} `json:"config"`
-	}
-	require.NoError(t, json.Unmarshal([]byte(getStdout), &getOut))
-	require.NotNil(t, getOut.Config.Kernel)
-	assert.Equal(t, "file://"+localKernel, getOut.Config.Kernel["ref"])
+	localKernel := copyCurrentKernelToTemp(t)
+	client := createWithOptions(t, sdk.CreateOptions{
+		Image:     "alpine:latest",
+		KernelRef: "file://" + localKernel,
+	})
+	vmID := client.VMID()
+	require.NotEmpty(t, vmID)
 
-	inspectStdout, _, exitCode := runCLI(t, "inspect", vmID)
-	require.Equal(t, 0, exitCode)
+	result, err := client.Exec(context.Background(), "echo sdk-create-kernel-ref")
+	require.NoError(t, err)
+	assert.Equal(t, 0, result.ExitCode)
+	assert.Equal(t, "sdk-create-kernel-ref", strings.TrimSpace(result.Stdout))
+	assertKernelMetadata(t, vmID, "file://"+localKernel, localKernel)
+}
 
-	var inspectOut struct {
-		Lifecycle struct {
-			Resources struct {
-				KernelRef  string `json:"kernel_ref"`
-				KernelPath string `json:"kernel_path"`
-			} `json:"resources"`
-		} `json:"lifecycle"`
-	}
-	require.NoError(t, json.Unmarshal([]byte(inspectStdout), &inspectOut))
-	assert.Equal(t, "file://"+localKernel, inspectOut.Lifecycle.Resources.KernelRef)
-	assert.Equal(t, localKernel, inspectOut.Lifecycle.Resources.KernelPath)
+func TestGoSDKCreateOptionsRejectsRelativeKernelFileRef(t *testing.T) {
+	t.Parallel()
+
+	client, err := sdk.NewClient(matchlockConfig(t))
+	require.NoError(t, err, "NewClient")
+	t.Cleanup(func() {
+		_ = client.Close(0)
+		_ = client.Remove()
+	})
+
+	_, err = client.Create(sdk.CreateOptions{
+		Image:     "alpine:latest",
+		CPUs:      acceptanceDefaultCPUs,
+		KernelRef: "file://kernel",
+	})
+	require.Error(t, err)
+
+	var rpcErr *sdk.RPCError
+	require.ErrorAs(t, err, &rpcErr)
+	assert.Equal(t, sdk.ErrCodeVMFailed, rpcErr.Code)
+	assert.Contains(t, rpcErr.Message, "invalid kernel reference")
+	assert.Contains(t, rpcErr.Message, "file ref")
 }
