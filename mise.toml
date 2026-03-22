@@ -11,7 +11,7 @@ goreleaser = "latest"
 
 [env]
 _.path = ["~/go/bin"]
-KERNEL_VERSION = "6.1.137"
+KERNEL_VERSION = "6.19.8"
 OUTPUT_DIR = "{{env.HOME}}/.cache/matchlock"
 REGISTRY = "ghcr.io/jingkaihe/matchlock"
 
@@ -235,6 +235,19 @@ BASE_OUTPUT_DIR="${OUTPUT_DIR:-$HOME/.cache/matchlock}"
 
 for version in 6.1.137 6.8.0 6.19.8; do
   OUTPUT_DIR="$BASE_OUTPUT_DIR/kernels/$version" KERNEL_VERSION="$version" ARCH=all ./scripts/build-kernel.sh
+done
+"""
+
+[tasks."kernel:publish:supported"]
+description = "Publish all officially supported kernel versions"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_OUTPUT_DIR="${OUTPUT_DIR:-$HOME/.cache/matchlock}"
+
+for version in 6.1.137 6.8.0 6.19.8; do
+  INPUT_DIR="$BASE_OUTPUT_DIR/kernels/$version" KERNEL_VERSION="$version" REGISTRY="$REGISTRY" ./scripts/publish-kernel.sh
 done
 """
 

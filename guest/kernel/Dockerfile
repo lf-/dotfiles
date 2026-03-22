@@ -8,11 +8,11 @@
 #   output-arm64    - Minimal output (scratch) containing only the kernel binary
 #
 # Usage:
-#   docker build --build-arg KERNEL_VERSION=6.1.137 \
+#   docker build --build-arg KERNEL_VERSION=6.19.8 \
 #     --build-arg KERNEL_SOURCE_VERSION=6.8 \
 #     --target output-x86_64 --output type=local,dest=./out .
 
-ARG KERNEL_VERSION=6.1.137
+ARG KERNEL_VERSION=6.19.8
 ARG KERNEL_SOURCE_VERSION
 
 # ---------------------------------------------------------------------------

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version = "6.1.137"
+	Version = "6.19.8"
 
 	DefaultRegistry = "ghcr.io/jingkaihe/matchlock"
 )

@@ -7,7 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOCKERFILE_DIR="$SCRIPT_DIR/../guest/kernel"
-KERNEL_VERSION="${KERNEL_VERSION:-6.1.137}"
+KERNEL_VERSION="${KERNEL_VERSION:-6.19.8}"
 KERNEL_SOURCE_VERSION="${KERNEL_SOURCE_VERSION:-$($SCRIPT_DIR/kernel-source-version.sh "$KERNEL_VERSION")}"
 KERNEL_SOURCE_VERSION="${KERNEL_SOURCE_VERSION% }"
 OUTPUT_DIR="${OUTPUT_DIR:-$HOME/.cache/matchlock/kernels/$KERNEL_VERSION}"
@@ -18,7 +18,7 @@ print_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  KERNEL_VERSION=6.1.137   Linux kernel version (default: 6.1.137)"
+    echo "  KERNEL_VERSION=6.19.8    Linux kernel version (default: 6.19.8)"
     echo "  KERNEL_SOURCE_VERSION    Override upstream kernel.org tarball version"
     echo "  OUTPUT_DIR=path          Output directory (default: ~/.cache/matchlock/kernels/\$VERSION)"
     echo "  ARCH=x86_64|arm64|all    Architecture to build (default: all)"
