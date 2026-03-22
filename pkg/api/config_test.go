@@ -96,6 +96,16 @@ func TestGetHostname_NilNetworkFallsBackToGeneratedID(t *testing.T) {
 	assert.Equal(t, hostname, cfg.ID)
 }
 
+func TestConfigMerge_KernelOverridesDefault(t *testing.T) {
+	base := DefaultConfig()
+	base.Kernel = &KernelConfig{Ref: "ghcr.io/jingkaihe/matchlock/kernel:6.1.137"}
+
+	merged := base.Merge(&Config{Kernel: &KernelConfig{Ref: "file:///tmp/kernel"}})
+
+	require.NotNil(t, merged.Kernel)
+	assert.Equal(t, "file:///tmp/kernel", merged.Kernel.Ref)
+}
+
 func TestNetworkConfigValidateNoNetworkWithAllowedHosts(t *testing.T) {
 	cfg := &NetworkConfig{
 		NoNetwork:    true,

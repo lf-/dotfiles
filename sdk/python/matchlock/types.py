@@ -433,6 +433,9 @@ class CreateOptions:
     image: str = ""
     """Container image reference (required, e.g., alpine:latest)."""
 
+    kernel_ref: str = ""
+    """Guest kernel ref: empty(default), file:///absolute/path, or OCI ref."""
+
     privileged: bool = False
     """Skip in-guest security restrictions (seccomp, cap drop, no_new_privs)."""
 

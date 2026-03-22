@@ -31,6 +31,13 @@ func (b *SandboxBuilder) WithPrivileged() *SandboxBuilder {
 	return b
 }
 
+// WithKernel selects the guest kernel to boot.
+// Supports empty (default), file:///absolute/path, or OCI image refs.
+func (b *SandboxBuilder) WithKernel(ref string) *SandboxBuilder {
+	b.opts.KernelRef = ref
+	return b
+}
+
 // WithCPUs sets the number of vCPUs.
 func (b *SandboxBuilder) WithCPUs(cpus float64) *SandboxBuilder {
 	b.opts.CPUs = cpus

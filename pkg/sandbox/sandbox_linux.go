@@ -207,9 +207,12 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 	backend := linux.NewLinuxBackend()
 
-	kernelPath := opts.KernelPath
-	if kernelPath == "" {
-		kernelPath = DefaultKernelPath()
+	kernelPath, err := resolveKernelForConfig(ctx, config, opts, lifecycleStore)
+	if err != nil {
+		releaseSubnet()
+		cleanupRootDisks()
+		stateMgr.Unregister(id)
+		return nil, errx.Wrap(ErrCreateVM, err)
 	}
 
 	var extraDisks []vm.DiskConfig

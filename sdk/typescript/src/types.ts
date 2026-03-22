@@ -219,6 +219,7 @@ export interface NetworkInterceptionConfig {
 
 export interface CreateOptions {
   image?: string;
+  kernelRef?: string;
   privileged?: boolean;
   cpus?: number;
   memoryMb?: number;

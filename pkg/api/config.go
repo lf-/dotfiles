@@ -33,9 +33,10 @@ type ImageConfig struct {
 }
 
 type Config struct {
-	ID         string `json:"id,omitempty"`
-	Image      string `json:"image,omitempty"`
-	Privileged bool   `json:"privileged,omitempty"`
+	ID         string        `json:"id,omitempty"`
+	Image      string        `json:"image,omitempty"`
+	Privileged bool          `json:"privileged,omitempty"`
+	Kernel     *KernelConfig `json:"kernel,omitempty"`
 	// LaunchEntrypoint starts image ENTRYPOINT/CMD in detached mode during create.
 	// This is used by SDK `launch` convenience helpers.
 	LaunchEntrypoint bool              `json:"launch_entrypoint,omitempty"`
@@ -292,6 +293,9 @@ func (c *Config) Merge(other *Config) *Config {
 	}
 	if other.Privileged {
 		result.Privileged = true
+	}
+	if other.Kernel != nil {
+		result.Kernel = other.Kernel
 	}
 	if other.LaunchEntrypoint {
 		result.LaunchEntrypoint = true

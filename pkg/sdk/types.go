@@ -10,6 +10,9 @@ import (
 type CreateOptions struct {
 	// Image is the container image reference (required, e.g., alpine:latest)
 	Image string
+	// KernelRef selects the guest kernel to boot.
+	// Supports empty (default), file:///absolute/path, or OCI image refs.
+	KernelRef string
 	// Privileged skips in-guest security restrictions (seccomp, cap drop, no_new_privs)
 	Privileged bool
 	// CPUs is the number of vCPUs

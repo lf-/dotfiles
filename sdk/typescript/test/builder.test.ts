@@ -28,6 +28,12 @@ describe("Sandbox builder", () => {
     expect(opts.timeoutSeconds).toBe(300);
   });
 
+  it("builds kernel config", () => {
+    const opts = new Sandbox("img").withKernel("file:///tmp/vmlinux").options();
+
+    expect(opts.kernelRef).toBe("file:///tmp/vmlinux");
+  });
+
   it("builds network options", () => {
     const opts = new Sandbox("img")
       .allowHost("api.openai.com", "pypi.org")

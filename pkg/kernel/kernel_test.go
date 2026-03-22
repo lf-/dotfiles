@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -63,10 +64,38 @@ func TestListCachedVersions(t *testing.T) {
 
 	os.MkdirAll(filepath.Join(tmpDir, "kernels", "6.1.137"), 0755)
 	os.MkdirAll(filepath.Join(tmpDir, "kernels", "6.1.140"), 0755)
+	os.MkdirAll(filepath.Join(tmpDir, "kernels", "refs", "abc123"), 0755)
 
 	versions, err = mgr.ListCachedVersions()
 	require.NoError(t, err)
 	assert.Len(t, versions, 2)
+}
+
+func TestEnsureKernelRefFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	kernelPath := filepath.Join(tmpDir, "vmlinux")
+	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0644))
+
+	mgr := NewManager(WithCacheDir(t.TempDir()))
+	resolved, err := mgr.EnsureKernelRef(context.Background(), ArchX86_64, "file://"+kernelPath)
+	require.NoError(t, err)
+	assert.Equal(t, kernelPath, resolved)
+}
+
+func TestEnsureKernelRefRejectsRelativeFilePath(t *testing.T) {
+	mgr := NewManager(WithCacheDir(t.TempDir()))
+
+	_, err := mgr.EnsureKernelRef(context.Background(), ArchX86_64, "file://kernel")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidKernelRef)
+}
+
+func TestKernelRefPathStableAndSeparate(t *testing.T) {
+	mgr := NewManager(WithCacheDir("/tmp/cache"))
+
+	path := mgr.KernelRefPath(ArchX86_64, "ghcr.io/example/kernel:1.2.3")
+	assert.Contains(t, path, filepath.Join("kernels", "refs"))
+	assert.NotContains(t, path, filepath.Join("kernels", "1.2.3"))
 }
 
 func TestImageReference(t *testing.T) {

@@ -5,8 +5,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -119,8 +122,47 @@ func (m *Manager) EnsureKernel(ctx context.Context, arch Architecture, version s
 	return kernelPath, nil
 }
 
+func (m *Manager) EnsureKernelRef(ctx context.Context, arch Architecture, ref string) (string, error) {
+	trimmed := strings.TrimSpace(ref)
+	if trimmed == "" {
+		return m.EnsureKernel(ctx, arch, Version)
+	}
+
+	if strings.HasPrefix(trimmed, "file://") {
+		path, err := parseFileRef(trimmed)
+		if err != nil {
+			return "", err
+		}
+		if _, err := os.Stat(path); err != nil {
+			return "", errx.With(ErrKernelNotFoundOnDisk, ": %s: %v", path, err)
+		}
+		return path, nil
+	}
+
+	destPath := m.KernelRefPath(arch, trimmed)
+	if _, err := os.Stat(destPath); err == nil {
+		return destPath, nil
+	}
+
+	if err := m.downloadRef(ctx, arch, trimmed, destPath); err != nil {
+		return "", errx.Wrap(ErrDownloadKernel, err)
+	}
+
+	return destPath, nil
+}
+
+func (m *Manager) KernelRefPath(arch Architecture, ref string) string {
+	sum := sha256.Sum256([]byte(ref))
+	refHash := hex.EncodeToString(sum[:8])
+	return filepath.Join(m.cacheDir, "kernels", "refs", refHash, arch.KernelFilename())
+}
+
 func (m *Manager) download(ctx context.Context, arch Architecture, version string, destPath string) error {
 	imageRef := fmt.Sprintf("%s/kernel:%s", m.registry, version)
+	return m.downloadRef(ctx, arch, imageRef, destPath)
+}
+
+func (m *Manager) downloadRef(ctx context.Context, arch Architecture, imageRef, destPath string) error {
 
 	ref, err := name.ParseReference(imageRef)
 	if err != nil {
@@ -258,7 +300,7 @@ func (m *Manager) ListCachedVersions() ([]string, error) {
 
 	var versions []string
 	for _, entry := range entries {
-		if entry.IsDir() {
+		if entry.IsDir() && entry.Name() != "refs" {
 			versions = append(versions, entry.Name())
 		}
 	}
@@ -274,13 +316,15 @@ func (m *Manager) CleanCache(version string) error {
 
 func ResolveKernelPath(ctx context.Context) (string, error) {
 	if envPath := os.Getenv("MATCHLOCK_KERNEL"); envPath != "" {
-		if _, err := os.Stat(envPath); err == nil {
-			return envPath, nil
-		}
+		return NewManager().EnsureKernelRef(ctx, CurrentArch(), envPath)
 	}
 
 	mgr := NewManager()
 	return mgr.EnsureKernel(ctx, CurrentArch(), Version)
+}
+
+func ResolveKernelRef(ctx context.Context, ref string) (string, error) {
+	return NewManager().EnsureKernelRef(ctx, CurrentArch(), ref)
 }
 
 func ImageReference(version string) string {
@@ -295,4 +339,25 @@ func ParseVersion(ref string) string {
 		return ref[idx+1:]
 	}
 	return Version
+}
+
+func parseFileRef(ref string) (string, error) {
+	u, err := url.Parse(ref)
+	if err != nil {
+		return "", errx.With(ErrInvalidKernelRef, ": %v", err)
+	}
+	if u.Scheme != "file" {
+		return "", errx.With(ErrInvalidKernelRef, ": unsupported scheme %q", u.Scheme)
+	}
+	if u.Host != "" {
+		return "", errx.With(ErrInvalidKernelRef, ": file ref must not include host")
+	}
+	path := u.Path
+	if path == "" {
+		return "", errx.With(ErrInvalidKernelRef, ": empty file path")
+	}
+	if !filepath.IsAbs(path) {
+		return "", errx.With(ErrInvalidKernelRef, ": file path must be absolute")
+	}
+	return path, nil
 }

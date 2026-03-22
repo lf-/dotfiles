@@ -29,6 +29,14 @@ func TestBuilderResources(t *testing.T) {
 	require.Equal(t, 600, opts.TimeoutSeconds)
 }
 
+func TestBuilderKernel(t *testing.T) {
+	opts := New("alpine:latest").
+		WithKernel("file:///tmp/vmlinux").
+		Options()
+
+	require.Equal(t, "file:///tmp/vmlinux", opts.KernelRef)
+}
+
 func TestBuilderAllowHost(t *testing.T) {
 	opts := New("alpine:latest").
 		AllowHost("api.openai.com").

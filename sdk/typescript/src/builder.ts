@@ -85,6 +85,11 @@ export class Sandbox {
     return this;
   }
 
+  withKernel(ref: string): Sandbox {
+    this.opts.kernelRef = ref;
+    return this;
+  }
+
   withCPUs(cpus: number): Sandbox {
     this.opts.cpus = cpus;
     return this;

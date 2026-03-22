@@ -97,6 +97,7 @@ class TestCreateOptions:
     def test_defaults(self):
         opts = CreateOptions()
         assert opts.image == ""
+        assert opts.kernel_ref == ""
         assert opts.privileged is False
         assert opts.cpus == 0
         assert opts.memory_mb == 0

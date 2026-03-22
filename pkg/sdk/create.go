@@ -82,6 +82,9 @@ func (c *Client) Create(opts CreateOptions) (string, error) {
 			"timeout_seconds": opts.TimeoutSeconds,
 		},
 	}
+	if opts.KernelRef != "" {
+		params["kernel"] = map[string]interface{}{"ref": opts.KernelRef}
+	}
 
 	if opts.Privileged {
 		params["privileged"] = true

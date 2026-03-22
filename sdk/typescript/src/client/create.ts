@@ -50,6 +50,10 @@ export function buildCreateParams(
     resources,
   };
 
+  if (options.kernelRef) {
+    params.kernel = { ref: options.kernelRef };
+  }
+
   if (options.privileged) {
     params.privileged = true;
   }

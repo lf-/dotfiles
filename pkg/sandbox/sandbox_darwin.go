@@ -131,9 +131,11 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 	backend := darwin.NewDarwinBackend()
 
-	kernelPath := opts.KernelPath
-	if kernelPath == "" {
-		kernelPath = DefaultKernelPath()
+	kernelPath, err := resolveKernelForConfig(ctx, config, opts, lifecycleStore)
+	if err != nil {
+		releaseSubnet()
+		stateMgr.Unregister(id)
+		return nil, errx.Wrap(ErrCreateVM, err)
 	}
 	rootfsPaths := opts.RootfsPaths
 	rootfsFSTypes := normalizeOverlayLowerFSTypes(rootfsPaths, opts.RootfsFSTypes)
