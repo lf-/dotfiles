@@ -14,6 +14,7 @@ on:
   push:
     paths:
       - 'scripts/build-kernel.sh'
+      - 'scripts/publish-kernel.sh'
       - 'pkg/kernel/kernel.go'
       - '.github/workflows/kernel.yml'
     branches:

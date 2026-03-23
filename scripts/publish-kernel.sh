@@ -99,9 +99,15 @@ publish_platform() {
         -f "$tarball" \
         -t "$tag"
 
-    # Set platform in config (crane append with --oci-empty-base leaves config platform empty)
-    # This is required for crane index append to properly infer platform
-    crane mutate --set-platform "$platform" -t "$tag" "$tag"
+    # Set platform and OCI labels
+    # --set-platform is required for crane index append to properly infer platform
+    # org.opencontainers.image.source links the package to the repo in GHCR
+    crane mutate \
+        --set-platform "$platform" \
+        --label "org.opencontainers.image.source=https://github.com/jingkaihe/matchlock" \
+        --label "org.opencontainers.image.description=Matchlock Linux kernel ($arch)" \
+        --label "org.opencontainers.image.version=$KERNEL_VERSION" \
+        -t "$tag" "$tag"
 
     rm -rf "$tmpdir"
     echo "Published: $tag"
