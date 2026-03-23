@@ -78,6 +78,19 @@ setup_auth() {
     exit 1
 }
 
+# Apply standard OCI labels to an image or manifest index.
+# Usage: apply_labels <tag> <description> [extra crane mutate flags...]
+apply_labels() {
+    local tag="$1" desc="$2"
+    shift 2
+    crane mutate \
+        "$@" \
+        --label "org.opencontainers.image.source=https://github.com/jingkaihe/matchlock" \
+        --label "org.opencontainers.image.description=$desc" \
+        --label "org.opencontainers.image.version=$KERNEL_VERSION" \
+        -t "$tag" "$tag"
+}
+
 publish_platform() {
     local arch="$1"
     local kernel_file="$2"
@@ -99,15 +112,8 @@ publish_platform() {
         -f "$tarball" \
         -t "$tag"
 
-    # Set platform and OCI labels
     # --set-platform is required for crane index append to properly infer platform
-    # org.opencontainers.image.source links the package to the repo in GHCR
-    crane mutate \
-        --set-platform "$platform" \
-        --label "org.opencontainers.image.source=https://github.com/jingkaihe/matchlock" \
-        --label "org.opencontainers.image.description=Matchlock Linux kernel ($arch)" \
-        --label "org.opencontainers.image.version=$KERNEL_VERSION" \
-        -t "$tag" "$tag"
+    apply_labels "$tag" "Matchlock Linux kernel ($arch)" --set-platform "$platform"
 
     rm -rf "$tmpdir"
     echo "Published: $tag"
@@ -125,6 +131,8 @@ create_manifest() {
         -t "$manifest_tag" \
         -m "$amd64_tag" \
         -m "$arm64_tag"
+
+    apply_labels "$manifest_tag" "Matchlock Linux kernel (multi-platform)"
 
     echo "Published manifest: $manifest_tag"
 
