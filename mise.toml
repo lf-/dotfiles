@@ -11,7 +11,7 @@ goreleaser = "latest"
 
 [env]
 _.path = ["~/go/bin"]
-KERNEL_VERSION = "6.1.137"
+KERNEL_VERSION = "6.19.8"
 OUTPUT_DIR = "{{env.HOME}}/.cache/matchlock"
 REGISTRY = "ghcr.io/jingkaihe/matchlock"
 
@@ -220,6 +220,48 @@ depends = ["python-sdk:test", "python-sdk:lint"]
 alias = "kernel"
 description = "Build kernels for all architectures"
 run = "OUTPUT_DIR=$OUTPUT_DIR/kernels/$KERNEL_VERSION KERNEL_VERSION=$KERNEL_VERSION ARCH=all ./scripts/build-kernel.sh"
+
+[tasks."kernel:list-supported"]
+description = "List officially supported guest kernel versions"
+run = "printf '%s\n' 6.1.137 6.8.0 6.19.8"
+
+[tasks."kernel:build:supported"]
+description = "Build all officially supported kernel versions for all architectures"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_OUTPUT_DIR="${OUTPUT_DIR:-$HOME/.cache/matchlock}"
+
+for version in 6.1.137 6.8.0 6.19.8; do
+  OUTPUT_DIR="$BASE_OUTPUT_DIR/kernels/$version" KERNEL_VERSION="$version" ARCH=all ./scripts/build-kernel.sh
+done
+"""
+
+[tasks."kernel:publish:supported"]
+description = "Publish all officially supported kernel versions"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_OUTPUT_DIR="${OUTPUT_DIR:-$HOME/.cache/matchlock}"
+
+for version in 6.1.137 6.8.0 6.19.8; do
+  INPUT_DIR="$BASE_OUTPUT_DIR/kernels/$version" KERNEL_VERSION="$version" REGISTRY="$REGISTRY" ./scripts/publish-kernel.sh
+done
+"""
+
+[tasks."kernel:build:6.1.137"]
+description = "Build supported kernel version 6.1.137 for all architectures"
+run = "OUTPUT_DIR=$OUTPUT_DIR/kernels/6.1.137 KERNEL_VERSION=6.1.137 ARCH=all ./scripts/build-kernel.sh"
+
+[tasks."kernel:build:6.8.0"]
+description = "Build supported kernel version 6.8.0 for all architectures"
+run = "OUTPUT_DIR=$OUTPUT_DIR/kernels/6.8.0 KERNEL_VERSION=6.8.0 ARCH=all ./scripts/build-kernel.sh"
+
+[tasks."kernel:build:6.19.8"]
+description = "Build supported kernel version 6.19.8 for all architectures"
+run = "OUTPUT_DIR=$OUTPUT_DIR/kernels/6.19.8 KERNEL_VERSION=6.19.8 ARCH=all ./scripts/build-kernel.sh"
 
 [tasks."kernel:x86_64"]
 description = "Build kernel for x86_64 only"

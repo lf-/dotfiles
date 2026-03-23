@@ -29,6 +29,10 @@ class TestSandboxResources:
         opts = Sandbox("img").with_privileged().options()
         assert opts.privileged is True
 
+    def test_with_kernel(self):
+        opts = Sandbox("img").with_kernel("file:///tmp/vmlinux").options()
+        assert opts.kernel_ref == "file:///tmp/vmlinux"
+
     def test_with_cpus(self):
         opts = Sandbox("img").with_cpus(4).options()
         assert opts.cpus == 4
@@ -75,6 +79,7 @@ class TestSandboxChaining:
     def test_all_methods_return_sandbox(self):
         s = Sandbox("img")
         assert isinstance(s.with_privileged(), Sandbox)
+        assert isinstance(s.with_kernel("file:///tmp/vmlinux"), Sandbox)
         assert isinstance(s.with_cpus(1), Sandbox)
         assert isinstance(s.with_memory(1), Sandbox)
         assert isinstance(s.with_disk_size(1), Sandbox)

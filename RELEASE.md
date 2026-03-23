@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.2.6
+
+* Added guest kernel selection across the CLI and Go, Python, and TypeScript SDKs via kernel refs, including `file:///absolute/path` and OCI image references.
+* Added `matchlock kernel ls` and `matchlock kernel rm` for inspecting and cleaning cached guest kernels, backed by persistent kernel cache metadata.
+* Expanded kernel acceptance and SDK coverage, and bumped the default pinned guest kernel to `6.19.8`.
+
 ## 0.2.5
 
 Use non-snapshot mode deb/rpm package for formal releases

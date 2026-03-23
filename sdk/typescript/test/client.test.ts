@@ -138,6 +138,28 @@ describe("Client", () => {
     await client.close();
   });
 
+  it("sends create payload with kernel ref", async () => {
+    const fake = installFakeProcess();
+    const client = new Client();
+
+    const createPromise = client.create(
+      new Sandbox("alpine:latest").withKernel("file:///tmp/vmlinux").options(),
+    );
+
+    const request = await fake.waitForRequest("create");
+    expect(request.params?.kernel).toEqual({ ref: "file:///tmp/vmlinux" });
+
+    fake.pushResponse({
+      jsonrpc: "2.0",
+      id: request.id,
+      result: { id: "vm-kernel" },
+    });
+    await expect(createPromise).resolves.toBe("vm-kernel");
+
+    fake.close();
+    await client.close();
+  });
+
   it("sends create payload with network interception", async () => {
     const fake = installFakeProcess();
     const client = new Client();

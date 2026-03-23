@@ -744,6 +744,29 @@ func TestHandlerCreateRejectsUserProvidedID(t *testing.T) {
 	require.Equal(t, 0, factoryCalls, "factory should not have been called")
 }
 
+func TestHandlerCreatePassesKernelConfigThrough(t *testing.T) {
+	var gotConfig *api.Config
+
+	rpc := newTestRPCWithFactory(func(ctx context.Context, config *api.Config) (VM, error) {
+		gotConfig = config
+		return &mockVM{id: "vm-test", config: config}, nil
+	})
+	defer rpc.close()
+
+	rpc.send("create", 1, map[string]interface{}{
+		"image": "alpine:latest",
+		"kernel": map[string]interface{}{
+			"ref": "file:///tmp/vmlinux",
+		},
+	})
+
+	msg := rpc.read()
+	require.Nil(t, msg.Error)
+	require.NotNil(t, gotConfig)
+	require.NotNil(t, gotConfig.Kernel)
+	assert.Equal(t, "file:///tmp/vmlinux", gotConfig.Kernel.Ref)
+}
+
 func TestHandlerCreateLaunchEntrypointStartsDetachedCommand(t *testing.T) {
 	gotCommand := ""
 

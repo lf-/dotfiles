@@ -192,6 +192,47 @@ func TestCreateSendsNetworkMTU(t *testing.T) {
 	assert.True(t, capturedBlockPrivateIPs)
 }
 
+func TestCreateSendsKernelRef(t *testing.T) {
+	var capturedKernel map[string]interface{}
+
+	client, cleanup := newScriptedClient(t, func(req request) response {
+		switch req.Method {
+		case "create":
+			if req.Params != nil {
+				if params, ok := req.Params.(map[string]interface{}); ok {
+					if kernel, ok := params["kernel"].(map[string]interface{}); ok {
+						capturedKernel = kernel
+					}
+				}
+			}
+			return response{
+				JSONRPC: "2.0",
+				Result:  json.RawMessage(`{"id":"vm-kernel"}`),
+				ID:      &req.ID,
+			}
+		default:
+			return response{
+				JSONRPC: "2.0",
+				Error: &rpcError{
+					Code:    ErrCodeMethodNotFound,
+					Message: "Method not found",
+				},
+				ID: &req.ID,
+			}
+		}
+	})
+	defer cleanup()
+
+	vmID, err := client.Create(CreateOptions{
+		Image:     "alpine:latest",
+		KernelRef: "file:///tmp/vmlinux",
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "vm-kernel", vmID)
+	assert.Equal(t, map[string]interface{}{"ref": "file:///tmp/vmlinux"}, capturedKernel)
+}
+
 func TestCreateSendsAddHosts(t *testing.T) {
 	var capturedAddHosts []map[string]interface{}
 

@@ -1114,6 +1114,9 @@ class Client:
 
         params: dict[str, Any] = {"image": opts.image}
 
+        if opts.kernel_ref:
+            params["kernel"] = {"ref": opts.kernel_ref}
+
         if opts.privileged:
             params["privileged"] = True
 

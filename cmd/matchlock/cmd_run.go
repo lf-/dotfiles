@@ -98,6 +98,7 @@ Custom hosts with --add-host:
 func init() {
 	runCmd.Flags().String("image", "", "Container image (required)")
 	runCmd.Flags().String("workspace", "", "Guest mount point for VFS (required with --volume)")
+	runCmd.Flags().String("kernel", "", "Guest kernel ref: file:///absolute/path or OCI image reference")
 	runCmd.Flags().StringSlice("allow-host", nil, "Allowed hosts (can be repeated)")
 	runCmd.Flags().StringSlice("add-host", nil, "Add a custom host-to-IP mapping (host:ip, can be repeated)")
 	runCmd.Flags().StringSliceP("volume", "v", nil, fmt.Sprintf("Volume mount (host:guest = overlay snapshot by default; use :%s for direct rw host mount, :%s for read-only host mount)", api.MountTypeHostFS, api.MountOptionReadonlyShort))
@@ -130,6 +131,7 @@ func init() {
 
 	viper.BindPFlag("run.image", runCmd.Flags().Lookup("image"))
 	viper.BindPFlag("run.workspace", runCmd.Flags().Lookup("workspace"))
+	viper.BindPFlag("run.kernel", runCmd.Flags().Lookup("kernel"))
 	viper.BindPFlag("run.allow-host", runCmd.Flags().Lookup("allow-host"))
 	viper.BindPFlag("run.add-host", runCmd.Flags().Lookup("add-host"))
 	viper.BindPFlag("run.volume", runCmd.Flags().Lookup("volume"))
@@ -185,6 +187,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 	}
 	workspace, _ := cmd.Flags().GetString("workspace")
 	workspaceSet := cmd.Flags().Changed("workspace")
+	kernelRef, _ := cmd.Flags().GetString("kernel")
 	workdir, _ := cmd.Flags().GetString("workdir")
 
 	// Network & security
@@ -383,6 +386,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 	config := &api.Config{
 		Image:      imageName,
 		Privileged: privileged,
+		Kernel:     &api.KernelConfig{Ref: kernelRef},
 		Resources: &api.Resources{
 			CPUs:           cpus,
 			MemoryMB:       memory,

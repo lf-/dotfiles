@@ -5,8 +5,12 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -21,7 +25,7 @@ import (
 )
 
 const (
-	Version = "6.1.137"
+	Version = "6.19.8"
 
 	DefaultRegistry = "ghcr.io/jingkaihe/matchlock"
 )
@@ -57,6 +61,8 @@ func (a Architecture) OCIPlatform() string {
 type Manager struct {
 	cacheDir string
 	registry string
+	db       *sql.DB
+	initErr  error
 }
 
 type Option func(*Manager)
@@ -82,6 +88,9 @@ func NewManager(opts ...Option) *Manager {
 	for _, opt := range opts {
 		opt(m)
 	}
+	db, err := openKernelDB(m.cacheDir)
+	m.db = db
+	m.initErr = err
 	return m
 }
 
@@ -107,29 +116,75 @@ func (m *Manager) EnsureKernel(ctx context.Context, arch Architecture, version s
 	}
 
 	kernelPath := m.KernelPath(arch, version)
+	imageRef := fmt.Sprintf("%s/kernel:%s", m.registry, version)
 
 	if _, err := os.Stat(kernelPath); err == nil {
+		m.recordVersionCache(version, arch, kernelPath, sizeOnDisk(kernelPath), imageRef, "")
 		return kernelPath, nil
 	}
 
-	if err := m.download(ctx, arch, version, kernelPath); err != nil {
+	digest, size, err := m.download(ctx, arch, version, kernelPath)
+	if err != nil {
 		return "", errx.Wrap(ErrDownloadKernel, err)
 	}
+	m.recordVersionCache(version, arch, kernelPath, size, imageRef, digest)
 
 	return kernelPath, nil
 }
 
-func (m *Manager) download(ctx context.Context, arch Architecture, version string, destPath string) error {
+func (m *Manager) EnsureKernelRef(ctx context.Context, arch Architecture, ref string) (string, error) {
+	trimmed := strings.TrimSpace(ref)
+	if trimmed == "" {
+		return m.EnsureKernel(ctx, arch, Version)
+	}
+
+	if strings.HasPrefix(trimmed, "file://") {
+		path, err := parseFileRef(trimmed)
+		if err != nil {
+			return "", err
+		}
+		if _, err := os.Stat(path); err != nil {
+			return "", errx.With(ErrKernelNotFoundOnDisk, ": %s: %v", path, err)
+		}
+		return path, nil
+	}
+
+	destPath := m.KernelRefPath(arch, trimmed)
+	if _, err := os.Stat(destPath); err == nil {
+		m.recordRefCache(trimmed, arch, destPath, sizeOnDisk(destPath), "")
+		return destPath, nil
+	}
+
+	digest, size, err := m.downloadRef(ctx, arch, trimmed, destPath)
+	if err != nil {
+		return "", errx.Wrap(ErrDownloadKernel, err)
+	}
+	m.recordRefCache(trimmed, arch, destPath, size, digest)
+
+	return destPath, nil
+}
+
+func (m *Manager) KernelRefPath(arch Architecture, ref string) string {
+	sum := sha256.Sum256([]byte(ref))
+	refHash := hex.EncodeToString(sum[:8])
+	return filepath.Join(m.cacheDir, "kernels", "refs", refHash, arch.KernelFilename())
+}
+
+func (m *Manager) download(ctx context.Context, arch Architecture, version string, destPath string) (string, int64, error) {
 	imageRef := fmt.Sprintf("%s/kernel:%s", m.registry, version)
+	return m.downloadRef(ctx, arch, imageRef, destPath)
+}
+
+func (m *Manager) downloadRef(ctx context.Context, arch Architecture, imageRef, destPath string) (string, int64, error) {
 
 	ref, err := name.ParseReference(imageRef)
 	if err != nil {
-		return errx.With(ErrParseReference, " %s: %w", imageRef, err)
+		return "", 0, errx.With(ErrParseReference, " %s: %w", imageRef, err)
 	}
 
 	platform, err := v1.ParsePlatform(arch.OCIPlatform())
 	if err != nil {
-		return errx.Wrap(ErrParsePlatform, err)
+		return "", 0, errx.Wrap(ErrParsePlatform, err)
 	}
 
 	desc, err := remote.Get(ref,
@@ -138,63 +193,64 @@ func (m *Manager) download(ctx context.Context, arch Architecture, version strin
 		remote.WithPlatform(*platform),
 	)
 	if err != nil {
-		return errx.Wrap(ErrGetDescriptor, err)
+		return "", 0, errx.Wrap(ErrGetDescriptor, err)
 	}
+	sourceDigest := desc.Digest.String()
 
 	img, err := desc.Image()
 	if err != nil {
-		return errx.Wrap(ErrGetImage, err)
+		return "", 0, errx.Wrap(ErrGetImage, err)
 	}
 
 	layers, err := img.Layers()
 	if err != nil {
-		return errx.Wrap(ErrGetLayers, err)
+		return "", 0, errx.Wrap(ErrGetLayers, err)
 	}
 
 	if len(layers) == 0 {
-		return ErrNoLayers
+		return "", 0, ErrNoLayers
 	}
 
 	layer := layers[0]
 	rc, err := layer.Uncompressed()
 	if err != nil {
-		return errx.Wrap(ErrUncompressLayer, err)
+		return "", 0, errx.Wrap(ErrUncompressLayer, err)
 	}
 	defer rc.Close()
 
 	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
-		return errx.Wrap(ErrCreateDirectory, err)
+		return "", 0, errx.Wrap(ErrCreateDirectory, err)
 	}
 
 	// Read layer content into buffer to try multiple formats
 	content, err := io.ReadAll(rc)
 	if err != nil {
-		return errx.Wrap(ErrReadLayer, err)
+		return "", 0, errx.Wrap(ErrReadLayer, err)
 	}
 
 	kernelFilename := arch.KernelFilename()
 
 	// Try gzipped tarball first (new format)
 	if err := extractKernelFromTarGz(content, destPath, kernelFilename); err == nil {
-		return nil
+		return sourceDigest, sizeOnDisk(destPath), nil
 	}
 
 	// Try plain tarball (uncompressed)
 	if err := extractKernelFromTar(content, destPath, kernelFilename); err == nil {
-		return nil
+		return sourceDigest, sizeOnDisk(destPath), nil
 	}
 
 	// Fallback: treat as raw kernel binary (old format)
 	tmpPath := destPath + ".tmp"
 	if err := os.WriteFile(tmpPath, content, 0644); err != nil {
-		return errx.Wrap(ErrWriteKernel, err)
+		return "", 0, errx.Wrap(ErrWriteKernel, err)
 	}
 	if err := os.Rename(tmpPath, destPath); err != nil {
 		os.Remove(tmpPath)
-		return errx.Wrap(ErrRenameKernel, err)
+		return "", 0, errx.Wrap(ErrRenameKernel, err)
 	}
 
-	return nil
+	return sourceDigest, sizeOnDisk(destPath), nil
 }
 
 func extractKernelFromTarGz(data []byte, destPath, kernelFilename string) error {
@@ -258,7 +314,7 @@ func (m *Manager) ListCachedVersions() ([]string, error) {
 
 	var versions []string
 	for _, entry := range entries {
-		if entry.IsDir() {
+		if entry.IsDir() && entry.Name() != "refs" {
 			versions = append(versions, entry.Name())
 		}
 	}
@@ -273,14 +329,12 @@ func (m *Manager) CleanCache(version string) error {
 }
 
 func ResolveKernelPath(ctx context.Context) (string, error) {
-	if envPath := os.Getenv("MATCHLOCK_KERNEL"); envPath != "" {
-		if _, err := os.Stat(envPath); err == nil {
-			return envPath, nil
-		}
-	}
-
 	mgr := NewManager()
 	return mgr.EnsureKernel(ctx, CurrentArch(), Version)
+}
+
+func ResolveKernelRef(ctx context.Context, ref string) (string, error) {
+	return NewManager().EnsureKernelRef(ctx, CurrentArch(), ref)
 }
 
 func ImageReference(version string) string {
@@ -295,4 +349,33 @@ func ParseVersion(ref string) string {
 		return ref[idx+1:]
 	}
 	return Version
+}
+
+func parseFileRef(ref string) (string, error) {
+	u, err := url.Parse(ref)
+	if err != nil {
+		return "", errx.With(ErrInvalidKernelRef, ": %v", err)
+	}
+	if u.Scheme != "file" {
+		return "", errx.With(ErrInvalidKernelRef, ": unsupported scheme %q", u.Scheme)
+	}
+	if u.Host != "" {
+		return "", errx.With(ErrInvalidKernelRef, ": file ref must not include host")
+	}
+	path := u.Path
+	if path == "" {
+		return "", errx.With(ErrInvalidKernelRef, ": empty file path")
+	}
+	if !filepath.IsAbs(path) {
+		return "", errx.With(ErrInvalidKernelRef, ": file path must be absolute")
+	}
+	return path, nil
+}
+
+func sizeOnDisk(path string) int64 {
+	info, err := os.Stat(path)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
 }

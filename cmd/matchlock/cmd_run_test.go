@@ -147,6 +147,12 @@ func TestDetachedChildArgs(t *testing.T) {
 		[]string{"run", "--image", "alpine:latest", "-w/tmp/data", "-eMODE=prod", "--detach=false", "--rm=false"},
 		detachedChildArgs([]string{"run", "--image", "alpine:latest", "-w/tmp/data", "-eMODE=prod"}),
 	)
+
+	assert.Equal(
+		t,
+		[]string{"run", "--image", "alpine:latest", "--kernel", "file:///tmp/vmlinux", "--detach=false", "--rm=false"},
+		detachedChildArgs([]string{"run", "--image", "alpine:latest", "--kernel", "file:///tmp/vmlinux"}),
+	)
 }
 
 func TestWaitDetachedVMIDFindsRunningState(t *testing.T) {

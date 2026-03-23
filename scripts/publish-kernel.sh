@@ -4,7 +4,7 @@ set -e
 # Publish kernels to GHCR as OCI artifacts
 # Creates a multi-platform manifest with kernel binaries as layers
 
-KERNEL_VERSION="${KERNEL_VERSION:-6.1.137}"
+KERNEL_VERSION="${KERNEL_VERSION:-6.19.8}"
 REGISTRY="${REGISTRY:-ghcr.io/jingkaihe/matchlock}"
 INPUT_DIR="${INPUT_DIR:-$HOME/.cache/matchlock/kernels/$KERNEL_VERSION}"
 
@@ -20,7 +20,7 @@ print_usage() {
     echo "  - crane auth login ghcr.io"
     echo ""
     echo "Options:"
-    echo "  KERNEL_VERSION=6.1.137   Kernel version tag"
+    echo "  KERNEL_VERSION=6.19.8    Kernel version tag"
     echo "  REGISTRY=ghcr.io/...     Target registry (default: ghcr.io/jingkaihe/matchlock)"
     echo "  INPUT_DIR=path           Directory containing kernel and kernel-arm64"
     echo ""

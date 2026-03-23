@@ -8,10 +8,12 @@
 #   output-arm64    - Minimal output (scratch) containing only the kernel binary
 #
 # Usage:
-#   docker build --build-arg KERNEL_VERSION=6.1.137 \
+#   docker build --build-arg KERNEL_VERSION=6.19.8 \
+#     --build-arg KERNEL_SOURCE_VERSION=6.8 \
 #     --target output-x86_64 --output type=local,dest=./out .
 
-ARG KERNEL_VERSION=6.1.137
+ARG KERNEL_VERSION=6.19.8
+ARG KERNEL_SOURCE_VERSION
 
 # ---------------------------------------------------------------------------
 # Base: toolchain + kernel source
@@ -19,14 +21,20 @@ ARG KERNEL_VERSION=6.1.137
 FROM ubuntu:22.04 AS base
 
 ARG KERNEL_VERSION
+ARG KERNEL_SOURCE_VERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential bc flex bison libelf-dev libssl-dev wget ca-certificates \
         gcc-aarch64-linux-gnu \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -qO /tmp/linux.tar.xz \
-        "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${KERNEL_VERSION}.tar.xz" \
+RUN set -eux; \
+    kernel_source_version="${KERNEL_SOURCE_VERSION:-$KERNEL_VERSION}"; \
+    case "$kernel_source_version" in \
+        *.*.0) kernel_source_version="${kernel_source_version%.0}" ;; \
+    esac; \
+    wget -qO /tmp/linux.tar.xz \
+        "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${kernel_source_version}.tar.xz" \
     && mkdir /tmp/linux-src \
     && tar xf /tmp/linux.tar.xz -C /tmp/linux-src --strip-components=1 \
     && rm /tmp/linux.tar.xz
