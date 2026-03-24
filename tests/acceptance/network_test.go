@@ -4,6 +4,7 @@ package acceptance
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 	"testing"
 
@@ -156,6 +157,23 @@ func TestSecretInjectedInHTTPSHeader(t *testing.T) {
 	assert.Contains(t, result.Stdout, secretValue, "expected secret value to be injected in HTTPS header")
 }
 
+func TestSecretInjectedInHTTPSBasicAuthHeader(t *testing.T) {
+	t.Parallel()
+	secretValue := "sk-test-basic-secret-24680"
+	expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("user:"+secretValue))
+
+	sandbox := sdk.New("alpine:latest").
+		AllowHost("httpbin.org").
+		AddSecret("BASIC_KEY", secretValue, "httpbin.org")
+
+	client := launchAlpineWithNetwork(t, sandbox)
+
+	result, err := client.Exec(context.Background(), `sh -c 'auth="$(printf "user:%s" "$BASIC_KEY" | base64 | tr -d "\n")"; wget -q -O - --header "Authorization: Basic $auth" https://httpbin.org/headers 2>&1'`)
+	require.NoError(t, err, "Exec")
+
+	assert.Contains(t, result.Stdout, expectedAuth, "expected basic auth header to contain encoded real secret")
+}
+
 func TestSecretInjectedInHTTPHeader(t *testing.T) {
 	t.Parallel()
 	secretValue := "sk-test-http-secret-67890"
@@ -211,6 +229,29 @@ func TestSecretBlockedOnUnauthorizedHost(t *testing.T) {
 	if strings.Contains(combined, `"headers"`) {
 		assert.NotContains(t, combined, `Authorization`, "request with secret placeholder to unauthorized host should have been blocked")
 	}
+}
+
+func TestSecretBlockedInBasicAuthOnUnauthorizedHost(t *testing.T) {
+	t.Parallel()
+	secretValue := "sk-basic-secret-should-not-leak"
+	expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("user:"+secretValue))
+
+	sandbox := sdk.New("alpine:latest").
+		AllowHost("httpbin.org", "example.com").
+		AddSecret("LEAK_BASIC_KEY", secretValue, "example.com")
+
+	client := launchAlpineWithNetwork(t, sandbox)
+
+	result, err := client.Exec(context.Background(), `sh -c 'auth="$(printf "user:%s" "$LEAK_BASIC_KEY" | base64 | tr -d "\n")"; wget -q -O - --header "Authorization: Basic $auth" http://httpbin.org/headers 2>&1 || true'`)
+	require.NoError(t, err, "Exec")
+
+	combined := result.Stdout + result.Stderr
+	assert.NotContains(t, combined, secretValue, "basic auth secret value was leaked to unauthorized host httpbin.org")
+	assert.NotContains(t, combined, expectedAuth, "encoded basic auth credential was leaked to unauthorized host httpbin.org")
+	assert.True(t,
+		strings.Contains(combined, "Blocked by policy") || strings.Contains(combined, "403 Forbidden"),
+		"expected encoded placeholder basic auth request to be blocked, got: %q", combined,
+	)
 }
 
 func TestMultipleSecretsMultipleHosts(t *testing.T) {

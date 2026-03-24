@@ -2,6 +2,7 @@ package policy
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"net"
 	"net/http"
@@ -251,6 +252,9 @@ func (e *Engine) requestContainsPlaceholder(req *http.Request, placeholder strin
 			if strings.Contains(v, placeholder) {
 				return true
 			}
+			if basicValueContainsPlaceholder(v, placeholder) {
+				return true
+			}
 		}
 	}
 
@@ -272,6 +276,10 @@ func (e *Engine) replaceInRequest(req *http.Request, placeholder, value string) 
 		for i, v := range values {
 			if strings.Contains(v, placeholder) {
 				req.Header[key][i] = strings.ReplaceAll(v, placeholder, value)
+				continue
+			}
+			if replaced, ok := replaceBasicAuthPlaceholder(v, placeholder, value); ok {
+				req.Header[key][i] = replaced
 			}
 		}
 	}
@@ -282,6 +290,43 @@ func (e *Engine) replaceInRequest(req *http.Request, placeholder, value string) 
 		}
 	}
 
+}
+
+func basicValueContainsPlaceholder(value, placeholder string) bool {
+	decoded, ok := decodeBasicAuthHeader(value)
+	if !ok {
+		return false
+	}
+	return strings.Contains(decoded, placeholder)
+}
+
+func replaceBasicAuthPlaceholder(value, placeholder, replacement string) (string, bool) {
+	decoded, ok := decodeBasicAuthHeader(value)
+	if !ok || !strings.Contains(decoded, placeholder) {
+		return "", false
+	}
+	replaced := strings.ReplaceAll(decoded, placeholder, replacement)
+	encoded := base64.StdEncoding.EncodeToString([]byte(replaced))
+	return "Basic " + encoded, true
+}
+
+func decodeBasicAuthHeader(value string) (string, bool) {
+	prefix, encoded, ok := strings.Cut(value, " ")
+	if !ok || !strings.EqualFold(strings.TrimSpace(prefix), "Basic") {
+		return "", false
+	}
+	encoded = strings.TrimSpace(encoded)
+	if encoded == "" {
+		return "", false
+	}
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		decoded, err = base64.RawStdEncoding.DecodeString(encoded)
+	}
+	if err != nil {
+		return "", false
+	}
+	return string(decoded), true
 }
 
 func matchGlob(pattern, str string) bool {

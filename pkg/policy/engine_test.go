@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"encoding/base64"
 	"io"
 	"net/http"
 	"net/url"
@@ -141,6 +142,66 @@ func TestEngine_OnRequest_SecretReplacement(t *testing.T) {
 	assert.Equal(t, "Bearer real-secret", result.Header.Get("Authorization"))
 }
 
+func TestEngine_OnRequest_SecretReplacementInBasicAuth(t *testing.T) {
+	engine := NewEngine(&api.NetworkConfig{
+		Secrets: map[string]api.Secret{
+			"API_KEY": {
+				Value: "real-secret",
+				Hosts: []string{"api.example.com"},
+			},
+		},
+	})
+
+	placeholder := engine.GetPlaceholder("API_KEY")
+	basic := base64.StdEncoding.EncodeToString([]byte("user:" + placeholder))
+
+	req := &http.Request{
+		Header: http.Header{
+			"Authorization": []string{"Basic " + basic},
+		},
+		URL: &url.URL{},
+	}
+
+	result, err := engine.OnRequest(req, "api.example.com")
+	require.NoError(t, err)
+
+	auth := result.Header.Get("Authorization")
+	require.True(t, strings.HasPrefix(auth, "Basic "))
+	decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, "Basic "))
+	require.NoError(t, err)
+	assert.Equal(t, "user:real-secret", string(decoded))
+}
+
+func TestEngine_OnRequest_SecretReplacementInUnpaddedBasicAuth(t *testing.T) {
+	engine := NewEngine(&api.NetworkConfig{
+		Secrets: map[string]api.Secret{
+			"API_KEY": {
+				Value: "real-secret",
+				Hosts: []string{"api.example.com"},
+			},
+		},
+	})
+
+	placeholder := engine.GetPlaceholder("API_KEY")
+	basic := base64.RawStdEncoding.EncodeToString([]byte("user:" + placeholder))
+
+	req := &http.Request{
+		Header: http.Header{
+			"Authorization": []string{"Basic " + basic},
+		},
+		URL: &url.URL{},
+	}
+
+	result, err := engine.OnRequest(req, "api.example.com")
+	require.NoError(t, err)
+
+	auth := result.Header.Get("Authorization")
+	require.True(t, strings.HasPrefix(auth, "Basic "))
+	decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(auth, "Basic "))
+	require.NoError(t, err)
+	assert.Equal(t, "user:real-secret", string(decoded))
+}
+
 func TestEngine_OnRequest_SecretLeak(t *testing.T) {
 	engine := NewEngine(&api.NetworkConfig{
 		Secrets: map[string]api.Secret{
@@ -162,6 +223,54 @@ func TestEngine_OnRequest_SecretLeak(t *testing.T) {
 
 	_, err := engine.OnRequest(req, "evil.com")
 	require.ErrorIs(t, err, api.ErrSecretLeak, "Should detect secret leak to unauthorized host")
+}
+
+func TestEngine_OnRequest_SecretLeakInBasicAuth(t *testing.T) {
+	engine := NewEngine(&api.NetworkConfig{
+		Secrets: map[string]api.Secret{
+			"API_KEY": {
+				Value: "real-secret",
+				Hosts: []string{"api.example.com"},
+			},
+		},
+	})
+
+	placeholder := engine.GetPlaceholder("API_KEY")
+	basic := base64.StdEncoding.EncodeToString([]byte("user:" + placeholder))
+
+	req := &http.Request{
+		Header: http.Header{
+			"Authorization": []string{"Basic " + basic},
+		},
+		URL: &url.URL{},
+	}
+
+	_, err := engine.OnRequest(req, "evil.com")
+	require.ErrorIs(t, err, api.ErrSecretLeak, "Should detect basic auth secret leak to unauthorized host")
+}
+
+func TestEngine_OnRequest_SecretLeakInUnpaddedBasicAuth(t *testing.T) {
+	engine := NewEngine(&api.NetworkConfig{
+		Secrets: map[string]api.Secret{
+			"API_KEY": {
+				Value: "real-secret",
+				Hosts: []string{"api.example.com"},
+			},
+		},
+	})
+
+	placeholder := engine.GetPlaceholder("API_KEY")
+	basic := base64.RawStdEncoding.EncodeToString([]byte("user:" + placeholder))
+
+	req := &http.Request{
+		Header: http.Header{
+			"Authorization": []string{"Basic " + basic},
+		},
+		URL: &url.URL{},
+	}
+
+	_, err := engine.OnRequest(req, "evil.com")
+	require.ErrorIs(t, err, api.ErrSecretLeak, "Should detect basic auth secret leak to unauthorized host")
 }
 
 func TestEngine_OnRequest_NoSecretForHost(t *testing.T) {
