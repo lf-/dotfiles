@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.7
+
+Added Basic Auth secret placeholder replacement including unpadded credentials.
+
 ## 0.2.6
 
 * Added guest kernel selection across the CLI and Go, Python, and TypeScript SDKs via kernel refs, including `file:///absolute/path` and OCI image references.
