@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.2.8
+
+* Added custom secret placeholder support across `matchlock run` and the Go, Python, and TypeScript SDKs, including `--secret-placeholder`, `--secret-file`, and builder helpers for caller-defined in-VM placeholder values.
+* Fixed overlay rootfs preparation to avoid shadowing merged-`/usr` layouts when injecting the guest init binary.
+
 ## 0.2.7
 
 Added Basic Auth secret placeholder replacement including unpadded credentials.
