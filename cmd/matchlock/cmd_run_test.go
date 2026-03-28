@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -193,6 +194,30 @@ func TestParseRunSecretsWithPlaceholderOverride(t *testing.T) {
 	assert.Equal(t, "gho_real_token", secrets["GH_TOKEN"].Value)
 	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
 	assert.Equal(t, []string{"github.com"}, secrets["GH_TOKEN"].Hosts)
+}
+
+func TestSecretFlagPreservesCommaSeparatedHosts(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringArray("secret", nil, "Secret (NAME=VALUE@host1,host2 or NAME@host1,host2)")
+
+	err := cmd.ParseFlags([]string{"--secret", "GH_TOKEN@github.com,api.github.com"})
+	require.NoError(t, err)
+
+	secrets, err := cmd.Flags().GetStringArray("secret")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"GH_TOKEN@github.com,api.github.com"}, secrets)
+}
+
+func TestSecretPlaceholderFlagPreservesLiteralValue(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringArray("secret-placeholder", nil, "Secret placeholder override (NAME=PLACEHOLDER; can be repeated)")
+
+	err := cmd.ParseFlags([]string{"--secret-placeholder", "GH_TOKEN=gho,sandbox,placeholder"})
+	require.NoError(t, err)
+
+	placeholders, err := cmd.Flags().GetStringArray("secret-placeholder")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"GH_TOKEN=gho,sandbox,placeholder"}, placeholders)
 }
 
 func TestParseRunSecretsLoadsSecretFile(t *testing.T) {
