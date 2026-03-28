@@ -79,9 +79,6 @@ func prepareOverlayUpperRootfs(rootfsPath string) error {
 		"/upper",
 		"/upper/opt",
 		"/upper/opt/matchlock",
-		"/upper/sbin",
-		"/upper/usr",
-		"/upper/usr/sbin",
 		"/work",
 	} {
 		commands = append(commands, fmt.Sprintf("mkdir %s", dir))
@@ -95,8 +92,6 @@ func prepareOverlayUpperRootfs(rootfsPath string) error {
 		{guestInitPath, "/upper/opt/matchlock/guest-init"},
 		{guestInitPath, "/upper/opt/matchlock/guest-agent"},
 		{guestInitPath, "/upper/opt/matchlock/guest-fused"},
-		{guestInitPath, "/upper/sbin/matchlock-init"},
-		{guestInitPath, "/upper/usr/sbin/matchlock-init"},
 		{guestInitPath, "/upper/init"},
 	}
 
