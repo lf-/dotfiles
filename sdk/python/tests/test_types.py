@@ -84,6 +84,11 @@ class TestSecret:
         assert s.value == "sk-123"
         assert s.hosts == ["api.example.com"]
 
+    def test_positional_hosts_compatibility(self):
+        s = Secret("API_KEY", "sk-123", ["api.example.com"])
+        assert s.hosts == ["api.example.com"]
+        assert s.placeholder == ""
+
     def test_default_hosts(self):
         s = Secret(name="TOKEN", value="abc")
         assert s.hosts == []
