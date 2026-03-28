@@ -12,7 +12,16 @@ mise run build
 
 Make sure `matchlock` is available in `PATH`, or set `MATCHLOCK_BIN=/path/to/matchlock` when running the helper.
 
-- Build the example image:
+- Build the example image.
+
+Using Docker:
+
+```bash
+docker build -t claude-code:latest examples/claude-code
+docker save claude-code:latest | matchlock image import claude-code:latest
+```
+
+Or using Matchlock:
 
 ```bash
 matchlock build -t claude-code:latest --build-cache-size 30000 examples/claude-code

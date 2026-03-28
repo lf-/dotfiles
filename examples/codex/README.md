@@ -1,26 +1,27 @@
 # Codex Example
 
-Run OpenAI Codex CLI inside a matchlock micro-VM with GitHub repository bootstrap and secret injection.
+Run Codex inside a Matchlock sandbox and clone a GitHub repo into the VM.
 
-## What's Inside
+## Prerequisites
 
-- Ubuntu 24.04 base image
-- `gh` CLI + `git`
-- `codex` CLI (`@openai/codex`)
-- Non-root `agent` user with passwordless `sudo`
-- Entrypoint that resolves repo slug, writes `~/.codex/auth.json` from `OPENAI_API_KEY`, clones with `GH_TOKEN`, then launches Codex TUI in `--yolo` mode (with optional initial prompt)
-- Helper propagates local git identity/editor config (`user.name`, `user.email`, `core.editor`) into the VM when available
+- Build the local Matchlock binary:
 
-## Build the Image
+```bash
+mise run build
+```
 
-### Using Docker
+Make sure `matchlock` is available in `PATH`, or set `MATCHLOCK_BIN=/path/to/matchlock` when running the helper.
+
+- Build the example image.
+
+Using Docker:
 
 ```bash
 docker build -t codex:latest examples/codex
 docker save codex:latest | matchlock image import codex:latest
 ```
 
-### Using Matchlock
+Or using Matchlock:
 
 ```bash
 matchlock build -t codex:latest --build-cache-size 30000 examples/codex
@@ -28,34 +29,31 @@ matchlock build -t codex:latest --build-cache-size 30000 examples/codex
 
 ## Run
 
-From repo root, use the helper script in the codex example dir:
+The helper uses `matchlock` from `PATH` by default. Override with `MATCHLOCK_BIN=/path/to/matchlock` if needed.
 
 ```bash
 ./examples/codex/matchlock-codex run
 ./examples/codex/matchlock-codex run "Fix failing tests in pkg/policy and add coverage"
-./examples/codex/matchlock-codex run --cpus 4 --memory 8192 jingkaihe/matchlock
-```
-
-
-Add `--privileged` when you need privileged sandbox mode:
-
-```bash
+./examples/codex/matchlock-codex run jingkaihe/matchlock "Implement issue #27 codex example"
+./examples/codex/matchlock-codex run --cpus 4 --memory 8192
 ./examples/codex/matchlock-codex run --privileged
 ```
 
-You can also pass an explicit GitHub repo slug:
-
-```bash
-./examples/codex/matchlock-codex run jingkaihe/matchlock "Implement issue #27 codex example"
-```
-
-If you omit the repo slug, the helper resolves it from your local `git remote get-url origin` and passes it into the VM. The clone is performed inside the VM by `git` over HTTPS using `GH_TOKEN`, so your token must be a valid GitHub PAT for the target repo.
+If you omit the repo slug, the helper tries to resolve it from your local `git remote get-url origin`.
 
 ## Secrets
 
-The helper passes both values to matchlock secret injection:
+By default, the helper expects:
 
-- `GH_TOKEN` for `github.com` clone/auth traffic
-- `OPENAI_API_KEY` for `api.openai.com`
+- `GH_TOKEN`
+- `OPENAI_API_KEY`
 
-The VM only sees placeholders; matchlock replaces them in-flight on matching hosts.
+If `GH_TOKEN` is not set, it will try `gh auth token` first.
+
+The helper automatically uses Matchlock secret injection for both values, including a GitHub-shaped placeholder for `GH_TOKEN` so private repo clone works with `gh auth` inside the sandbox.
+
+## Notes
+
+- GitHub clone uses HTTPS.
+- Private repo access depends on `GH_TOKEN` having access to the target repo.
+- Local git `user.name`, `user.email`, and `core.editor` are forwarded into the sandbox when available.
