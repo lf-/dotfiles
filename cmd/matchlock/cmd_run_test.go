@@ -243,6 +243,24 @@ func TestParseRunSecretsRejectsOverlappingPlaceholderValues(t *testing.T) {
 	assert.Contains(t, err.Error(), `"B"`)
 }
 
+func TestParseRunSecretsRejectsPlaceholderOverlapWithGeneratedFormat(t *testing.T) {
+	_, err := parseRunSecrets(
+		[]string{
+			"A=real_a@example.com",
+			"B=real_b@example.com",
+		},
+		[]string{
+			"A=SECRET",
+		},
+		"",
+	)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidSecret)
+	assert.Contains(t, err.Error(), "overlap")
+	assert.Contains(t, err.Error(), `"A"`)
+	assert.Contains(t, err.Error(), `"B"`)
+}
+
 func TestLoadSecretsFileRejectsEmptyHostEntry(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "secrets.json")

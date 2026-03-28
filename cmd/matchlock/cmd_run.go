@@ -10,7 +10,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -591,55 +590,11 @@ func parseRunSecrets(secretSpecs, placeholderSpecs []string, secretFile string) 
 		return nil, nil
 	}
 
-	if err := validateSecretPlaceholders(parsedSecrets); err != nil {
+	if err := api.ValidateSecretPlaceholders(parsedSecrets); err != nil {
 		return nil, errx.With(ErrInvalidSecret, " %v", err)
 	}
 
 	return parsedSecrets, nil
-}
-
-type namedSecretPlaceholder struct {
-	name  string
-	value string
-}
-
-func validateSecretPlaceholders(secrets map[string]api.Secret) error {
-	placeholders := make([]namedSecretPlaceholder, 0, len(secrets))
-	for name, secret := range secrets {
-		if secret.Placeholder == "" {
-			continue
-		}
-		placeholders = append(placeholders, namedSecretPlaceholder{
-			name:  name,
-			value: secret.Placeholder,
-		})
-	}
-
-	sort.Slice(placeholders, func(i, j int) bool {
-		if placeholders[i].value == placeholders[j].value {
-			return placeholders[i].name < placeholders[j].name
-		}
-		return placeholders[i].value < placeholders[j].value
-	})
-
-	for i := 0; i < len(placeholders); i++ {
-		for j := i + 1; j < len(placeholders); j++ {
-			left := placeholders[i]
-			right := placeholders[j]
-			if !strings.Contains(left.value, right.value) && !strings.Contains(right.value, left.value) {
-				continue
-			}
-			return fmt.Errorf(
-				"secret placeholders %q (%s) and %q (%s) overlap",
-				left.name,
-				left.value,
-				right.name,
-				right.value,
-			)
-		}
-	}
-
-	return nil
 }
 
 func loadSecretsFile(path string) (map[string]api.Secret, error) {
