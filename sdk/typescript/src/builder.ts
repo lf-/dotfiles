@@ -177,6 +177,18 @@ export class Sandbox {
     return this;
   }
 
+  addSecretWithPlaceholder(
+    name: string,
+    value: string,
+    placeholder: string,
+    ...hosts: string[]
+  ): Sandbox {
+    this.opts.secrets = this.opts.secrets ?? [];
+    const secret: Secret = { name, value, placeholder, hosts };
+    this.opts.secrets.push(secret);
+    return this;
+  }
+
   withDNSServers(...servers: string[]): Sandbox {
     this.opts.dnsServers = this.opts.dnsServers ?? [];
     this.opts.dnsServers.push(...servers);

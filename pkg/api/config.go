@@ -114,7 +114,13 @@ func (n *NetworkConfig) GetMTU() int {
 
 // Validate checks network config invariants.
 func (n *NetworkConfig) Validate() error {
-	if n == nil || !n.NoNetwork {
+	if n == nil {
+		return nil
+	}
+	if err := ValidateSecretPlaceholders(n.Secrets); err != nil {
+		return errx.With(ErrInvalidConfig, ": %v", err)
+	}
+	if !n.NoNetwork {
 		return nil
 	}
 	if len(n.AllowedHosts) > 0 {

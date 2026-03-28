@@ -353,6 +353,46 @@ describe("Client", () => {
     await client.close();
   });
 
+  it("sends secret placeholders in create payload", async () => {
+    const fake = installFakeProcess();
+    const client = new Client();
+
+    const createPromise = client.create({
+      image: "alpine:latest",
+      secrets: [
+        {
+          name: "GH_TOKEN",
+          value: "gho_real_token",
+          placeholder: "gho_sandbox_placeholder",
+          hosts: ["github.com"],
+        },
+      ],
+    });
+
+    const request = await fake.waitForRequest("create");
+    expect(request.params?.network).toEqual({
+      allowed_hosts: [],
+      block_private_ips: true,
+      secrets: {
+        GH_TOKEN: {
+          value: "gho_real_token",
+          placeholder: "gho_sandbox_placeholder",
+          hosts: ["github.com"],
+        },
+      },
+    });
+
+    fake.pushResponse({
+      jsonrpc: "2.0",
+      id: request.id,
+      result: { id: "vm-secret-placeholder" },
+    });
+    await expect(createPromise).resolves.toBe("vm-secret-placeholder");
+
+    fake.close();
+    await client.close();
+  });
+
   it("rejects no_network combined with allowed hosts", async () => {
     const client = new Client();
     await expect(

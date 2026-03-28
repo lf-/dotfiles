@@ -1,27 +1,27 @@
 # Claude Code Example
 
-Run Anthropic Claude Code inside a matchlock micro-VM with GitHub repository bootstrap and secret injection.
+Run Claude Code inside a Matchlock sandbox and clone a GitHub repo into the VM.
 
-## What's Inside
+## Prerequisites
 
-- Ubuntu 24.04 base image
-- `gh` CLI + `git`
-- Claude Code CLI (`@anthropic-ai/claude-code`)
-- Non-root `agent` user with passwordless `sudo`
-- `claude-settings.json` baked into `~/.claude/settings.json` (with entrypoint fallback) so Claude can read `ANTHROPIC_API_KEY` via helper command
-- Entrypoint that resolves repo slug, clones with `GH_TOKEN`, then launches Claude
-- Helper propagates local git identity/editor config (`user.name`, `user.email`, `core.editor`) into the VM when available
+- Build the local Matchlock binary:
 
-## Build the Image
+```bash
+mise run build
+```
 
-### Using Docker
+Make sure `matchlock` is available in `PATH`, or set `MATCHLOCK_BIN=/path/to/matchlock` when running the helper.
+
+- Build the example image.
+
+Using Docker:
 
 ```bash
 docker build -t claude-code:latest examples/claude-code
 docker save claude-code:latest | matchlock image import claude-code:latest
 ```
 
-### Using Matchlock
+Or using Matchlock:
 
 ```bash
 matchlock build -t claude-code:latest --build-cache-size 30000 examples/claude-code
@@ -29,49 +29,31 @@ matchlock build -t claude-code:latest --build-cache-size 30000 examples/claude-c
 
 ## Run
 
-From repo root, use the helper script in the claude-code example dir:
+The helper uses `matchlock` from `PATH` by default. Override with `MATCHLOCK_BIN=/path/to/matchlock` if needed.
 
 ```bash
 ./examples/claude-code/matchlock-claude run
 ./examples/claude-code/matchlock-claude run "Review pkg/policy for error-handling edge cases"
-./examples/claude-code/matchlock-claude run --cpus 4 --memory 8192 jingkaihe/matchlock
-```
-
-Add `--privileged` when you need privileged sandbox mode:
-
-```bash
+./examples/claude-code/matchlock-claude run jingkaihe/matchlock "Add tests for JSON-RPC cancel flow"
+./examples/claude-code/matchlock-claude run --cpus 4 --memory 8192
 ./examples/claude-code/matchlock-claude run --privileged
 ```
 
-You can also pass an explicit GitHub repo slug:
-
-```bash
-./examples/claude-code/matchlock-claude run jingkaihe/matchlock "Add tests for JSON-RPC cancel flow"
-```
-
-When an instruction is provided, the entrypoint uses `claude -p` for one-shot output. With no instruction, it starts interactive Claude Code.
-
-If you omit the repo slug, the helper resolves it from your local `git remote get-url origin` and passes it into the VM. The clone is performed inside the VM by `git` over HTTPS using `GH_TOKEN`, so your token must be a valid GitHub PAT for the target repo.
-
-## Why `~/.claude/settings.json` Is Required
-
-For Claude Code, `ANTHROPIC_API_KEY` is not picked up automatically in this workflow. This example includes `examples/claude-code/claude-settings.json` and places it at `~/.claude/settings.json` in the VM:
-
-```json
-{
-  "apiKeyHelper": "echo $ANTHROPIC_API_KEY"
-}
-```
-
-Claude reads the key via that helper command.
-
-This is required for matchlock secret injection: inside the VM, `ANTHROPIC_API_KEY` is a placeholder value. When Claude sends requests to `api.anthropic.com`, matchlock replaces the placeholder in-flight with the real key.
+If you omit the repo slug, the helper tries to resolve it from your local `git remote get-url origin`.
 
 ## Secrets
 
-The helper passes both values to matchlock secret injection:
+By default, the helper expects:
 
-- `GH_TOKEN` for `github.com` clone/auth traffic
-- `ANTHROPIC_API_KEY` for `api.anthropic.com`
+- `GH_TOKEN`
+- `ANTHROPIC_API_KEY`
 
-The VM only sees placeholders; matchlock replaces them in-flight on matching hosts.
+If `GH_TOKEN` is not set, it will try `gh auth token` first.
+
+The helper automatically uses Matchlock secret injection for both values, including a GitHub-shaped placeholder for `GH_TOKEN` so private repo clone works with `gh auth` inside the sandbox.
+
+## Notes
+
+- GitHub clone uses HTTPS.
+- Private repo access depends on `GH_TOKEN` having access to the target repo.
+- Local git `user.name`, `user.email`, and `core.editor` are forwarded into the sandbox when available.

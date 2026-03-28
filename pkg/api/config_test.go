@@ -169,6 +169,53 @@ func TestNetworkConfigValidateNoNetworkOnly(t *testing.T) {
 	require.NoError(t, cfg.Validate())
 }
 
+func TestNetworkConfigValidateRejectsOverlappingSecretPlaceholders(t *testing.T) {
+	cfg := &NetworkConfig{
+		Secrets: map[string]Secret{
+			"A": {
+				Value:       "real_a",
+				Placeholder: "foo",
+				Hosts:       []string{"example.com"},
+			},
+			"B": {
+				Value:       "real_b",
+				Placeholder: "foobar",
+				Hosts:       []string{"example.com"},
+			},
+		},
+	}
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidConfig)
+	assert.Contains(t, err.Error(), "overlap")
+	assert.Contains(t, err.Error(), `"A"`)
+	assert.Contains(t, err.Error(), `"B"`)
+}
+
+func TestNetworkConfigValidateRejectsPlaceholderOverlapWithGeneratedFormat(t *testing.T) {
+	cfg := &NetworkConfig{
+		Secrets: map[string]Secret{
+			"A": {
+				Value:       "real_a",
+				Placeholder: "SECRET",
+				Hosts:       []string{"api.example.com"},
+			},
+			"B": {
+				Value: "real_b",
+				Hosts: []string{"api.example.com"},
+			},
+		},
+	}
+
+	err := cfg.Validate()
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidConfig)
+	assert.Contains(t, err.Error(), "overlap")
+	assert.Contains(t, err.Error(), `"A"`)
+	assert.Contains(t, err.Error(), `"B"`)
+}
+
 func TestDefaultConfig_VFSDisabledByDefault(t *testing.T) {
 	cfg := DefaultConfig()
 	require.Nil(t, cfg.VFS)

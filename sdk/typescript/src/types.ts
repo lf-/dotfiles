@@ -71,6 +71,7 @@ export interface MountConfig {
 export interface Secret {
   name: string;
   value: string;
+  placeholder?: string;
   hosts?: string[];
 }
 

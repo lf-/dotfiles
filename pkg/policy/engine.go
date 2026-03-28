@@ -57,8 +57,8 @@ func (e *Engine) SetNetworkHookInvoker(invoker networkHookInvoker) {
 
 func generatePlaceholder() string {
 	b := make([]byte, 16)
-	rand.Read(b)
-	return "SANDBOX_SECRET_" + hex.EncodeToString(b)
+	_, _ = rand.Read(b)
+	return api.GeneratedSecretPlaceholderPrefix + hex.EncodeToString(b)
 }
 
 func (e *Engine) GetPlaceholder(name string) string {

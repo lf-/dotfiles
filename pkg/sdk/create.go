@@ -203,10 +203,14 @@ func buildCreateNetworkParams(opts CreateOptions, wireInterception *api.NetworkI
 	if hasSecrets {
 		secrets := make(map[string]interface{})
 		for _, s := range opts.Secrets {
-			secrets[s.Name] = map[string]interface{}{
+			secret := map[string]interface{}{
 				"value": s.Value,
 				"hosts": s.Hosts,
 			}
+			if s.Placeholder != "" {
+				secret["placeholder"] = s.Placeholder
+			}
+			secrets[s.Name] = secret
 		}
 		network["secrets"] = secrets
 	}

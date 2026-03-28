@@ -343,7 +343,14 @@ class TestClientCreate:
                 image="img",
                 allowed_hosts=["a.com"],
                 block_private_ips=True,
-                secrets=[Secret(name="K", value="V", hosts=["a.com"])],
+                secrets=[
+                    Secret(
+                        name="K",
+                        value="V",
+                        placeholder="placeholder-v",
+                        hosts=["a.com"],
+                    )
+                ],
             )
             vm_id = client.create(opts)
             assert vm_id == "vm-net"
@@ -354,7 +361,13 @@ class TestClientCreate:
             assert req["params"]["network"] == {
                 "allowed_hosts": ["a.com"],
                 "block_private_ips": True,
-                "secrets": {"K": {"value": "V", "hosts": ["a.com"]}},
+                "secrets": {
+                    "K": {
+                        "value": "V",
+                        "placeholder": "placeholder-v",
+                        "hosts": ["a.com"],
+                    }
+                },
             }
             t.join(timeout=2)
         finally:

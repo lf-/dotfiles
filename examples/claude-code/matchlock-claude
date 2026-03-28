@@ -30,9 +30,12 @@ if [ -z "$PROJECT_ROOT" ]; then
     PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
 
-MATCHLOCK_BIN="matchlock"
-if ! command -v "$MATCHLOCK_BIN" >/dev/null 2>&1; then
-    echo "matchlock binary not found in PATH." >&2
+MATCHLOCK_BIN="${MATCHLOCK_BIN:-matchlock}"
+if [ ! -x "$MATCHLOCK_BIN" ]; then
+    MATCHLOCK_BIN="$(command -v "$MATCHLOCK_BIN" 2>/dev/null || true)"
+fi
+if [ -z "$MATCHLOCK_BIN" ]; then
+    echo "matchlock binary not found in PATH. Install it or set MATCHLOCK_BIN." >&2
     exit 1
 fi
 
@@ -128,7 +131,8 @@ args=(
     --allow-host "*.archive.ubuntu.com"
     --allow-host api.anthropic.com
     --allow-host "*.anthropic.com"
-    --secret 'GH_TOKEN@github.com'
+    --secret 'GH_TOKEN@github.com,api.github.com'
+    --secret-placeholder 'GH_TOKEN=gho_sandbox_placeholder'
     --secret 'ANTHROPIC_API_KEY@api.anthropic.com'
 )
 

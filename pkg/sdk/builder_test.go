@@ -59,7 +59,7 @@ func TestBuilderAddHost(t *testing.T) {
 func TestBuilderAddSecret(t *testing.T) {
 	opts := New("alpine:latest").
 		AddSecret("API_KEY", "sk-123", "api.openai.com").
-		AddSecret("TOKEN", "tok-456", "*.example.com", "api.example.com").
+		AddSecretWithPlaceholder("TOKEN", "tok-456", "github_pat_sandbox_placeholder", "*.example.com", "api.example.com").
 		Options()
 
 	require.Len(t, opts.Secrets, 2)
@@ -73,6 +73,7 @@ func TestBuilderAddSecret(t *testing.T) {
 	s = opts.Secrets[1]
 	assert.Equal(t, "TOKEN", s.Name)
 	assert.Equal(t, "tok-456", s.Value)
+	assert.Equal(t, "github_pat_sandbox_placeholder", s.Placeholder)
 	require.Len(t, s.Hosts, 2)
 }
 

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -179,4 +181,136 @@ func TestWaitDetachedVMIDReturnsErrorWhenProcessIsNotRunning(t *testing.T) {
 	_, err := waitDetachedVMID(0)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrFindDetachedVM)
+}
+
+func TestParseRunSecretsWithPlaceholderOverride(t *testing.T) {
+	secrets, err := parseRunSecrets(
+		[]string{"GH_TOKEN=gho_real_token@github.com"},
+		[]string{"GH_TOKEN=gho_sandbox_placeholder"},
+		"",
+	)
+	require.NoError(t, err)
+	require.Contains(t, secrets, "GH_TOKEN")
+	assert.Equal(t, "gho_real_token", secrets["GH_TOKEN"].Value)
+	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
+	assert.Equal(t, []string{"github.com"}, secrets["GH_TOKEN"].Hosts)
+}
+
+func TestSecretFlagPreservesCommaSeparatedHosts(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringArray("secret", nil, "Secret (NAME=VALUE@host1,host2 or NAME@host1,host2)")
+
+	err := cmd.ParseFlags([]string{"--secret", "GH_TOKEN@github.com,api.github.com"})
+	require.NoError(t, err)
+
+	secrets, err := cmd.Flags().GetStringArray("secret")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"GH_TOKEN@github.com,api.github.com"}, secrets)
+}
+
+func TestSecretPlaceholderFlagPreservesLiteralValue(t *testing.T) {
+	cmd := &cobra.Command{}
+	cmd.Flags().StringArray("secret-placeholder", nil, "Secret placeholder override (NAME=PLACEHOLDER; can be repeated)")
+
+	err := cmd.ParseFlags([]string{"--secret-placeholder", "GH_TOKEN=gho,sandbox,placeholder"})
+	require.NoError(t, err)
+
+	placeholders, err := cmd.Flags().GetStringArray("secret-placeholder")
+	require.NoError(t, err)
+	assert.Equal(t, []string{"GH_TOKEN=gho,sandbox,placeholder"}, placeholders)
+}
+
+func TestParseRunSecretsLoadsSecretFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "secrets.json")
+	payload := map[string]map[string]any{
+		"GH_TOKEN": {
+			"value":       "gho_real_token",
+			"placeholder": "gho_sandbox_placeholder",
+			"hosts":       []string{"github.com", "api.github.com"},
+		},
+	}
+	data, err := json.Marshal(payload)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, data, 0644))
+
+	secrets, err := parseRunSecrets(nil, nil, path)
+	require.NoError(t, err)
+	require.Contains(t, secrets, "GH_TOKEN")
+	assert.Equal(t, "gho_real_token", secrets["GH_TOKEN"].Value)
+	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
+	assert.Equal(t, []string{"github.com", "api.github.com"}, secrets["GH_TOKEN"].Hosts)
+}
+
+func TestParseRunSecretsRejectsUnknownPlaceholderReference(t *testing.T) {
+	_, err := parseRunSecrets(nil, []string{"GH_TOKEN=gho_sandbox_placeholder"}, "")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidSecret)
+	assert.Contains(t, err.Error(), "unknown secret")
+}
+
+func TestParseRunSecretsRejectsOverlappingPlaceholderValues(t *testing.T) {
+	_, err := parseRunSecrets(
+		[]string{
+			"A=real_a@example.com",
+			"B=real_b@example.com",
+		},
+		[]string{
+			"A=foo",
+			"B=foobar",
+		},
+		"",
+	)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidSecret)
+	assert.Contains(t, err.Error(), "overlap")
+	assert.Contains(t, err.Error(), `"A"`)
+	assert.Contains(t, err.Error(), `"B"`)
+}
+
+func TestParseRunSecretsRejectsPlaceholderOverlapWithGeneratedFormat(t *testing.T) {
+	_, err := parseRunSecrets(
+		[]string{
+			"A=real_a@example.com",
+			"B=real_b@example.com",
+		},
+		[]string{
+			"A=SECRET",
+		},
+		"",
+	)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidSecret)
+	assert.Contains(t, err.Error(), "overlap")
+	assert.Contains(t, err.Error(), `"A"`)
+	assert.Contains(t, err.Error(), `"B"`)
+}
+
+func TestLoadSecretsFileRejectsEmptyHostEntry(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "secrets.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"GH_TOKEN":{"value":"gho_real_token","hosts":["github.com",""]}}`), 0644))
+
+	_, err := loadSecretsFile(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "empty host entry")
+}
+
+func TestLoadSecretsFileTrimsHosts(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "secrets.json")
+	require.NoError(
+		t,
+		os.WriteFile(
+			path,
+			[]byte(`{"GH_TOKEN":{"value":"gho_real_token","placeholder":" gho_sandbox_placeholder ","hosts":[" github.com "," api.github.com "]}}`),
+			0644,
+		),
+	)
+
+	secrets, err := loadSecretsFile(path)
+	require.NoError(t, err)
+	require.Contains(t, secrets, "GH_TOKEN")
+	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
+	assert.Equal(t, []string{"github.com", "api.github.com"}, secrets["GH_TOKEN"].Hosts)
 }

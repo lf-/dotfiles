@@ -192,6 +192,60 @@ func TestCreateSendsNetworkMTU(t *testing.T) {
 	assert.True(t, capturedBlockPrivateIPs)
 }
 
+func TestCreateSendsSecretPlaceholder(t *testing.T) {
+	var capturedSecrets map[string]interface{}
+
+	client, cleanup := newScriptedClient(t, func(req request) response {
+		switch req.Method {
+		case "create":
+			if req.Params != nil {
+				if params, ok := req.Params.(map[string]interface{}); ok {
+					if network, ok := params["network"].(map[string]interface{}); ok {
+						if secrets, ok := network["secrets"].(map[string]interface{}); ok {
+							capturedSecrets = secrets
+						}
+					}
+				}
+			}
+			return response{
+				JSONRPC: "2.0",
+				Result:  json.RawMessage(`{"id":"vm-secret-placeholder"}`),
+				ID:      &req.ID,
+			}
+		default:
+			return response{
+				JSONRPC: "2.0",
+				Error: &rpcError{
+					Code:    ErrCodeMethodNotFound,
+					Message: "Method not found",
+				},
+				ID: &req.ID,
+			}
+		}
+	})
+	defer cleanup()
+
+	vmID, err := client.Create(CreateOptions{
+		Image: "alpine:latest",
+		Secrets: []Secret{
+			{
+				Name:        "GH_TOKEN",
+				Value:       "gho_real_token",
+				Placeholder: "gho_sandbox_placeholder",
+				Hosts:       []string{"httpbin.org"},
+			},
+		},
+	})
+
+	require.NoError(t, err)
+	assert.Equal(t, "vm-secret-placeholder", vmID)
+	require.Contains(t, capturedSecrets, "GH_TOKEN")
+	secret := capturedSecrets["GH_TOKEN"].(map[string]interface{})
+	assert.Equal(t, "gho_real_token", secret["value"])
+	assert.Equal(t, "gho_sandbox_placeholder", secret["placeholder"])
+	assert.Equal(t, []interface{}{"httpbin.org"}, secret["hosts"])
+}
+
 func TestCreateSendsKernelRef(t *testing.T) {
 	var capturedKernel map[string]interface{}
 

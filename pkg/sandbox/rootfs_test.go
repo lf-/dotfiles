@@ -49,6 +49,12 @@ func debugfsStatMode(t *testing.T, rootfsPath, guestPath string) string {
 	return ""
 }
 
+func debugfsStatOutput(rootfsPath, guestPath string) (string, error) {
+	cmd := exec.Command("debugfs", "-R", "stat "+guestPath, rootfsPath)
+	out, err := cmd.CombinedOutput()
+	return string(out), err
+}
+
 func debugfsCat(t *testing.T, rootfsPath, guestPath string) string {
 	t.Helper()
 	cmd := exec.Command("debugfs", "-R", "cat "+guestPath, rootfsPath)
@@ -109,4 +115,33 @@ func TestInjectConfigFileIntoRootfs_Overwrites(t *testing.T) {
 
 	got := debugfsCat(t, rootfs, "/etc/test.conf")
 	assert.Equal(t, "second", got)
+}
+
+func TestPrepareOverlayUpperRootfs_AvoidsShadowingMergedUSR(t *testing.T) {
+	if !hasDebugfs() || !hasMkfsExt4() {
+		t.Skip("debugfs or mkfs.ext4 not available")
+	}
+
+	guestInit := filepath.Join(t.TempDir(), "guest-init")
+	require.NoError(t, os.WriteFile(guestInit, []byte("guest-init-binary"), 0755))
+	t.Setenv("MATCHLOCK_GUEST_INIT", guestInit)
+
+	rootfs := createTestExt4(t, 10)
+	require.NoError(t, prepareOverlayUpperRootfs(rootfs))
+
+	for _, path := range []string{
+		"/upper/init",
+		"/upper/opt/matchlock/guest-init",
+		"/upper/opt/matchlock/guest-agent",
+		"/upper/opt/matchlock/guest-fused",
+	} {
+		assert.Equal(t, "guest-init-binary", debugfsCat(t, rootfs, path), path)
+		assert.Contains(t, debugfsStatMode(t, rootfs, path), "0755", path)
+	}
+
+	for _, path := range []string{"/upper/sbin", "/upper/usr/sbin"} {
+		out, err := debugfsStatOutput(rootfs, path)
+		assert.NoError(t, err, "debugfs stat should complete for %s", path)
+		assert.Contains(t, out, "File not found", path)
+	}
 }

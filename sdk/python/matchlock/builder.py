@@ -116,6 +116,19 @@ class Sandbox:
         self._opts.secrets.append(Secret(name=name, value=value, hosts=list(hosts)))
         return self
 
+    def add_secret_with_placeholder(
+        self, name: str, value: str, placeholder: str, *hosts: str
+    ) -> Sandbox:
+        self._opts.secrets.append(
+            Secret(
+                name=name,
+                value=value,
+                placeholder=placeholder,
+                hosts=list(hosts),
+            )
+        )
+        return self
+
     def with_dns_servers(self, *servers: str) -> Sandbox:
         self._opts.dns_servers.extend(servers)
         return self
