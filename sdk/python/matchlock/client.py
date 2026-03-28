@@ -1224,9 +1224,13 @@ class Client:
         if has_network_interception:
             network["interception"] = wire_interception
         if has_secrets:
-            network["secrets"] = {
-                s.name: {"value": s.value, "hosts": s.hosts} for s in opts.secrets
-            }
+            secrets: dict[str, Any] = {}
+            for s in opts.secrets:
+                secret: dict[str, Any] = {"value": s.value, "hosts": s.hosts}
+                if s.placeholder:
+                    secret["placeholder"] = s.placeholder
+                secrets[s.name] = secret
+            network["secrets"] = secrets
         if has_dns_servers:
             network["dns_servers"] = opts.dns_servers
         if has_hostname:

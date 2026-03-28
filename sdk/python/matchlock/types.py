@@ -363,6 +363,9 @@ class Secret:
     value: str
     """The actual secret value."""
 
+    placeholder: str = ""
+    """Optional custom placeholder exposed inside the sandbox."""
+
     hosts: list[str] = field(default_factory=list)
     """Hosts where this secret can be used (supports wildcards)."""
 

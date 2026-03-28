@@ -39,6 +39,12 @@ describe("Sandbox builder", () => {
       .allowHost("api.openai.com", "pypi.org")
       .addHost("api.internal", "10.0.0.10")
       .addSecret("API_KEY", "secret", "api.openai.com")
+      .addSecretWithPlaceholder(
+        "GH_TOKEN",
+        "gho_real_token",
+        "gho_sandbox_placeholder",
+        "github.com",
+      )
       .withDNSServers("1.1.1.1", "8.8.8.8")
       .withHostname("sandbox-host")
       .withNetworkMTU(1200)
@@ -49,6 +55,12 @@ describe("Sandbox builder", () => {
     expect(opts.addHosts).toEqual([{ host: "api.internal", ip: "10.0.0.10" }]);
     expect(opts.secrets).toEqual([
       { name: "API_KEY", value: "secret", hosts: ["api.openai.com"] },
+      {
+        name: "GH_TOKEN",
+        value: "gho_real_token",
+        placeholder: "gho_sandbox_placeholder",
+        hosts: ["github.com"],
+      },
     ]);
     expect(opts.dnsServers).toEqual(["1.1.1.1", "8.8.8.8"]);
     expect(opts.hostname).toBe("sandbox-host");

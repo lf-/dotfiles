@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -179,4 +180,56 @@ func TestWaitDetachedVMIDReturnsErrorWhenProcessIsNotRunning(t *testing.T) {
 	_, err := waitDetachedVMID(0)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrFindDetachedVM)
+}
+
+func TestParseRunSecretsWithPlaceholderOverride(t *testing.T) {
+	secrets, err := parseRunSecrets(
+		[]string{"GH_TOKEN=gho_real_token@github.com"},
+		[]string{"GH_TOKEN=gho_sandbox_placeholder"},
+		"",
+	)
+	require.NoError(t, err)
+	require.Contains(t, secrets, "GH_TOKEN")
+	assert.Equal(t, "gho_real_token", secrets["GH_TOKEN"].Value)
+	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
+	assert.Equal(t, []string{"github.com"}, secrets["GH_TOKEN"].Hosts)
+}
+
+func TestParseRunSecretsLoadsSecretFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "secrets.json")
+	payload := map[string]map[string]any{
+		"GH_TOKEN": {
+			"value":       "gho_real_token",
+			"placeholder": "gho_sandbox_placeholder",
+			"hosts":       []string{"github.com", "api.github.com"},
+		},
+	}
+	data, err := json.Marshal(payload)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, data, 0644))
+
+	secrets, err := parseRunSecrets(nil, nil, path)
+	require.NoError(t, err)
+	require.Contains(t, secrets, "GH_TOKEN")
+	assert.Equal(t, "gho_real_token", secrets["GH_TOKEN"].Value)
+	assert.Equal(t, "gho_sandbox_placeholder", secrets["GH_TOKEN"].Placeholder)
+	assert.Equal(t, []string{"github.com", "api.github.com"}, secrets["GH_TOKEN"].Hosts)
+}
+
+func TestParseRunSecretsRejectsUnknownPlaceholderReference(t *testing.T) {
+	_, err := parseRunSecrets(nil, []string{"GH_TOKEN=gho_sandbox_placeholder"}, "")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidSecret)
+	assert.Contains(t, err.Error(), "unknown secret")
+}
+
+func TestLoadSecretsFileRejectsEmptyHostEntry(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "secrets.json")
+	require.NoError(t, os.WriteFile(path, []byte(`{"GH_TOKEN":{"value":"gho_real_token","hosts":["github.com",""]}}`), 0644))
+
+	_, err := loadSecretsFile(path)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "empty host entry")
 }

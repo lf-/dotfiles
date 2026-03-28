@@ -142,6 +142,18 @@ func (b *SandboxBuilder) AddSecret(name, value string, hosts ...string) *Sandbox
 	return b
 }
 
+// AddSecretWithPlaceholder registers a secret with a caller-provided placeholder
+// value exposed inside the VM.
+func (b *SandboxBuilder) AddSecretWithPlaceholder(name, value, placeholder string, hosts ...string) *SandboxBuilder {
+	b.opts.Secrets = append(b.opts.Secrets, Secret{
+		Name:        name,
+		Value:       value,
+		Placeholder: placeholder,
+		Hosts:       hosts,
+	})
+	return b
+}
+
 // WithDNSServers overrides the default DNS servers (8.8.8.8, 8.8.4.4).
 func (b *SandboxBuilder) WithDNSServers(servers ...string) *SandboxBuilder {
 	b.opts.DNSServers = append(b.opts.DNSServers, servers...)

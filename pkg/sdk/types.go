@@ -86,6 +86,8 @@ type Secret struct {
 	Name string
 	// Value is the actual secret value
 	Value string
+	// Placeholder overrides the generated in-VM placeholder value when set.
+	Placeholder string
 	// Hosts is a list of hosts where this secret can be used (supports wildcards)
 	Hosts []string
 }

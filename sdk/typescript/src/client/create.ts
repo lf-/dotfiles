@@ -209,10 +209,14 @@ function buildCreateNetworkParams(
   if (hasSecrets) {
     const secrets: JSONObject = {};
     for (const secret of opts.secrets ?? []) {
-      secrets[secret.name] = {
+      const wireSecret: JSONObject = {
         value: secret.value,
         hosts: secret.hosts ?? [],
       };
+      if (secret.placeholder) {
+        wireSecret.placeholder = secret.placeholder;
+      }
+      secrets[secret.name] = wireSecret;
     }
     network.secrets = secrets;
   }

@@ -80,3 +80,30 @@ func TestParseSecretHostTrimSpaces(t *testing.T) {
 	assert.Equal(t, "host1.com", secret.Hosts[0])
 	assert.Equal(t, "host2.com", secret.Hosts[1])
 }
+
+func TestParseSecretRejectsEmptyHost(t *testing.T) {
+	_, _, err := ParseSecret("K=v@host1.com,")
+	require.Error(t, err)
+}
+
+func TestParseSecretPlaceholder(t *testing.T) {
+	name, placeholder, err := ParseSecretPlaceholder("GH_TOKEN=gho_sandbox_placeholder")
+	require.NoError(t, err)
+	assert.Equal(t, "GH_TOKEN", name)
+	assert.Equal(t, "gho_sandbox_placeholder", placeholder)
+}
+
+func TestParseSecretPlaceholderRejectsMissingEquals(t *testing.T) {
+	_, _, err := ParseSecretPlaceholder("GH_TOKEN")
+	require.Error(t, err)
+}
+
+func TestParseSecretPlaceholderRejectsEmptyName(t *testing.T) {
+	_, _, err := ParseSecretPlaceholder("=gho_sandbox_placeholder")
+	require.Error(t, err)
+}
+
+func TestParseSecretPlaceholderRejectsEmptyPlaceholder(t *testing.T) {
+	_, _, err := ParseSecretPlaceholder("GH_TOKEN=")
+	require.Error(t, err)
+}

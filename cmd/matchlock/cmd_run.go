@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -47,11 +48,15 @@ Secrets (--secret):
   Secrets are injected via MITM proxy - the real value never enters the VM.
   The VM sees a placeholder, which is replaced with the real value in HTTP headers.
 
-  Formats:
-    NAME=VALUE@host1,host2     Inline secret value for specified hosts
-    NAME@host1,host2           Read secret from $NAME environment variable
+	Formats:
+	    NAME=VALUE@host1,host2     Inline secret value for specified hosts
+	    NAME@host1,host2           Read secret from $NAME environment variable
 
-  Note: When using sudo, env vars are not preserved. Use 'sudo -E' or pass inline.
+	Custom placeholders:
+	    --secret-placeholder NAME=value   Override the in-VM placeholder value
+	    --secret-file /path/to/secrets.json  Load full secret definitions from JSON
+
+	Note: When using sudo, env vars are not preserved. Use 'sudo -E' or pass inline.
 
 Volume Mounts (-v):
   Requires --workspace. Guest paths are relative to workspace (or use full workspace paths):
@@ -106,6 +111,8 @@ func init() {
 	runCmd.Flags().StringArrayP("env", "e", nil, "Environment variable (KEY=VALUE or KEY; can be repeated)")
 	runCmd.Flags().StringArray("env-file", nil, "Environment file (KEY=VALUE or KEY per line; can be repeated)")
 	runCmd.Flags().StringSlice("secret", nil, "Secret (NAME=VALUE@host1,host2 or NAME@host1,host2)")
+	runCmd.Flags().StringSlice("secret-placeholder", nil, "Secret placeholder override (NAME=PLACEHOLDER; can be repeated)")
+	runCmd.Flags().String("secret-file", "", "JSON file with full secret definitions (name -> {value, placeholder, hosts})")
 	runCmd.Flags().StringSlice("dns-servers", nil, "DNS servers (default: 8.8.8.8,8.8.4.4)")
 	runCmd.Flags().String("hostname", "", "Guest hostname (default: sandbox ID)")
 	runCmd.Flags().Int("mtu", api.DefaultNetworkMTU, "Network MTU for guest interface")
@@ -139,6 +146,8 @@ func init() {
 	viper.BindPFlag("run.env", runCmd.Flags().Lookup("env"))
 	viper.BindPFlag("run.env-file", runCmd.Flags().Lookup("env-file"))
 	viper.BindPFlag("run.secret", runCmd.Flags().Lookup("secret"))
+	viper.BindPFlag("run.secret-placeholder", runCmd.Flags().Lookup("secret-placeholder"))
+	viper.BindPFlag("run.secret-file", runCmd.Flags().Lookup("secret-file"))
 	viper.BindPFlag("run.hostname", runCmd.Flags().Lookup("hostname"))
 	viper.BindPFlag("run.mtu", runCmd.Flags().Lookup("mtu"))
 	viper.BindPFlag("run.no-network", runCmd.Flags().Lookup("no-network"))
@@ -198,6 +207,8 @@ func runRun(cmd *cobra.Command, args []string) error {
 	envVars, _ := cmd.Flags().GetStringArray("env")
 	envFiles, _ := cmd.Flags().GetStringArray("env-file")
 	secrets, _ := cmd.Flags().GetStringSlice("secret")
+	secretPlaceholders, _ := cmd.Flags().GetStringSlice("secret-placeholder")
+	secretFile, _ := cmd.Flags().GetString("secret-file")
 	dnsServers, _ := cmd.Flags().GetStringSlice("dns-servers")
 	hostname, _ := cmd.Flags().GetString("hostname")
 	networkMTU, _ := cmd.Flags().GetInt("mtu")
@@ -221,7 +232,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 		if len(allowHosts) > 0 {
 			return fmt.Errorf("--no-network cannot be combined with --allow-host")
 		}
-		if len(secrets) > 0 {
+		if len(secrets) > 0 || secretFile != "" || len(secretPlaceholders) > 0 {
 			return fmt.Errorf("--no-network cannot be combined with --secret")
 		}
 		if networkIntercept {
@@ -350,16 +361,9 @@ func runRun(cmd *cobra.Command, args []string) error {
 		extraDisks = append(extraDisks, diskMount)
 	}
 
-	var parsedSecrets map[string]api.Secret
-	if len(secrets) > 0 {
-		parsedSecrets = make(map[string]api.Secret)
-		for _, s := range secrets {
-			name, secret, err := api.ParseSecret(s)
-			if err != nil {
-				return errx.With(ErrInvalidSecret, " %q: %w", s, err)
-			}
-			parsedSecrets[name] = secret
-		}
+	parsedSecrets, err := parseRunSecrets(secrets, secretPlaceholders, secretFile)
+	if err != nil {
+		return err
 	}
 
 	parsedEnv, err := api.ParseEnvs(envVars, envFiles)
@@ -545,6 +549,84 @@ func runRun(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func parseRunSecrets(secretSpecs, placeholderSpecs []string, secretFile string) (map[string]api.Secret, error) {
+	parsedSecrets := make(map[string]api.Secret)
+
+	if secretFile != "" {
+		secretsFromFile, err := loadSecretsFile(secretFile)
+		if err != nil {
+			return nil, errx.With(ErrInvalidSecret, " %q: %v", secretFile, err)
+		}
+		for name, secret := range secretsFromFile {
+			parsedSecrets[name] = secret
+		}
+	}
+
+	for _, s := range secretSpecs {
+		name, secret, err := api.ParseSecret(s)
+		if err != nil {
+			return nil, errx.With(ErrInvalidSecret, " %q: %v", s, err)
+		}
+		parsedSecrets[name] = secret
+	}
+
+	for _, s := range placeholderSpecs {
+		name, placeholder, err := api.ParseSecretPlaceholder(s)
+		if err != nil {
+			return nil, errx.With(ErrInvalidSecret, " %q: %v", s, err)
+		}
+
+		secret, ok := parsedSecrets[name]
+		if !ok {
+			return nil, errx.With(ErrInvalidSecret, " placeholder %q references unknown secret %q", s, name)
+		}
+		secret.Placeholder = placeholder
+		parsedSecrets[name] = secret
+	}
+
+	if len(parsedSecrets) == 0 {
+		return nil, nil
+	}
+
+	return parsedSecrets, nil
+}
+
+func loadSecretsFile(path string) (map[string]api.Secret, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var secrets map[string]api.Secret
+	if err := json.Unmarshal(data, &secrets); err != nil {
+		return nil, err
+	}
+
+	for name, secret := range secrets {
+		if strings.TrimSpace(name) == "" {
+			return nil, fmt.Errorf("secret name cannot be empty")
+		}
+		if len(secret.Hosts) == 0 {
+			return nil, fmt.Errorf("secret %q must specify at least one host", name)
+		}
+		for _, host := range secret.Hosts {
+			if strings.TrimSpace(host) == "" {
+				return nil, fmt.Errorf("secret %q has an empty host entry", name)
+			}
+		}
+		if secret.Value == "" {
+			return nil, fmt.Errorf("secret %q must specify a value", name)
+		}
+		secrets[name] = api.Secret{
+			Value:       secret.Value,
+			Placeholder: strings.TrimSpace(secret.Placeholder),
+			Hosts:       secret.Hosts,
+		}
+	}
+
+	return secrets, nil
 }
 
 func validateDetachFlags(detach, tty, interactive bool) error {

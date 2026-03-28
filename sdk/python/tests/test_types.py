@@ -153,6 +153,10 @@ class TestPortForwardTypes:
         a.secrets.append(Secret(name="K", value="V"))
         assert b.secrets == []
 
+    def test_secret_placeholder_field(self):
+        secret = Secret(name="K", value="V", placeholder="sandbox-token")
+        assert secret.placeholder == "sandbox-token"
+
 
 class TestExecResult:
     def test_fields(self):

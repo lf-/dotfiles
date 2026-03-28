@@ -238,6 +238,19 @@ class TestSandboxSecrets:
         opts = Sandbox("img").add_secret("KEY", "val", "a.com", "b.com").options()
         assert opts.secrets[0].hosts == ["a.com", "b.com"]
 
+    def test_add_secret_with_placeholder(self):
+        opts = (
+            Sandbox("img")
+            .add_secret_with_placeholder(
+                "GH_TOKEN",
+                "gho_real_token",
+                "gho_sandbox_placeholder",
+                "github.com",
+            )
+            .options()
+        )
+        assert opts.secrets[0].placeholder == "gho_sandbox_placeholder"
+
     def test_multiple_secrets(self):
         opts = (
             Sandbox("img")
