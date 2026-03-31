@@ -103,6 +103,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   pycrashreport
 
   awscli2
+  awscurl
 
   # vibe coding nonsense
   opencode
