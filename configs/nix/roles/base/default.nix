@@ -15,6 +15,7 @@
   nixpkgs.overlays = (import ../../overlays/patches) ++ [
     (import ../../overlays/polkadots.nix { polkadots = config.jade.dep-inject.polkadots; })
     (import ../../overlays/vendor-pkgs.nix)
+    (import ../../overlays/packages.nix)
   ];
   nixpkgs.config.allowUnfree = true;
 
