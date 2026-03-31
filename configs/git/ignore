@@ -32,3 +32,5 @@ core.[0-9]*
 # this is slightly less absurd but nonetheless exists for doing horrible things to jj
 .jj/
 $.jj/
+
+**/.claude/settings.local.json
