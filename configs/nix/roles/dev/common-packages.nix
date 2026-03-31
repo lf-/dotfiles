@@ -80,7 +80,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   rage
   age-plugin-yubikey
   age-plugin-tpm
-  kanidm
+  kanidm_1_8
 
   sqlite-interactive
 
@@ -107,6 +107,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 
   # vibe coding nonsense
   opencode
+  claude-code
 
   # FIXME: this probably should not be in here since it doesn't do much good
   # for VMs. but bleh effort.
