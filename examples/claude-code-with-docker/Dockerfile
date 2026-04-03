@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
   systemd-sysv \
   dbus \
   iptables \
+  nftables \
   iproute2 \
   dnsutils \
   git \
@@ -23,10 +24,9 @@ RUN apt-get update && apt-get install -y \
   && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && apt-get install -y nodejs \
   && npm i -g @anthropic-ai/claude-code@latest \
-  && update-alternatives --set iptables /usr/sbin/iptables-legacy \
-  && update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy \
   && install -d -m 0755 /etc/docker \
-  && printf '{\n  "storage-driver": "vfs",\n  "features": {\n    "containerd-snapshotter": false\n  }\n}\n' > /etc/docker/daemon.json \
+  && printf 'net.ipv4.ip_forward = 1\nnet.ipv6.conf.all.forwarding = 1\n' > /etc/sysctl.d/99-docker-forwarding.conf \
+  && printf '{\n  "firewall-backend": "nftables",\n  "storage-driver": "vfs",\n  "features": {\n    "containerd-snapshotter": false\n  }\n}\n' > /etc/docker/daemon.json \
   && useradd -m -s /bin/bash -G docker agent \
   && install -d -m 700 -o agent -g agent /home/agent/.claude \
   && install -d -m 755 -o agent -g agent /home/agent/workspace \
