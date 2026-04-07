@@ -34,6 +34,7 @@ type Sandbox struct {
 	config           *api.Config
 	machine          vm.Machine
 	proxy            *sandboxnet.TransparentProxy
+	dnsForwarder     *sandboxnet.DNSForwarder
 	fwRules          FirewallRules
 	natRules         *sandboxnet.NFTablesNAT
 	policy           *policy.Engine
@@ -243,6 +244,31 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		subnetCIDR = subnetInfo.GatewayIP + "/24"
 	}
 
+	// Auto-add secret hosts to allowed hosts if secrets are defined.
+	if config.Network != nil && len(config.Network.Secrets) > 0 {
+		hostSet := make(map[string]bool)
+		for _, h := range config.Network.AllowedHosts {
+			hostSet[h] = true
+		}
+		for _, secret := range config.Network.Secrets {
+			for _, h := range secret.Hosts {
+				if !hostSet[h] {
+					config.Network.AllowedHosts = append(config.Network.AllowedHosts, h)
+					hostSet[h] = true
+				}
+			}
+		}
+	}
+
+	// Host-name resolution inside the guest is handled at runtime by a
+	// host-side DNS forwarder (started below alongside the transparent
+	// proxy) plus a prerouting DNAT rule for UDP/53. The forwarder relays
+	// queries to the configured upstream resolvers on the host network,
+	// so the guest gets real DNS answers. The transparent proxy still
+	// enforces policy via Host header (HTTP) or TLS SNI (HTTPS) because
+	// the nftables TCP DNAT rules intercept all port 80/443 traffic
+	// regardless of destination IP.
+
 	vmConfig := &vm.VMConfig{
 		ID:                  id,
 		KernelPath:          kernelPath,
@@ -287,22 +313,6 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		})
 	}
 
-	// Auto-add secret hosts to allowed hosts if secrets are defined
-	if config.Network != nil && len(config.Network.Secrets) > 0 {
-		hostSet := make(map[string]bool)
-		for _, h := range config.Network.AllowedHosts {
-			hostSet[h] = true
-		}
-		for _, secret := range config.Network.Secrets {
-			for _, h := range secret.Hosts {
-				if !hostSet[h] {
-					config.Network.AllowedHosts = append(config.Network.AllowedHosts, h)
-					hostSet[h] = true
-				}
-			}
-		}
-	}
-
 	overlaySnapshots, err := prepareOverlaySnapshots(config, stateMgr.Dir(id))
 	if err != nil {
 		machine.Close(ctx)
@@ -322,6 +332,7 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 	const proxyBindAddr = "0.0.0.0"
 
 	var proxy *sandboxnet.TransparentProxy
+	var dnsForwarder *sandboxnet.DNSForwarder
 	var fwRules FirewallRules
 
 	if needsProxy {
@@ -343,8 +354,23 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 		proxy.Start()
 
-		fwRules = sandboxnet.NewNFTablesRules(linuxMachine.TapName(), gatewayIP, proxy.HTTPPort(), proxy.HTTPSPort(), proxy.PassthroughPort(), config.Network.GetDNSServers())
+		// Start the host-side DNS forwarder. It relays guest DNS
+		// queries to the configured upstream resolvers on the host
+		// network so the guest receives real DNS answers.
+		dnsForwarder, err = sandboxnet.NewDNSForwarder(proxyBindAddr, config.Network.GetDNSServers())
+		if err != nil {
+			proxy.Close()
+			machine.Close(ctx)
+			releaseSubnet()
+			stateMgr.Unregister(id)
+			return nil, errx.Wrap(ErrCreateProxy, err)
+		}
+
+		nfRules := sandboxnet.NewNFTablesRules(linuxMachine.TapName(), gatewayIP, proxy.HTTPPort(), proxy.HTTPSPort(), proxy.PassthroughPort(), config.Network.GetDNSServers())
+		nfRules.SetDNSForwarderPort(dnsForwarder.Port())
+		fwRules = nfRules
 		if err := fwRules.Setup(); err != nil {
+			dnsForwarder.Close()
 			proxy.Close()
 			machine.Close(ctx)
 			releaseSubnet()
@@ -388,6 +414,9 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 			if proxy != nil {
 				proxy.Close()
 			}
+			if dnsForwarder != nil {
+				dnsForwarder.Close()
+			}
 			if fwRules != nil {
 				fwRules.Cleanup()
 			}
@@ -403,6 +432,7 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		config:           config,
 		machine:          machine,
 		proxy:            proxy,
+		dnsForwarder:     dnsForwarder,
 		fwRules:          fwRules,
 		natRules:         natRules,
 		policy:           policyEngine,
@@ -627,6 +657,11 @@ func (s *Sandbox) Close(ctx context.Context) error {
 		}
 	} else {
 		markCleanup("proxy_close", nil)
+	}
+
+	if s.dnsForwarder != nil {
+		_ = s.dnsForwarder.Close()
+		s.dnsForwarder = nil
 	}
 
 	// Release subnet allocation
