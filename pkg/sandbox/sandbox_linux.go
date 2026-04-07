@@ -318,16 +318,20 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 	// Create event channel
 	events := make(chan api.Event, 100)
 
-	// Set up transparent proxy for HTTP/HTTPS interception
-	const proxyBindAddr = "0.0.0.0"
-
 	var proxy *sandboxnet.TransparentProxy
 	var dnsForwarder *sandboxnet.DNSForwarder
 	var fwRules FirewallRules
 
 	if needsProxy {
+		if gatewayIP == "" {
+			machine.Close(ctx)
+			releaseSubnet()
+			stateMgr.Unregister(id)
+			return nil, errx.With(ErrCreateProxy, ": missing gateway IP for proxy bind")
+		}
+
 		proxy, err = sandboxnet.NewTransparentProxy(&sandboxnet.ProxyConfig{
-			BindAddr:        proxyBindAddr,
+			BindAddr:        gatewayIP,
 			HTTPPort:        0,
 			HTTPSPort:       0,
 			PassthroughPort: 0,
@@ -344,7 +348,7 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 		proxy.Start()
 
-		dnsForwarder, err = sandboxnet.NewDNSForwarder(proxyBindAddr, config.Network.GetDNSServers())
+		dnsForwarder, err = sandboxnet.NewDNSForwarder(gatewayIP, config.Network.GetDNSServers())
 		if err != nil {
 			proxy.Close()
 			machine.Close(ctx)
