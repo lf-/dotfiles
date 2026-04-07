@@ -6,38 +6,40 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/jingkaihe/matchlock/internal/errx"
 )
 
-// DNSForwarder is a UDP relay that intercepts guest DNS queries (redirected
-// here via an nftables DNAT rule on UDP/53) and forwards them to the
-// configured upstream resolvers on the host network. This mirrors how
-// the macOS path handles DNS via gVisor's UDP forwarder
-// (pkg/net/stack_darwin.go handleDNS).
-//
-// The guest receives real DNS answers from the upstream resolver. The
-// transparent proxy still sees every hostname via Host header (HTTP)
-// or SNI (HTTPS) because the nftables TCP DNAT rules intercept all
-// port 80/443 traffic regardless of destination IP.
+// DNSForwarder relays guest DNS queries to upstream resolvers.
 type DNSForwarder struct {
 	conn       *net.UDPConn
 	dnsServers []string
-	dnsIndex   atomic.Uint64
 
-	mu     sync.Mutex
-	closed bool
-	wg     sync.WaitGroup
+	requests  chan dnsRequest
+	stopCh    chan struct{}
+	closeOnce sync.Once
+	wg        sync.WaitGroup
+
+	upstreamMu sync.Mutex
+	upstreams  map[net.Conn]struct{}
 }
 
-const dnsUpstreamTimeout = 5 * time.Second
+type dnsRequest struct {
+	query      []byte
+	clientAddr *net.UDPAddr
+}
 
-// NewDNSForwarder binds a UDP socket on bindAddr:0 (kernel-assigned port)
-// and starts serving. dnsServers is the list of upstream resolvers to
-// forward queries to (e.g. ["8.8.8.8", "8.8.4.4"]). The caller must
-// call Close to shut it down.
+const (
+	dnsUpstreamTimeout = 5 * time.Second
+	dnsPacketBufSize   = 4096
+	// Bound concurrent upstream exchanges so a guest cannot create an
+	// unbounded number of goroutines or sockets by flooding DNS traffic.
+	dnsWorkerCount = 32
+	dnsQueueSize   = 128
+)
+
+// NewDNSForwarder starts a UDP forwarder on bindAddr.
 func NewDNSForwarder(bindAddr string, dnsServers []string) (*DNSForwarder, error) {
 	if len(dnsServers) == 0 {
 		return nil, errx.With(ErrListen, " no DNS servers configured for forwarder")
@@ -52,10 +54,17 @@ func NewDNSForwarder(bindAddr string, dnsServers []string) (*DNSForwarder, error
 	}
 	d := &DNSForwarder{
 		conn:       conn,
-		dnsServers: dnsServers,
+		dnsServers: append([]string(nil), dnsServers...),
+		requests:   make(chan dnsRequest, dnsQueueSize),
+		stopCh:     make(chan struct{}),
+		upstreams:  make(map[net.Conn]struct{}),
 	}
 	d.wg.Add(1)
 	go d.serve()
+	for range dnsWorkerCount {
+		d.wg.Add(1)
+		go d.worker()
+	}
 	return d, nil
 }
 
@@ -66,63 +75,138 @@ func (d *DNSForwarder) Port() int {
 
 // Close stops the server and releases the socket.
 func (d *DNSForwarder) Close() error {
-	d.mu.Lock()
-	if d.closed {
-		d.mu.Unlock()
-		return nil
-	}
-	d.closed = true
-	d.mu.Unlock()
-
-	_ = d.conn.Close()
+	d.closeOnce.Do(func() {
+		close(d.stopCh)
+		_ = d.conn.Close()
+		d.closeUpstreams()
+	})
 	d.wg.Wait()
 	return nil
 }
 
 func (d *DNSForwarder) serve() {
 	defer d.wg.Done()
-	buf := make([]byte, 512) // RFC 1035 max UDP message size
+	buf := make([]byte, dnsPacketBufSize)
 	for {
 		n, clientAddr, err := d.conn.ReadFromUDP(buf)
 		if err != nil {
-			d.mu.Lock()
-			closed := d.closed
-			d.mu.Unlock()
-			if closed {
+			if d.isStopping() {
 				return
 			}
 			continue
 		}
 
-		// Forward to upstream in a goroutine so slow resolvers don't
-		// block other queries.
 		query := make([]byte, n)
 		copy(query, buf[:n])
-		go d.forward(query, clientAddr)
+		select {
+		case d.requests <- dnsRequest{query: query, clientAddr: clientAddr}:
+		case <-d.stopCh:
+			return
+		}
+	}
+}
+
+func (d *DNSForwarder) worker() {
+	defer d.wg.Done()
+	for {
+		select {
+		case req := <-d.requests:
+			d.forward(req.query, req.clientAddr)
+		case <-d.stopCh:
+			return
+		}
 	}
 }
 
 func (d *DNSForwarder) forward(query []byte, clientAddr *net.UDPAddr) {
-	// Round-robin across configured upstream servers.
-	idx := d.dnsIndex.Add(1) - 1
-	server := d.dnsServers[idx%uint64(len(d.dnsServers))]
+	for _, server := range d.dnsServers {
+		if d.isStopping() {
+			return
+		}
+		resp, err := d.exchange(query, server)
+		if err != nil {
+			continue
+		}
+		if d.isStopping() {
+			return
+		}
 
-	upstream, err := net.DialTimeout("udp", server+":53", dnsUpstreamTimeout)
+		_, _ = d.conn.WriteToUDP(resp, clientAddr)
+		return
+	}
+}
+
+func (d *DNSForwarder) exchange(query []byte, server string) ([]byte, error) {
+	if d.isStopping() {
+		return nil, net.ErrClosed
+	}
+	upstream, err := net.DialTimeout("udp", dnsServerAddr(server), dnsUpstreamTimeout)
 	if err != nil {
-		return
+		return nil, err
 	}
+	if !d.trackUpstream(upstream) {
+		_ = upstream.Close()
+		return nil, net.ErrClosed
+	}
+	defer d.untrackUpstream(upstream)
 	defer upstream.Close()
-	_ = upstream.SetDeadline(time.Now().Add(dnsUpstreamTimeout))
 
+	_ = upstream.SetDeadline(time.Now().Add(dnsUpstreamTimeout))
 	if _, err := upstream.Write(query); err != nil {
-		return
+		return nil, err
 	}
 
-	resp := make([]byte, 512)
+	resp := make([]byte, dnsPacketBufSize)
 	n, err := upstream.Read(resp)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	_, _ = d.conn.WriteToUDP(resp[:n], clientAddr)
+	return resp[:n], nil
+}
+
+func (d *DNSForwarder) isStopping() bool {
+	select {
+	case <-d.stopCh:
+		return true
+	default:
+		return false
+	}
+}
+
+func (d *DNSForwarder) trackUpstream(upstream net.Conn) bool {
+	d.upstreamMu.Lock()
+	defer d.upstreamMu.Unlock()
+
+	if d.isStopping() {
+		return false
+	}
+	d.upstreams[upstream] = struct{}{}
+	return true
+}
+
+func (d *DNSForwarder) untrackUpstream(upstream net.Conn) {
+	d.upstreamMu.Lock()
+	defer d.upstreamMu.Unlock()
+	delete(d.upstreams, upstream)
+}
+
+func (d *DNSForwarder) closeUpstreams() {
+	d.upstreamMu.Lock()
+	upstreams := make([]net.Conn, 0, len(d.upstreams))
+	for upstream := range d.upstreams {
+		upstreams = append(upstreams, upstream)
+	}
+	d.upstreamMu.Unlock()
+
+	for _, upstream := range upstreams {
+		_ = upstream.Close()
+	}
+}
+
+func dnsServerAddr(server string) string {
+	if _, _, err := net.SplitHostPort(server); err == nil {
+		return server
+	}
+	return net.JoinHostPort(server, "53")
 }

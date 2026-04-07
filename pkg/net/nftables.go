@@ -47,10 +47,6 @@ func NewNFTablesRules(tapInterface, gatewayIP string, httpPort, httpsPort, passt
 	}
 }
 
-// SetDNSForwarderPort enables host-side UDP/53 interception. When set,
-// Setup() adds a prerouting DNAT rule that redirects DNS queries from the
-// guest to the local DNSForwarder so that every hostname resolution ends
-// up pointing at the sentinel IP and therefore hits the transparent proxy.
 func (r *NFTablesRules) SetDNSForwarderPort(port int) {
 	r.dnsForwarderPort = uint16(port)
 }
@@ -103,10 +99,6 @@ func (r *NFTablesRules) Setup() error {
 		})
 	}
 
-	// Redirect UDP DNS queries from the guest to the host-side forwarder so
-	// that every hostname resolution returns the sentinel IP, forcing all
-	// TCP traffic through the transparent proxy where the real hostname
-	// can be observed in Host / SNI.
 	if r.dnsForwarderPort > 0 {
 		conn.AddRule(&nftables.Rule{
 			Table: r.table,
@@ -115,9 +107,6 @@ func (r *NFTablesRules) Setup() error {
 		})
 	}
 
-	// Allow DNS (UDP port 53) from the VM to configured resolvers only.
-	// Must come before the UDP drop rule. Restricting destination IPs
-	// prevents DNS tunneling to attacker-controlled nameservers.
 	for _, dnsIP := range r.dnsServers {
 		conn.AddRule(&nftables.Rule{
 			Table: r.table,
@@ -246,8 +235,6 @@ func (r *NFTablesRules) buildForwardRule(isInput bool) []expr.Any {
 	}
 }
 
-// buildUDPDNSAcceptRule accepts UDP port 53 traffic from the TAP interface
-// to a specific destination IP (e.g. 8.8.8.8).
 func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 	return []expr.Any{
 		&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},
@@ -262,7 +249,6 @@ func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 			Register: 1,
 			Data:     []byte{unix.IPPROTO_UDP},
 		},
-		// Match destination IP
 		&expr.Payload{
 			DestRegister: 1,
 			Base:         expr.PayloadBaseNetworkHeader,
@@ -274,7 +260,6 @@ func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 			Register: 1,
 			Data:     dstIP.To4(),
 		},
-		// Match destination port 53
 		&expr.Payload{
 			DestRegister: 1,
 			Base:         expr.PayloadBaseTransportHeader,
@@ -290,11 +275,6 @@ func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 	}
 }
 
-// buildDNSForwarderDNATRule redirects UDP/53 from the TAP interface to the
-// host-side DNS forwarder (listening on gateway_ip:dstPort). The forwarder
-// answers every A query with the sentinel IP (192.0.2.1), which in turn
-// steers the guest's TCP connections into the transparent proxy where the
-// real hostname is observed via Host header / SNI.
 func (r *NFTablesRules) buildDNSForwarderDNATRule(dstPort uint16) []expr.Any {
 	return []expr.Any{
 		&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},

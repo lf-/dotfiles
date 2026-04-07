@@ -244,7 +244,6 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		subnetCIDR = subnetInfo.GatewayIP + "/24"
 	}
 
-	// Auto-add secret hosts to allowed hosts if secrets are defined.
 	if config.Network != nil && len(config.Network.Secrets) > 0 {
 		hostSet := make(map[string]bool)
 		for _, h := range config.Network.AllowedHosts {
@@ -259,15 +258,6 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 			}
 		}
 	}
-
-	// Host-name resolution inside the guest is handled at runtime by a
-	// host-side DNS forwarder (started below alongside the transparent
-	// proxy) plus a prerouting DNAT rule for UDP/53. The forwarder relays
-	// queries to the configured upstream resolvers on the host network,
-	// so the guest gets real DNS answers. The transparent proxy still
-	// enforces policy via Host header (HTTP) or TLS SNI (HTTPS) because
-	// the nftables TCP DNAT rules intercept all port 80/443 traffic
-	// regardless of destination IP.
 
 	vmConfig := &vm.VMConfig{
 		ID:                  id,
@@ -354,9 +344,6 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 		proxy.Start()
 
-		// Start the host-side DNS forwarder. It relays guest DNS
-		// queries to the configured upstream resolvers on the host
-		// network so the guest receives real DNS answers.
 		dnsForwarder, err = sandboxnet.NewDNSForwarder(proxyBindAddr, config.Network.GetDNSServers())
 		if err != nil {
 			proxy.Close()
