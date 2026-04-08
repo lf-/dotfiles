@@ -2,8 +2,8 @@ local dap = require('dap')
 
 dap.adapters.buck2 = {
     type = 'executable',
-    command = 'buck2',
-    args = {'starlark', 'debug-attach'},
+    command = 'direnv',
+    args = {'exec', '.', 'buck2', 'starlark', 'debug-attach'},
 }
 
 dap.configurations.bzl = {
