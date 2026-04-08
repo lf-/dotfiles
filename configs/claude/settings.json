@@ -6,7 +6,7 @@
       "Bash(rg:*)"
     ]
   },
-  "model": "sonnet",
+  "model": "opusplan",
   "hooks": {
     "PreToolUse": [
       {
@@ -26,7 +26,16 @@
     "linear@claude-plugins-official": true,
     "slack@claude-plugins-official": true,
     "notion@claude-plugins-official": true,
-    "pr-review-toolkit@claude-plugins-official": true
+    "pr-review-toolkit@claude-plugins-official": true,
+    "hegel-skill@hegeldev": true
+  },
+  "extraKnownMarketplaces": {
+    "hegeldev": {
+      "source": {
+        "source": "github",
+        "repo": "hegeldev/hegel-skill"
+      }
+    }
   },
   "sandbox": {
     "enabled": false,
