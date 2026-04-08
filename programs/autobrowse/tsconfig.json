@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    // We never emit — Node 24 runs the .ts files directly via type stripping.
+    // tsc is used purely for type checking (`npm run typecheck`).
+    "noEmit": true,
+
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["esnext"],
+    "types": ["node"],
+
+    // Match how Node loads these files: ESM with explicit .ts import specifiers,
+    // and only syntax that type stripping can erase (no enums, namespaces, etc).
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["*.ts"]
+}

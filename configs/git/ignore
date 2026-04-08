@@ -22,6 +22,7 @@ result-*
 a.out
 .direnv/
 core.[0-9]*
+node_modules/
 
 # some zsh compiled thing
 *.zwc
