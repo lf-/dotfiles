@@ -1,6 +1,6 @@
 { pkgs, qyriad-nur, nixpkgs, flakey-profile, isNixManaged ? false }:
 let
-  isMac = pkgs.stdenv.isDarwin;
+  isMac = pkgs.stdenv.hostPlatform.isDarwin;
   inherit (pkgs) lib callPackage writeShellScriptBin;
   nixYuriPkg = callPackage ./packages/nixYuri/package.nix { };
   wrapGui = pkg: writeShellScriptBin pkg.pname ''

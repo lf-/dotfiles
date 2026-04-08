@@ -7,7 +7,7 @@ flakey-profile.lib.mkProfile {
     cacert
     nix
     nix-doc
-  ] ++ lib.optionals pkgs.stdenv.isDarwin [
+  ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     # please no bsd coreutils
     coreutils
   ];

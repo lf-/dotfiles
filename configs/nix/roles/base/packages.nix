@@ -11,7 +11,7 @@ with pkgs;
   tree-sitter
   htop
 ]
-++ pkgs.lib.optionals pkgs.stdenv.isLinux (
+++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux (
   with pkgs;
   [
     linuxPackages.perf

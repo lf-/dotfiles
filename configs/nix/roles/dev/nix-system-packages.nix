@@ -55,7 +55,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     (python3.withPackages pyPkgs)
   ]
   ++ import ../base/packages.nix { inherit pkgs; }
-  ++ lib.optionals (!stdenv.isDarwin) (
+  ++ lib.optionals (!stdenv.hostPlatform.isDarwin) (
     with pkgs;
     [
       man-pages
@@ -63,7 +63,7 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
     ]
   )
   # replace apple's bad tools
-  ++ lib.optionals (!nixos && stdenv.isDarwin) (
+  ++ lib.optionals (!nixos && stdenv.hostPlatform.isDarwin) (
     with pkgs;
     [
       openssh

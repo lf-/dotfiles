@@ -20,7 +20,7 @@
       lm_sensors
       config.boot.kernelPackages.turbostat
     ]
-    ++ lib.optionals (pkgs.stdenv.isLinux && pkgs.stdenv.isx86_64) [
+    ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && pkgs.stdenv.hostPlatform.isx86_64) [
       linuxPackages.x86_energy_perf_policy
     ];
 
