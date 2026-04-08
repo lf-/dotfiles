@@ -26,8 +26,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nixfmt
   reuse
   nil
-  # FIXME: really slow to build
-  # tinymist
+  tinymist
   typst
   # https://github.com/NixOS/nixpkgs/pull/307337
   # diffoscope

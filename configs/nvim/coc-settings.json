@@ -84,7 +84,8 @@
             "filetypes": ["toml"],
         },
         "typst": {
-            "command": "/home/jade/co/typst-lsp/target/debug/typst-lsp",
+            "command": "tinymist",
+            "args": ["lsp"],
             "filetypes": ["typst"],
         },
         "gopls": {
