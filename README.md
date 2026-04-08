@@ -337,6 +337,7 @@ More examples in the [`examples/`](examples/) directory:
 | Injects API key via network interception hook (TypeScript) | [`examples/typescript/network_interception/`](examples/typescript/network_interception/) |
 | Claude Code CLI in micro-VM with GitHub bootstrap | [`examples/claude-code/`](examples/claude-code/) |
 | Claude Code with Docker inside sandbox via SDK | [`examples/claude-code-with-docker/`](examples/claude-code-with-docker/) |
+| Claude Code with Claude Pro/Max subscription in the sandbox | [`examples/claude-danger/`](examples/claude-danger/) |
 | OpenAI Codex CLI in micro-VM with GitHub bootstrap | [`examples/codex/`](examples/codex/) |
 | Docker daemon inside sandbox with systemd | [`examples/docker-in-sandbox/`](examples/docker-in-sandbox/) |
 | Streamlit chatbot using Agent Client Protocol | [`examples/agent-client-protocol/`](examples/agent-client-protocol/) |
