@@ -79,5 +79,25 @@ function cd() {
     builtin cd "${args[@]}"
 }
 
+# Tab completion for the cd wrapper: complete `//path` as directories relative
+# to the git top-level; otherwise fall back to the standard _cd completer.
+_cd_wrapper() {
+    local top
+    if [[ $words[CURRENT] == //* ]] && top=$(git rev-parse --show-toplevel 2>/dev/null); then
+        compset -P '//'
+        _path_files -W $top -/
+        return
+    fi
+    _cd
+}
+# aliases.zsh is sourced before compinit runs (zim's completion module comes
+# later), so compdef doesn't exist yet. Defer registration to the first precmd.
+autoload -Uz add-zsh-hook
+_register_cd_completion() {
+    compdef _cd_wrapper cd
+    add-zsh-hook -d precmd _register_cd_completion
+}
+add-zsh-hook precmd _register_cd_completion
+
 alias haiku='claude --model haiku'
 alias skep='node ~/co/skepsis/cli.ts'
