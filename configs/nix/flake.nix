@@ -54,18 +54,6 @@
       url = "github:nix-community/nix-on-droid";
       flake = false;
     };
-
-    lix = {
-      url = "https://git.lix.systems/lix-project/lix/archive/main.tar.gz";
-      flake = false;
-    };
-
-    lix-module = {
-      url = "https://git.lix.systems/lix-project/nixos-module/archive/main.tar.gz";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
-      inputs.lix.follows = "lix";
-    };
   };
 
   outputs =
@@ -80,8 +68,6 @@
     , lanzaboote
     , qyriad-nur
     , flakey-profile
-    , lix-module
-    , lix
     , nix-on-droid
     , ...
     }:
@@ -101,7 +87,6 @@
         modules = [
           ./machines/snowflake
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.snow-bot = nixpkgs.lib.nixosSystem {
@@ -109,7 +94,6 @@
         modules = [
           ./machines/snow-bot
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.icecream = nixpkgs.lib.nixosSystem {
@@ -117,7 +101,6 @@
         modules = [
           ./machines/icecream
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.micro = nixpkgs.lib.nixosSystem {
@@ -125,14 +108,12 @@
         modules = [
           ./machines/micro
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.thinnernix = nixpkgs.lib.nixosSystem {
         modules = [
           ./machines/thinnernix
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.voracle = nixpkgs.lib.nixosSystem {
@@ -141,7 +122,6 @@
           ./machines/voracle
           dep-inject
           agenix.nixosModules.default
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.iso = nixpkgs.lib.nixosSystem {
@@ -149,7 +129,6 @@
         modules = [
           ./roles/iso
           dep-inject
-          lix-module.nixosModules.default
         ];
       };
       nixosConfigurations.cube = nixpkgs.lib.nixosSystem {
@@ -158,7 +137,6 @@
           ./machines/cube
           dep-inject
           agenix.nixosModules.default
-          lix-module.nixosModules.default
         ];
       };
 
@@ -176,7 +154,7 @@
           # FIXME: this is obviously nonsense and this other stuff should just
           # get migrated later.
           (import ./overlays/packages.nix)
-          lix-module.overlays.default
+          (import ./overlays/lix.nix)
         ];
         inherit system;
       };
@@ -197,7 +175,7 @@
         inherit pkgs;
         nix-on-droid = pkgs.pkgsCross.aarch64-multiplatform.callPackage ./packages/nix-on-droid {
           nixpkgsInput = nixpkgs;
-          inherit lix nix-on-droid;
+          inherit nix-on-droid;
           hostArch = "aarch64";
         };
       };

@@ -140,21 +140,6 @@
         "type": "github"
       }
     },
-    "flakey-profile_2": {
-      "locked": {
-        "lastModified": 1712898590,
-        "narHash": "sha256-FhGIEU93VHAChKEXx905TSiPZKga69bWl1VB37FK//I=",
-        "owner": "lf-",
-        "repo": "flakey-profile",
-        "rev": "243c903fd8eadc0f63d205665a92d4df91d42d9d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lf-",
-        "repo": "flakey-profile",
-        "type": "github"
-      }
-    },
     "gitignore": {
       "flake": false,
       "locked": {
@@ -218,45 +203,6 @@
         "owner": "nix-community",
         "repo": "lanzaboote",
         "type": "github"
-      }
-    },
-    "lix": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1783609766,
-        "narHash": "sha256-GRQdob9dV/gblHCi5OYb+FZFkFTwyDm+9cZsFKFUmus=",
-        "rev": "1a2853bf7b9c61d51508921dd4669c8267144efd",
-        "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/lix/archive/1a2853bf7b9c61d51508921dd4669c8267144efd.tar.gz?rev=1a2853bf7b9c61d51508921dd4669c8267144efd"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://git.lix.systems/lix-project/lix/archive/main.tar.gz"
-      }
-    },
-    "lix-module": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "flakey-profile": "flakey-profile_2",
-        "lix": [
-          "lix"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1779730214,
-        "narHash": "sha256-Ikdf593tWTFMkKhtScxE+t2fV+Myh8n4JeYU/0Xc8H8=",
-        "rev": "727d859b6f5f3289ce49fe26146b3f006387d457",
-        "type": "tarball",
-        "url": "https://git.lix.systems/api/v1/repos/lix-project/nixos-module/archive/727d859b6f5f3289ce49fe26146b3f006387d457.tar.gz?rev=727d859b6f5f3289ce49fe26146b3f006387d457"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://git.lix.systems/lix-project/nixos-module/archive/main.tar.gz"
       }
     },
     "nix-on-droid": {
@@ -373,8 +319,6 @@
         "flakey-profile": "flakey-profile",
         "gitignore": "gitignore",
         "lanzaboote": "lanzaboote",
-        "lix": "lix",
-        "lix-module": "lix-module",
         "nix-on-droid": "nix-on-droid",
         "nixpkgs": "nixpkgs",
         "polkadots": "polkadots",
