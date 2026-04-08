@@ -194,6 +194,90 @@ func TestTranslateWithOAuthHookRewritesHeaders(t *testing.T) {
 	}
 }
 
+// buildAPIKeyProvider builds a ClaudeOAuthProvider backed by a raw API key.
+func buildAPIKeyProvider(t *testing.T, key string) *ClaudeOAuthProvider {
+	t.Helper()
+	deps := ClaudeOAuthDeps{
+		Run: func(ctx context.Context, argv []string) (string, error) {
+			if keychainServiceOf(argv) == keychainAPIKeyService {
+				return key, nil
+			}
+			return "", errNoKeychainItem
+		},
+		Getenv:   func(string) string { return "" },
+		ReadFile: func(string) ([]byte, error) { return nil, errNoKeychainItem },
+		HTTPDoer: &fakeHTTPDoer{func(*http.Request) (*http.Response, error) {
+			t.Error("unexpected HTTP call for API-key provider")
+			return nil, nil
+		}},
+		NowMS:     func() int64 { return 0 },
+		WriteFile: nopWriteFile,
+	}
+	p, err := newClaudeOAuthProviderWithDeps(context.Background(), "", nil, deps)
+	if err != nil {
+		t.Fatalf("build api-key provider: %v", err)
+	}
+	return p
+}
+
+func TestTranslateWithAPIKeyHookRewritesXApiKey(t *testing.T) {
+	p := baseProfile()
+	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
+	provider := buildAPIKeyProvider(t, "sk-ant-api03-realkey-aPzMWwAA")
+
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+
+	if opts.NetworkInterception == nil || len(opts.NetworkInterception.Rules) == 0 {
+		t.Fatal("expected network interception rule")
+	}
+	rule := opts.NetworkInterception.Rules[0]
+	if rule.Hook == nil {
+		t.Fatal("expected hook function to be set")
+	}
+
+	req := sdk.NetworkHookRequest{
+		RequestHeaders: map[string][]string{
+			"X-Api-Key":    {"sk-ant-api03-lid-guest-placeholder"},
+			"Content-Type": {"application/json"},
+		},
+	}
+	result, err := rule.Hook(context.Background(), req)
+	if err != nil {
+		t.Fatalf("hook returned error: %v", err)
+	}
+	if result == nil || result.Request == nil {
+		t.Fatal("expected non-nil result with request mutation")
+	}
+	headers := result.Request.Headers
+
+	// The placeholder must be replaced with the real key under a single
+	// x-api-key header (no leftover cased duplicate).
+	var keyVals []string
+	nKeyHeaders := 0
+	for k, v := range headers {
+		if strings.EqualFold(k, "X-Api-Key") {
+			nKeyHeaders++
+			keyVals = v
+		}
+	}
+	if nKeyHeaders != 1 {
+		t.Fatalf("expected exactly one x-api-key header, got %d (%v)", nKeyHeaders, headers)
+	}
+	if len(keyVals) != 1 || keyVals[0] != "sk-ant-api03-realkey-aPzMWwAA" {
+		t.Errorf("x-api-key = %v, want [sk-ant-api03-realkey-aPzMWwAA]", keyVals)
+	}
+
+	// API-key auth must NOT add a Bearer Authorization or the oauth beta header.
+	if _, ok := headers["Authorization"]; ok {
+		t.Errorf("Authorization must not be set for API-key auth; headers = %v", headers)
+	}
+	for k := range headers {
+		if strings.EqualFold(k, "anthropic-beta") {
+			t.Errorf("anthropic-beta must not be added for API-key auth; headers = %v", headers)
+		}
+	}
+}
+
 func TestTranslateWithOAuthNoPlaceholderSecret(t *testing.T) {
 	// An OAuth spec should NOT produce a matchlock placeholder secret.
 	p := baseProfile()

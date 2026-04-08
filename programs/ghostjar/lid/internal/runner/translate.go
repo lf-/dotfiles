@@ -182,8 +182,16 @@ func Translate(p *config.Profile, cwd, home, cwdGuestPath string, secrets []Reso
 		})
 	}
 
-	// Claude subscription OAuth: inject headers via a host-side network hook.
-	// The guest never sees the real access token.
+	// Claude auth: inject credentials via a host-side network hook. The guest
+	// never sees the real token or key — it uses a placeholder locally and the
+	// hook rewrites the outbound request. Two credential shapes are supported:
+	//
+	//   - OAuth subscription (Pro/Max): strip X-Api-Key, add
+	//     `Authorization: Bearer <token>`, ensure anthropic-beta carries
+	//     oauth-2025-04-20.
+	//   - Console API key: overwrite X-Api-Key with the real key. No Bearer
+	//     token and no oauth-beta header (those would make the API reject a
+	//     key-authenticated request).
 	if oauthProvider != nil && len(oauthHosts) > 0 {
 		provider := oauthProvider // capture for closure
 
@@ -192,6 +200,22 @@ func Translate(p *config.Profile, cwd, home, cwdGuestPath string, secrets []Reso
 			headers := make(map[string][]string, len(req.RequestHeaders))
 			for k, v := range req.RequestHeaders {
 				headers[k] = append([]string(nil), v...)
+			}
+
+			if provider.Kind() == claudeCredAPIKey {
+				// Overwrite any X-Api-Key (case-insensitive) with the real key.
+				for k := range headers {
+					if strings.EqualFold(k, "X-Api-Key") {
+						delete(headers, k)
+					}
+				}
+				headers["x-api-key"] = []string{provider.APIKey()}
+				return &sdk.NetworkHookResult{
+					Action: sdk.NetworkHookActionMutate,
+					Request: &sdk.NetworkHookRequestMutation{
+						Headers: headers,
+					},
+				}, nil
 			}
 
 			// Remove any X-Api-Key header (case-insensitive).

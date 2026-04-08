@@ -197,18 +197,22 @@ Returns an opaque secret value usable only inside `secrets=[...]`.
 
 ### `lid.claude_subscription(credentials_file=None, hosts=None)`
 
-Sugar for Claude Pro/Max subscription auth via OAuth tokens. Belongs in
-`secrets=[...]`. Unlike `lid.secret`, the token is **never** injected into
+Sugar for Claude auth via the host's own Claude Code credentials. Belongs in
+`secrets=[...]`. Unlike `lid.secret`, the credential is **never** injected into
 guest env or via placeholder replacement; instead a host-side network hook
-rewrites outbound requests to the configured hosts:
+rewrites outbound requests to the configured hosts. The rewrite depends on
+which kind of host credential was found (see resolution order below):
 
-- Removes any `X-Api-Key` header.
-- Adds `Authorization: Bearer <access_token>`.
-- Ensures `anthropic-beta` includes `oauth-2025-04-20`.
+- **Pro/Max subscription (OAuth token):** removes any `X-Api-Key` header, adds
+  `Authorization: Bearer <access_token>`, and ensures `anthropic-beta` includes
+  `oauth-2025-04-20`.
+- **Console API key (`sk-ant-…`):** overwrites the `X-Api-Key` header with the
+  real key. No `Authorization` bearer and no `oauth-2025-04-20` beta are added
+  (the API rejects a key-authenticated request carrying either).
 
 Credentials are loaded on the host at launch time, not at config-evaluation
-time. Token refresh is handled host-side (guest never contacts
-`console.anthropic.com`).
+time. OAuth token refresh is handled host-side (guest never contacts
+`console.anthropic.com`); API keys need no refresh.
 
 | kwarg              | type             | default | notes |
 |--------------------|------------------|---------|-------|
@@ -219,10 +223,17 @@ Default hosts: `api.anthropic.com`, `platform.claude.com`.
 
 **Credentials resolution order** (when `credentials_file` is absent):
 
-1. On macOS: try the Keychain service `"Claude Code-credentials"` via
+1. On macOS: try the Keychain service `"Claude Code-credentials"` (the
+   subscription OAuth blob, a JSON object with a `claudeAiOauth` key) via
    `security find-generic-password -s "..." -w"`.
-2. Fall back to `~/.claude/.credentials.json`.
-3. Non-macOS: file only.
+2. On macOS: try the Keychain service `"Claude Code"`, whose value is a raw
+   `sk-ant-…` API key (present when the host authenticates with a Console API
+   key rather than a subscription).
+3. Fall back to `~/.claude/.credentials.json` (OAuth blob).
+4. Non-macOS: file only.
+
+When `credentials_file` is given explicitly, it is read as an OAuth blob (the
+API-key keychain fallback applies only to auto-detection).
 
 Returns an opaque secret value usable only inside `secrets=[...]`.
 

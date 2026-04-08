@@ -153,6 +153,83 @@ func TestKeychainResolution(t *testing.T) {
 	}
 }
 
+// errNoKeychainItem stands in for a `security` miss in tests.
+var errNoKeychainItem = errors.New("item not found")
+
+// keychainServiceOf returns the -s value from a `security` argv, or "".
+func keychainServiceOf(argv []string) string {
+	for i, a := range argv {
+		if a == "-s" && i+1 < len(argv) {
+			return argv[i+1]
+		}
+	}
+	return ""
+}
+
+func TestKeychainAPIKeyResolution(t *testing.T) {
+	const apiKey = "sk-ant-api03-thisisatestkey-aPzMWwAA"
+	deps := ClaudeOAuthDeps{
+		Run: func(ctx context.Context, argv []string) (string, error) {
+			switch keychainServiceOf(argv) {
+			case keychainService:
+				// No subscription OAuth blob on this host.
+				return "", errors.New("item not found")
+			case keychainAPIKeyService:
+				return apiKey + "\n", nil
+			}
+			return "", errors.New("unexpected command")
+		},
+		Getenv:    func(string) string { return "" },
+		ReadFile:  func(string) ([]byte, error) { return nil, errors.New("no file") },
+		HTTPDoer:  nil,
+		NowMS:     func() int64 { return 0 },
+		WriteFile: nopWriteFile,
+	}
+
+	provider, err := newClaudeOAuthProviderWithDeps(context.Background(), "", io.Discard, deps)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if provider.source.kind != credSourceKeychainAPIKey {
+		t.Errorf("source kind = %v, want credSourceKeychainAPIKey", provider.source.kind)
+	}
+	if provider.Kind() != claudeCredAPIKey {
+		t.Errorf("Kind() = %v, want claudeCredAPIKey", provider.Kind())
+	}
+	if provider.APIKey() != apiKey {
+		t.Errorf("APIKey() = %q, want %q", provider.APIKey(), apiKey)
+	}
+	// AccessToken is meaningless for an API key and must error rather than
+	// attempting a refresh.
+	if _, err := provider.AccessToken(context.Background()); err == nil {
+		t.Error("AccessToken should error for an API-key credential")
+	}
+}
+
+func TestKeychainAPIKeyRejectsNonKeyValue(t *testing.T) {
+	// A keychain value lacking the sk-ant- prefix must not be treated as a key;
+	// with no OAuth blob and no file, construction fails.
+	deps := ClaudeOAuthDeps{
+		Run: func(ctx context.Context, argv []string) (string, error) {
+			switch keychainServiceOf(argv) {
+			case keychainAPIKeyService:
+				return "not-an-api-key\n", nil
+			default:
+				return "", errors.New("item not found")
+			}
+		},
+		Getenv:    func(string) string { return "" },
+		ReadFile:  func(string) ([]byte, error) { return nil, errors.New("no file") },
+		HTTPDoer:  nil,
+		NowMS:     func() int64 { return 0 },
+		WriteFile: nopWriteFile,
+	}
+
+	if _, err := newClaudeOAuthProviderWithDeps(context.Background(), "", io.Discard, deps); err == nil {
+		t.Fatal("expected error when keychain value is not an API key and no other source exists")
+	}
+}
+
 func TestFileFallbackWhenKeychainFails(t *testing.T) {
 	credsJSON := makeCredsJSON("file-token", "file-refresh", 9_999_999_999_999)
 	deps := ClaudeOAuthDeps{

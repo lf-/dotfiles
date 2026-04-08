@@ -19,12 +19,34 @@ const (
 	anthropicClientID       = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 	anthropicTokenURL       = "https://console.anthropic.com/v1/oauth/token"
 	tokenRefreshThresholdMS = 10 * 60 * 1000 // 10 minutes in ms
-	keychainService         = "Claude Code-credentials"
+	// keychainService holds the Pro/Max subscription OAuth blob (a JSON object
+	// with a claudeAiOauth key).
+	keychainService = "Claude Code-credentials"
+	// keychainAPIKeyService holds a raw `sk-ant-...` API key, written by Claude
+	// Code when it is authenticated with a Console API key rather than a
+	// subscription. The stored value is the bare key, not JSON.
+	keychainAPIKeyService = "Claude Code"
+	// apiKeyPrefix is the required prefix of an Anthropic API key; used to
+	// distinguish a genuine key from unrelated keychain contents.
+	apiKeyPrefix = "sk-ant-"
 )
 
-// claudeOAuthCredentials holds parsed OAuth credential fields from
-// ~/.claude/.credentials.json or the macOS Keychain.
+// claudeCredKind distinguishes the two ways a host authenticates Claude Code:
+// a Pro/Max subscription (OAuth access/refresh tokens) or a Console API key.
+type claudeCredKind int
+
+const (
+	claudeCredOAuth  claudeCredKind = iota // OAuth access/refresh tokens
+	claudeCredAPIKey                       // raw sk-ant-... API key
+)
+
+// claudeOAuthCredentials holds parsed Claude credential fields. For an OAuth
+// subscription (Kind == claudeCredOAuth) the token fields are populated; for an
+// API key (Kind == claudeCredAPIKey) only APIKey is set. The type name is kept
+// for continuity with the OAuth-only origins of this provider.
 type claudeOAuthCredentials struct {
+	Kind             claudeCredKind
+	APIKey           string // set when Kind == claudeCredAPIKey
 	AccessToken      string
 	RefreshToken     string
 	ExpiresAtMS      int64
@@ -93,8 +115,9 @@ type ClaudeOAuthProvider struct {
 type credSourceKind int
 
 const (
-	credSourceFile     credSourceKind = iota
-	credSourceKeychain credSourceKind = iota
+	credSourceFile           credSourceKind = iota
+	credSourceKeychain                      // OAuth blob in keychainService
+	credSourceKeychainAPIKey                // raw API key in keychainAPIKeyService
 )
 
 type credSource struct {
@@ -122,11 +145,31 @@ func newClaudeOAuthProviderWithDeps(ctx context.Context, credentialsFile string,
 	}, nil
 }
 
+// Kind reports whether the loaded credential is an OAuth subscription token or
+// a raw API key. The caller injects the appropriate header based on this.
+func (p *ClaudeOAuthProvider) Kind() claudeCredKind {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.creds.Kind
+}
+
+// APIKey returns the raw Anthropic API key. It is only meaningful when
+// Kind() == claudeCredAPIKey; otherwise it returns "".
+func (p *ClaudeOAuthProvider) APIKey() string {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.creds.APIKey
+}
+
 // AccessToken returns a valid access token, refreshing if near expiry.
 // It is safe for concurrent use.
 func (p *ClaudeOAuthProvider) AccessToken(ctx context.Context) (string, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	if p.creds.Kind == claudeCredAPIKey {
+		return "", fmt.Errorf("claude credentials are an API key, not an OAuth token; use APIKey()")
+	}
 
 	nowMS := p.deps.NowMS()
 	if p.creds.ExpiresAtMS <= nowMS+tokenRefreshThresholdMS {
@@ -260,14 +303,21 @@ func loadClaudeCredentials(ctx context.Context, configuredPath string, logw io.W
 		return creds, credSource{kind: credSourceFile, path: configuredPath}, nil
 	}
 
-	// Auto-detect: macOS Keychain first, then file.
+	// Auto-detect. On macOS, try the subscription OAuth blob first, then the
+	// raw API key; on any OS, fall back to the OAuth credentials file.
 	if runtime.GOOS == "darwin" {
 		creds, account, err := tryKeychainLoad(ctx, deps)
 		if err == nil {
 			return creds, credSource{kind: credSourceKeychain, account: account}, nil
 		}
+		oauthErr := err
+
+		apiCreds, err := tryKeychainAPIKeyLoad(ctx, deps)
+		if err == nil {
+			return apiCreds, credSource{kind: credSourceKeychainAPIKey}, nil
+		}
 		if logw != nil {
-			fmt.Fprintf(logw, "lid: claude_subscription: keychain load failed (%v); trying ~/.claude/.credentials.json\n", err)
+			fmt.Fprintf(logw, "lid: claude_subscription: keychain OAuth load failed (%v) and API-key load failed (%v); trying ~/.claude/.credentials.json\n", oauthErr, err)
 		}
 	}
 
@@ -280,9 +330,9 @@ func loadClaudeCredentials(ctx context.Context, configuredPath string, logw io.W
 	data, err := deps.ReadFile(filePath)
 	if err != nil {
 		return claudeOAuthCredentials{}, credSource{}, fmt.Errorf(
-			"claude subscription credentials not found: tried keychain service %q and %s: %w\n"+
-				"  Ensure you are logged in with `claude login` and have a Pro/Max subscription.",
-			keychainService, filePath, err)
+			"claude credentials not found: tried keychain services %q (subscription) and %q (API key), and %s: %w\n"+
+				"  Ensure you are logged in with `claude login` (Pro/Max subscription) or have a Console API key configured.",
+			keychainService, keychainAPIKeyService, filePath, err)
 	}
 	creds, err := parseCredsJSON(data)
 	if err != nil {
@@ -310,6 +360,21 @@ func tryKeychainLoad(ctx context.Context, deps ClaudeOAuthDeps) (claudeOAuthCred
 	account := extractKeychainAccount(ctx, deps)
 
 	return creds, account, nil
+}
+
+// tryKeychainAPIKeyLoad reads a raw Anthropic API key from the macOS Keychain
+// (service keychainAPIKeyService). Unlike the OAuth blob, the stored value is
+// the bare `sk-ant-...` key, not JSON. There is nothing to refresh or persist.
+func tryKeychainAPIKeyLoad(ctx context.Context, deps ClaudeOAuthDeps) (claudeOAuthCredentials, error) {
+	out, err := deps.Run(ctx, []string{"security", "find-generic-password", "-s", keychainAPIKeyService, "-w"})
+	if err != nil {
+		return claudeOAuthCredentials{}, fmt.Errorf("security find-generic-password: %w", err)
+	}
+	key := strings.TrimSpace(out)
+	if !strings.HasPrefix(key, apiKeyPrefix) {
+		return claudeOAuthCredentials{}, fmt.Errorf("keychain service %q value is not an Anthropic API key (missing %q prefix)", keychainAPIKeyService, apiKeyPrefix)
+	}
+	return claudeOAuthCredentials{Kind: claudeCredAPIKey, APIKey: key}, nil
 }
 
 // acctRe matches the "acct"<blob>="<account>" line in security output.
