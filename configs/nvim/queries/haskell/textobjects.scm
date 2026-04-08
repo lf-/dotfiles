@@ -50,6 +50,12 @@
 ; function apply param
 (apply . (_) (_) @parameter.inner)
 
+; import item
+(
+ (import_list "," @_start . (import_name) @parameter.inner)
+ (#make-range! "parameter.outer" @_start @parameter.inner)
+)
+
 ;;; class
 
 ; class
