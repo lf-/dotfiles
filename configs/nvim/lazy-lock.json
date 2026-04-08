@@ -1,5 +1,6 @@
 {
   "Dockerfile.vim": { "branch": "master", "commit": "2a31e6bcea5977209c05c728c4253d82fd873c82" },
+  "batteries.nvim": { "branch": "main", "commit": "6e084514ecc1a5ae7c4f4caab45cb9bc68832050" },
   "coc.nvim": { "branch": "release", "commit": "993a4a273bf0415296a1a8d512466b183670568a" },
   "dhall-vim": { "branch": "master", "commit": "bd9fd99f21dbc7174fb728a21d04e073ef7dd930" },
   "editorconfig-vim": { "branch": "master", "commit": "91bd0b0a2c6a72a110ab9feae335e1224480c233" },

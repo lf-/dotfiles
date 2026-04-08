@@ -19,6 +19,7 @@ return {
     -- 'andymass/vim-matchup',
 
     'jbyuki/instant.nvim',
+    '9999years/batteries.nvim',
 
     'tpope/vim-dispatch',
     -- tpope merge your prs please https://github.com/tpope/vim-fugitive/pull/2218
