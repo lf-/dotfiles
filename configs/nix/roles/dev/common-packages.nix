@@ -105,6 +105,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 
   awscli2
   awscurl
+  kubectl
 
   # vibe coding nonsense
   claude-code
