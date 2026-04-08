@@ -107,7 +107,6 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   awscurl
 
   # vibe coding nonsense
-  opencode
   claude-code
 
   # dependencies for lid
