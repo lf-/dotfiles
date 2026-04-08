@@ -1,6 +1,7 @@
 #!/usr/bin/env -S node
 import { execFileSync, spawn } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import {
   BROWSER_URL,
   PORT,
@@ -30,6 +31,12 @@ if (copyProfile) {
     ["-a", "--delete", `${systemProfileDir()}/`, `${USER_DATA_DIR}/`],
     { stdio: "inherit" },
   );
+  // Chrome writes lock/socket files while it runs. If those are copied into
+  // our separate user-data-dir, Chrome's single-instance logic routes the new
+  // launch to the already-running session instead of starting fresh.
+  for (const name of ["SingletonLock", "SingletonSocket", "SingletonCookieLock"]) {
+    rmSync(join(USER_DATA_DIR, name), { force: true });
+  }
 }
 
 const chrome = findChrome();
