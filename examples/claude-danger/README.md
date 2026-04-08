@@ -4,7 +4,7 @@ Run Claude Code inside a Matchlock sandbox using your local Claude subscription 
 
 ## Prerequisites
 
-- Build the example image.
+Build the example image
 
 Using Docker:
 
@@ -19,7 +19,7 @@ Or using Matchlock:
 matchlock build -t claude-danger:latest --build-cache-size 30000 examples/claude-danger
 ```
 
-- Ensure you are logged into Claude locally and have `~/.claude/.credentials.json`.
+Ensure you are logged into Claude locally and have `~/.claude/.credentials.json`.
 
 ## Run
 
