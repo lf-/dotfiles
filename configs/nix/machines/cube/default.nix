@@ -120,7 +120,6 @@ in
   */
 
   boot.initrd.systemd = {
-    enable = true;
     emergencyAccess = "$2b$05$1wdLRpAwtirLmS3VniajbOF94vTJCkzbpp4bkQPPhSnUi7ynTJsAG";
   };
 

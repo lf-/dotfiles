@@ -8,7 +8,6 @@ in
 {
   boot.initrd = {
     systemd = {
-      enable = true;
       services = {
         systemd-networkd = {
           # show network logs on the console
