@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(gh pr view:*)"
+    ]
+  },
+  "model": "opus",
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "linear@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "notion@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true
+  },
+  "sandbox": {
+    "enabled": false,
+    "filesystem": {
+      "allowWrite": [
+        ".",
+        "~/.buck",
+        "~/.local/share/uv",
+        "~/.cache/uv"
+      ],
+      "denyRead": [
+        "~/"
+      ],
+      "allowRead": [
+        ".",
+        "/nix",
+        "~/.nix-profile",
+        "~/.local/state/nix",
+        "~/.config/nix",
+        "~/.buck"
+      ]
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet --project ~/.dotfiles/programs/ghostjar find-grep-guard",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "effortLevel": "high",
+  "skipDangerousModePermissionPrompt": true,
+  "skipAutoPermissionPrompt": true
+}

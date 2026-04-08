@@ -86,11 +86,12 @@ actions = [
 
     MkdirAction('~/.config/alacritty'),
 
-    # FIXME: claude configuration. does it even have the same format? maybe i
-    # should just switch to goose to not have these stupid model-provider-tied
-    # CLIs.
+    # ghosts in a jar
+    MkdirAction('~/.claude'),
+    SymlinkAction('claude/settings.json', '~/.claude/settings.json'),
     MkdirAction('~/.gemini'),
     SymlinkAction('agents/skills', '~/.gemini/skills'),
+    SymlinkAction('agents/skills', '~/.claude/skills'),
 
     # n.b. nix.conf here is a directory
     SymlinkAction('nix.conf', '~/.config/nix'),
