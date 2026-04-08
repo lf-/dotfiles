@@ -54,10 +54,7 @@ fi
 
 # CTRL-S - Paste the selected file path(s) into the command line
 __fsel() {
-  local cmd="${SKIM_CTRL_T_COMMAND:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
-    -o -type f -print \
-    -o -type d -print \
-    -o -type l -print 2> /dev/null | cut -b3-"}"
+  local cmd="${SKIM_CTRL_T_COMMAND:-"command fd -L --one-file-system --type f --type d --type l . 2> /dev/null"}"
   setopt localoptions pipefail no_aliases 2> /dev/null
   REPORTTIME_=$REPORTTIME
   unset REPORTTIME
@@ -112,8 +109,7 @@ zle -N skim-redraw-prompt
 
 # ALT-C - cd into the selected directory
 skim-cd-widget() {
-  local cmd="${SKIM_ALT_C_COMMAND:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
-    -o -type d -print 2> /dev/null | cut -b3-"}"
+  local cmd="${SKIM_ALT_C_COMMAND:-"command fd -L --one-file-system --type d . 2> /dev/null"}"
   setopt localoptions pipefail no_aliases 2> /dev/null
   REPORTTIME_=$REPORTTIME
   unset REPORTTIME
@@ -147,17 +143,13 @@ bindkey -M viins '\ec' skim-cd-widget
 if ! declare -f _skim_compgen_path > /dev/null; then
   _skim_compgen_path() {
     echo "$1"
-    command find -L "$1" \
-      -name .git -prune -o -name .hg -prune -o -name .svn -prune -o \( -type d -o -type f -o -type l \) \
-      -a -not -path "$1" -print 2> /dev/null | sed 's@^\./@@'
+    command fd -L --one-file-system --type f --type d --type l . "$1" 2> /dev/null
   }
 fi
 
 if ! declare -f _skim_compgen_dir > /dev/null; then
   _skim_compgen_dir() {
-    command find -L "$1" \
-      -name .git -prune -o -name .hg -prune -o -name .svn -prune -o -type d \
-      -a -not -path "$1" -print 2> /dev/null | sed 's@^\./@@'
+    command fd -L --one-file-system --type d . "$1" 2> /dev/null
   }
 fi
 
