@@ -3,6 +3,7 @@
     "hover.floatMaxHeight": 20,
     "signature.maxWindowHeight": 15,
     "list.maxPreviewHeight": 25,
+    "rust-analyzer.enable": false,
     "rust-analyzer.diagnostics.disabled": ["incorrect-ident-case"],
     "rust-analyzer.procMacro.attributes.enable": true,
     "rust-analyzer.procMacro.enable": true,

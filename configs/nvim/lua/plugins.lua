@@ -46,11 +46,15 @@ return {
     -- GitHub integration
     'pwntester/octo.nvim',
 
-    'nvim-treesitter/nvim-treesitter',
-    'nvim-treesitter/nvim-treesitter-textobjects',
-    'RRethy/nvim-treesitter-textsubjects',
+    -- nvim-treesitter `main` is a full rewrite: no module system, no lazy-loading.
+    -- Parsers must be kept in sync with the plugin via :TSUpdate.
+    { 'nvim-treesitter/nvim-treesitter', branch = 'main', build = ':TSUpdate', lazy = false },
+    { 'nvim-treesitter/nvim-treesitter-textobjects', branch = 'main' },
+    -- RRethy/nvim-treesitter-textsubjects dropped: only has a `master` branch and
+    -- hard-depends on the removed `nvim-treesitter.query` module (no `main` port).
     'nvim-treesitter/nvim-treesitter-context',
-    'p00f/nvim-ts-rainbow',
+    -- p00f/nvim-ts-rainbow dropped: archived, master-only module. Use
+    -- HiPhish/rainbow-delimiters.nvim if rainbow brackets are wanted again.
     -- Shows which key you can press next
     {
         "folke/which-key.nvim",

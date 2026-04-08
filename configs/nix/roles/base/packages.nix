@@ -8,6 +8,7 @@ with pkgs;
   rustup
   zsh
   tree
+  tree-sitter
   htop
 ]
 ++ pkgs.lib.optionals pkgs.stdenv.isLinux (

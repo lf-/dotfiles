@@ -2,7 +2,7 @@
 local nvim_new_command = vim.api.nvim_create_user_command or function() end
 local uv = vim.loop
 local Path = require('plenary.path')
-local ts_configs = require('nvim-treesitter.configs')
+local ts_config = require('nvim-treesitter.config')
 
 local function make_telescope_command(name, builtin_name, extra_args)
     nvim_new_command(name, function(args)
@@ -17,7 +17,10 @@ local function make_telescope_command(name, builtin_name, extra_args)
 end
 
 make_telescope_command('FindFiles', 'find_files')
-make_telescope_command('LiveGrep', 'live_grep')
+-- routed through _G.live_grep (lateinit.lua) for the min-query-length rg gate
+nvim_new_command('LiveGrep', function(args)
+    _G.live_grep({ cwd = args.args })
+end, { nargs = '*', complete = 'file' })
 -- find-cabal
 make_telescope_command('FC', 'find_files', {
     find_command = { "fd", "--type", "f", "--color", "never", "-e", "cabal" }
@@ -30,7 +33,7 @@ nvim_new_command('CopyPath', function(args)
     { nargs = 0 })
 
 nvim_new_command('TSClearParsers', function(args)
-        local directory = ts_configs.get_parser_install_dir()
+        local directory = ts_config.get_install_dir('parser')
         if directory ~= nil then
             print('deleted ', directory);
             (Path:new(directory)):rm({ recursive = true })

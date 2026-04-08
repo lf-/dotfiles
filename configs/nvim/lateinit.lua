@@ -13,91 +13,87 @@ local nvim_eval = vim.api.nvim_eval
 local nvim_exec = vim.api.nvim_exec
 local nvim_call = vim.api.nvim_call_function
 
-require 'nvim-treesitter.configs'.setup {
-    ensure_installed = "all",
-    sync_install = false,
-    ignore_install = { "scfg", "smali", "norg", "ipkg" }, -- List of parsers to ignore installing
-    highlight = {
-        enable = true,
-        -- breaks if handled by anything but the delicate
-        -- touch of a lesbian
-        disable = { "python", "perl" },
-        -- this needs to be here because the autoindent plugin is fucked on js
-        -- without having vim highlighting on (typing /*<Enter> causes a spurious
-        -- extra indent).
-        additional_vim_regex_highlighting = { "javascript", "php" },
-    },
-    indent = {
-        enable = false, -- it's not good enough. worse than default in python,
-        -- rust, cpp
-        disable = { "rust", "cpp" },
-    },
-    textobjects = {
-        select = {
-            enable = true,
-            lookahead = true,
-            keymaps = {
-                ["ia"] = "@parameter.inner",
-                ["aa"] = "@parameter.outer",
-                ["ic"] = "@class.inner",
-                ["ac"] = "@class.outer",
-                ["if"] = "@function.inner",
-                ["af"] = "@function.outer",
-            },
-        },
-    },
-    textsubjects = {
-        enable = true,
-        keymaps = {
-            ['.'] = 'textsubjects-smart',
-            [';'] = 'textsubjects-container-outer',
-        },
-    },
-    rainbow = {
-        -- FIXME: this seems to be too slow :(
-        enable = false,
-        extended_mode = true,
-    },
-    playground = {
-        enable = true,
-        disable = {},
-        updatetime = 25,
-        persist_queries = false,
-        keybindings = {
-            toggle_query_editor = 'o',
-            toggle_hl_groups = 'i',
-            toggle_injected_languages = 't',
-            toggle_anonymous_nodes = 'a',
-            toggle_language_display = 'I',
-            focus_language = 'f',
-            unfocus_language = 'F',
-            update = 'R',
-            goto_node = '<cr>',
-            show_help = '?',
-        },
-    },
-    query_linter = {
-        enable = true,
-        use_virtual_text = true,
-        lint_events = { "BufWrite", "CursorHold" },
-    },
-    matchup = {
-        enable = true,
+local ts = require('nvim-treesitter')
+
+-- Replaces `ensure_installed = "all"` + `ignore_install`. install() is async and a
+-- no-op for already-installed parsers; :TSUpdate (the lazy `build`) keeps them current.
+do
+    local ignore = { scfg = true, smali = true, norg = true, ipkg = true }
+    local langs = vim.tbl_filter(function(lang)
+        return not ignore[lang]
+    end, ts.get_available())
+    ts.install(langs)
+end
+
+-- python/perl broke (at one point at least) if handled by anything but the delicate touch of a lesbian
+local ts_highlight_disable = { python = true, perl = true }
+augroup('treesitter highlight', function(autocmd)
+    autocmd('FileType', {
+        callback = function(ev)
+            if ts_highlight_disable[vim.bo[ev.buf].filetype] then
+                return
+            end
+            -- Only start if a parser is actually available for this language.
+            local lang = vim.treesitter.language.get_lang(vim.bo[ev.buf].filetype)
+            if lang and vim.tbl_contains(ts.get_installed(), lang) then
+                pcall(vim.treesitter.start, ev.buf, lang)
+            end
+        end,
+    })
+end)
+
+-- `indent = { enable = false }` previously: treesitter indent was off entirely
+-- (worse than the default in python/rust/cpp), so we set no `indentexpr` here.
+-- To opt in later: vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+
+-- Replaces `textobjects = { select = {...} }`. textobjects `main` exposes select via
+-- a function; we recreate the same operator/visual-mode keymaps.
+require('nvim-treesitter-textobjects').setup {
+    select = {
+        lookahead = true,
     },
 }
+do
+    local select = require('nvim-treesitter-textobjects.select').select_textobject
+    local objs = {
+        ia = '@parameter.inner',
+        aa = '@parameter.outer',
+        ic = '@class.inner',
+        ac = '@class.outer',
+        ['if'] = '@function.inner',
+        af = '@function.outer',
+    }
+    for lhs, query in pairs(objs) do
+        vim.keymap.set({ 'x', 'o' }, lhs, function()
+            select(query, 'textobjects')
+        end, { desc = 'textobject ' .. query })
+    end
+end
 
 require 'treesitter-context'.setup {
     max_lines = 3,
     min_window_height = 30,
-    patterns = {
-        nix = {
-            'binding'
-        }
-    }
+    -- NB: the per-language `patterns` option (e.g. nix = {'binding'}) was removed
+    -- from treesitter-context; context nodes are now derived from `context.scm`
+    -- queries. Dropped here as it is silently ignored.
+}
+
+-- Cap grep result sets. I work on an enormous codebase, so a legitimately common
+-- term (`Model` matches ~149k lines) makes telescope ingest and *retain* every
+-- match and it takes forever.
+--
+-- This also tries to stop reading enormous files.
+local grep_result_limit = 10000
+local vimgrep_arguments = {
+    'sh', '-c', string.format('rg "$@" | head -n %d', grep_result_limit), 'rg',
+    '--max-filesize=1M',
+    '--color=never', '--no-heading', '--with-filename',
+    '--line-number', '--column', '--smart-case',
 }
 
 require('telescope').setup {
     defaults = {
+        vimgrep_arguments = vimgrep_arguments,
         mappings = {
             i = {
                 ["<C-Down>"] = require('telescope.actions').cycle_history_next,
@@ -106,13 +102,16 @@ require('telescope').setup {
         }
     },
 }
+-- telescope-fzy-native does nothing until loaded: loading it overrides
+-- file_sorter + generic_sorter with the native fzy implementation (ships a
+-- prebuilt libfzy-darwin-arm64.so). Speeds up find_files/buffers/etc;
+-- live_grep is unaffected (it uses highlighter_only -- rg does the matching).
+require('telescope').load_extension('fzy_native')
 
 require('nix-drv').setup {}
 
 require('octo').setup {
 }
-
-local ts_configs = require('nvim-treesitter.configs')
 
 ----------------------------------------------------------------------
 -- Plugin configs
@@ -314,8 +313,25 @@ _G.find_files_relative = function()
         cwd = require 'telescope.utils'.buffer_dir()
     })
 end
+-- telescope never kills an in-flight ripgrep when the prompt changes
+-- (nvim-telescope/telescope.nvim#3532), so a short query like `M` floods rg's
+-- stdout pipe and wedges it (rg blocks in write() while its workers pile up on
+-- termcolor's lock). Gate rg behind a minimum query length: returning an empty
+-- prompt makes live_grep's job generator spawn nothing. `debounce` additionally
+-- coalesces fast typing for longer queries. live_grep only -- find_files filters
+-- in-memory and must see every keystroke.
+_G.live_grep = function(opts)
+    require('telescope.builtin').live_grep(vim.tbl_extend('force', {
+        debounce = 150,
+        on_input_filter_cb = function(prompt)
+            if #prompt < 3 then
+                return { prompt = "" }
+            end
+        end,
+    }, opts or {}))
+end
 _G.live_grep_relative = function()
-    require('telescope.builtin').live_grep({
+    live_grep({
         cwd = require 'telescope.utils'.buffer_dir()
     })
 end
@@ -371,13 +387,11 @@ nnoremap("<Leader>dK", "", {
 -- telescope
 nnoremap("<C-p>", "<Cmd>Telescope find_files<cr>")
 nnoremap("<Leader><C-p>", "", { callback = find_files_relative })
-nnoremap("<space>g", "<Cmd>Telescope live_grep<cr>")
+nnoremap("<space>g", "", { callback = function() live_grep() end })
 nnoremap("<space>G", "", { callback = live_grep_relative })
 nnoremap("<space>f", "", {
     callback = function()
-        require('telescope.builtin').live_grep {
-            grep_open_files = true
-        }
+        live_grep { grep_open_files = true }
     end
 })
 nnoremap("<space>C", "<Cmd>Telescope commands<cr>")
@@ -520,36 +534,18 @@ augroup('titling', function (autocmd)
 end)
 
 
-local function reload_ts_module(mod)
-    local config_mod = ts_configs.get_module(mod)
-    if not config_mod then
-        return
-    end
-
-    local bufs = config_mod.enabled_buffers or vim.api.nvim_list_bufs()
-
-    for _, bufnr in pairs(bufs) do
-        if ts_configs.is_enabled(mod, nil, bufnr) then
-            ts_configs.detach_module(mod, bufnr)
-            ts_configs.attach_module(mod, bufnr)
-        end
-    end
-end
-
-
-augroup('reload queries on query save', function(autocmd) -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects/issues/787
+augroup('reload queries on query save', function(autocmd)
     autocmd(
         'BufWritePost',
         {
             pattern = '*.scm',
             callback = function ()
+                -- Queries are read through `vim.treesitter.query.get`, so
+                -- clearing its cache is enough for edits to a *.scm file to
+                -- take effect.
                 -- private API: https://github.com/neovim/neovim/issues/35056
                 ---@diagnostic disable-next-line: undefined-field
                 vim.treesitter.query.get:clear()
-                reload_ts_module( "textobjects.move")
-                reload_ts_module("textobjects.select")
-                reload_ts_module("textobjects.lsp_interop")
-                reload_ts_module("textobjects.swap")
             end
         }
     )
