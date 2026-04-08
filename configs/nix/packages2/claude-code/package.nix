@@ -29,12 +29,13 @@ stdenvNoCC.mkDerivation {
   dontConfigure = true;
   dontBuild = true;
 
-  nativeBuildInputs =
-    [ makeWrapper ]
-    ++ lib.optionals isLinux [
-      patchelf
-      perl
-    ];
+  nativeBuildInputs = [
+    makeWrapper
+  ]
+  ++ lib.optionals isLinux [
+    patchelf
+    perl
+  ];
 
   # Do NOT use autoPatchelfHook — it adds RPATH, which breaks this Bun
   # standalone binary. The .bun ELF section (122MB embedded JS bundle) gets
@@ -58,13 +59,16 @@ stdenvNoCC.mkDerivation {
     # where they're ignored JS whitespace (before , ] etc).
     perl -pi -e 's/"google-chrome"/"chromium"     /g' $out/bin/.claude-unwrapped
   ''
-  + ''
-    makeWrapper $out/bin/.claude-unwrapped $out/bin/claude \
-      --add-flags "--allow-dangerously-skip-permissions" \
-      --set CLAUDE_CODE_NO_FLICKER 1
+  +
+    # the autoupdater is literally always broken for a Nix based install
+    ''
+      makeWrapper $out/bin/.claude-unwrapped $out/bin/claude \
+        --add-flags "--allow-dangerously-skip-permissions" \
+        --set CLAUDE_CODE_NO_FLICKER 1 \
+        --set DISABLE_AUTOUPDATER 1
 
-    runHook postInstall
-  '';
+      runHook postInstall
+    '';
 
   meta = {
     description = "Claude Code - an agentic coding tool from Anthropic";
