@@ -20,6 +20,7 @@ zmodule ~/.dotfiles/configs/zsh -s prompt.zsh-theme \
 # completions
 zmodule zsh-users/zsh-completions --fpath src
 zmodule completion
+zmodule ~/.dotfiles/configs/zsh/post-completion -s completion-add.zsh
 # needs hacking (to run late; in zshrc): https://github.com/BronzeDeer/zsh-completion-sync/issues/1
 # -z -- frozen
 zmodule BronzeDeer/zsh-completion-sync -d --frozen

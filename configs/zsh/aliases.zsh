@@ -78,6 +78,7 @@ function __git_resolve_args() {
 }
 
 function cd() {
+    (( ! $+functions[_git_resolve_args] )) && { builtin cd "$@"; return }
     local _git_resolved_args _git_resolved_print
     __git_resolve_args cd "$@" || return
     (( _git_resolved_print )) && echo "cd ${_git_resolved_args[@]}"
@@ -85,6 +86,7 @@ function cd() {
 }
 
 function pushd() {
+    (( ! $+functions[_git_resolve_args] )) && { builtin pushd "$@"; return }
     local _git_resolved_args _git_resolved_print
     __git_resolve_args pushd "$@" || return
     (( _git_resolved_print )) && echo "pushd ${_git_resolved_args[@]}"
