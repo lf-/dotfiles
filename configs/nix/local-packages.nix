@@ -7,7 +7,6 @@ in
     nvimsplit
     nvremote
     vim-swapfile-header
-    spr-sunshowers
     openttd-claire
     opengist
     jellyfin-plugin-sso

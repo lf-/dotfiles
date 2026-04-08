@@ -23,6 +23,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-index
   nix-tree
   nix-fast-build
+  nurl # nix url fetcher
   nixfmt
   reuse
   nil
@@ -130,6 +131,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-output-monitor
   nix-diff
   niv
+  jj-spr
   # woooow this nix package is really bad
   # codex
   # broken
