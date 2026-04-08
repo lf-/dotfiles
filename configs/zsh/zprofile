@@ -54,7 +54,7 @@ path=(
   /usr/local/{bin,sbin}
   $path
   $HOME/esp/xtensa-esp32-elf/bin
-  $HOME/.npm-packages/bin
+  $HOME/.local/state/npm
   $HOME/.cargo/bin
 )
 
