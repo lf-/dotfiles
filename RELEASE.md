@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.2.9
+
+* Fixed Linux `--allow-host` DNS reachability for intercepted sandboxes by adding a host-side DNS forwarder and nftables redirection for guest DNS queries ([#94](https://github.com/jingkaihe/matchlock/issues/94), initial contribution by [@nemtsov](https://github.com/nemtsov)).
+* Improved Linux interception reliability by binding proxy services to the sandbox gateway IP, applying secret-related allowed hosts before firewall setup, and falling back across configured DNS resolvers when an upstream fails.
+
 ## 0.2.8
 
 * Added custom secret placeholder support across `matchlock run` and the Go, Python, and TypeScript SDKs, including `--secret-placeholder`, `--secret-file`, and builder helpers for caller-defined in-VM placeholder values.

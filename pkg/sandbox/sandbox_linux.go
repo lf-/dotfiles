@@ -34,6 +34,7 @@ type Sandbox struct {
 	config           *api.Config
 	machine          vm.Machine
 	proxy            *sandboxnet.TransparentProxy
+	dnsForwarder     *sandboxnet.DNSForwarder
 	fwRules          FirewallRules
 	natRules         *sandboxnet.NFTablesNAT
 	policy           *policy.Engine
@@ -243,6 +244,21 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		subnetCIDR = subnetInfo.GatewayIP + "/24"
 	}
 
+	if config.Network != nil && len(config.Network.Secrets) > 0 {
+		hostSet := make(map[string]bool)
+		for _, h := range config.Network.AllowedHosts {
+			hostSet[h] = true
+		}
+		for _, secret := range config.Network.Secrets {
+			for _, h := range secret.Hosts {
+				if !hostSet[h] {
+					config.Network.AllowedHosts = append(config.Network.AllowedHosts, h)
+					hostSet[h] = true
+				}
+			}
+		}
+	}
+
 	vmConfig := &vm.VMConfig{
 		ID:                  id,
 		KernelPath:          kernelPath,
@@ -287,22 +303,6 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		})
 	}
 
-	// Auto-add secret hosts to allowed hosts if secrets are defined
-	if config.Network != nil && len(config.Network.Secrets) > 0 {
-		hostSet := make(map[string]bool)
-		for _, h := range config.Network.AllowedHosts {
-			hostSet[h] = true
-		}
-		for _, secret := range config.Network.Secrets {
-			for _, h := range secret.Hosts {
-				if !hostSet[h] {
-					config.Network.AllowedHosts = append(config.Network.AllowedHosts, h)
-					hostSet[h] = true
-				}
-			}
-		}
-	}
-
 	overlaySnapshots, err := prepareOverlaySnapshots(config, stateMgr.Dir(id))
 	if err != nil {
 		machine.Close(ctx)
@@ -318,15 +318,20 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 	// Create event channel
 	events := make(chan api.Event, 100)
 
-	// Set up transparent proxy for HTTP/HTTPS interception
-	const proxyBindAddr = "0.0.0.0"
-
 	var proxy *sandboxnet.TransparentProxy
+	var dnsForwarder *sandboxnet.DNSForwarder
 	var fwRules FirewallRules
 
 	if needsProxy {
+		if gatewayIP == "" {
+			machine.Close(ctx)
+			releaseSubnet()
+			stateMgr.Unregister(id)
+			return nil, errx.With(ErrCreateProxy, ": missing gateway IP for proxy bind")
+		}
+
 		proxy, err = sandboxnet.NewTransparentProxy(&sandboxnet.ProxyConfig{
-			BindAddr:        proxyBindAddr,
+			BindAddr:        gatewayIP,
 			HTTPPort:        0,
 			HTTPSPort:       0,
 			PassthroughPort: 0,
@@ -343,8 +348,20 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 		proxy.Start()
 
-		fwRules = sandboxnet.NewNFTablesRules(linuxMachine.TapName(), gatewayIP, proxy.HTTPPort(), proxy.HTTPSPort(), proxy.PassthroughPort(), config.Network.GetDNSServers())
+		dnsForwarder, err = sandboxnet.NewDNSForwarder(gatewayIP, config.Network.GetDNSServers())
+		if err != nil {
+			proxy.Close()
+			machine.Close(ctx)
+			releaseSubnet()
+			stateMgr.Unregister(id)
+			return nil, errx.Wrap(ErrCreateProxy, err)
+		}
+
+		nfRules := sandboxnet.NewNFTablesRules(linuxMachine.TapName(), gatewayIP, proxy.HTTPPort(), proxy.HTTPSPort(), proxy.PassthroughPort(), config.Network.GetDNSServers())
+		nfRules.SetDNSForwarderPort(dnsForwarder.Port())
+		fwRules = nfRules
 		if err := fwRules.Setup(); err != nil {
+			dnsForwarder.Close()
 			proxy.Close()
 			machine.Close(ctx)
 			releaseSubnet()
@@ -388,6 +405,9 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 			if proxy != nil {
 				proxy.Close()
 			}
+			if dnsForwarder != nil {
+				dnsForwarder.Close()
+			}
 			if fwRules != nil {
 				fwRules.Cleanup()
 			}
@@ -403,6 +423,7 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		config:           config,
 		machine:          machine,
 		proxy:            proxy,
+		dnsForwarder:     dnsForwarder,
 		fwRules:          fwRules,
 		natRules:         natRules,
 		policy:           policyEngine,
@@ -627,6 +648,11 @@ func (s *Sandbox) Close(ctx context.Context) error {
 		}
 	} else {
 		markCleanup("proxy_close", nil)
+	}
+
+	if s.dnsForwarder != nil {
+		_ = s.dnsForwarder.Close()
+		s.dnsForwarder = nil
 	}
 
 	// Release subnet allocation

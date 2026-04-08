@@ -16,23 +16,26 @@ const (
 	tableName   = "matchlock"
 	chainPreNAT = "prerouting"
 	chainFwd    = "forward"
+	chainInput  = "input"
+	chainOutput = "output"
 )
 
 type NFTablesRules struct {
-	tapInterface    string
-	gatewayIP       net.IP
-	httpPort        uint16
-	httpsPort       uint16
-	passthroughPort uint16
-	dnsServers      []net.IP
-	conn            *nftables.Conn
-	table           *nftables.Table
+	tapInterface     string
+	gatewayIP        net.IP
+	httpPort         uint16
+	httpsPort        uint16
+	passthroughPort  uint16
+	dnsForwarderPort uint16
+	dnsServers       []net.IP
+	conn             *nftables.Conn
+	table            *nftables.Table
 }
 
 func NewNFTablesRules(tapInterface, gatewayIP string, httpPort, httpsPort, passthroughPort int, dnsServers []string) *NFTablesRules {
 	var dnsIPs []net.IP
 	for _, s := range dnsServers {
-		if ip := net.ParseIP(s).To4(); ip != nil {
+		if ip := parseDNSIPv4(s); ip != nil {
 			dnsIPs = append(dnsIPs, ip)
 		}
 	}
@@ -44,6 +47,10 @@ func NewNFTablesRules(tapInterface, gatewayIP string, httpPort, httpsPort, passt
 		passthroughPort: uint16(passthroughPort),
 		dnsServers:      dnsIPs,
 	}
+}
+
+func (r *NFTablesRules) SetDNSForwarderPort(port int) {
+	r.dnsForwarderPort = uint16(port)
 }
 
 func (r *NFTablesRules) Setup() error {
@@ -74,6 +81,25 @@ func (r *NFTablesRules) Setup() error {
 		Priority: nftables.ChainPriorityFilter,
 	})
 
+	var inputChain *nftables.Chain
+	var outputChain *nftables.Chain
+	if r.dnsForwarderPort > 0 {
+		inputChain = conn.AddChain(&nftables.Chain{
+			Name:     chainInput,
+			Table:    r.table,
+			Type:     nftables.ChainTypeFilter,
+			Hooknum:  nftables.ChainHookInput,
+			Priority: nftables.ChainPriorityFilter,
+		})
+		outputChain = conn.AddChain(&nftables.Chain{
+			Name:     chainOutput,
+			Table:    r.table,
+			Type:     nftables.ChainTypeFilter,
+			Hooknum:  nftables.ChainHookOutput,
+			Priority: nftables.ChainPriorityFilter,
+		})
+	}
+
 	conn.AddRule(&nftables.Rule{
 		Table: r.table,
 		Chain: preChain,
@@ -94,9 +120,28 @@ func (r *NFTablesRules) Setup() error {
 		})
 	}
 
-	// Allow DNS (UDP port 53) from the VM to configured resolvers only.
-	// Must come before the UDP drop rule. Restricting destination IPs
-	// prevents DNS tunneling to attacker-controlled nameservers.
+	if r.dnsForwarderPort > 0 {
+		conn.AddRule(&nftables.Rule{
+			Table: r.table,
+			Chain: preChain,
+			Exprs: r.buildDNSForwarderDNATRule(r.dnsForwarderPort),
+		})
+
+		conn.AddRule(&nftables.Rule{
+			Table: r.table,
+			Chain: inputChain,
+			Exprs: r.buildDNSForwarderInputAcceptRule(r.dnsForwarderPort),
+		})
+
+		for _, dnsIP := range r.dnsServers {
+			conn.AddRule(&nftables.Rule{
+				Table: r.table,
+				Chain: outputChain,
+				Exprs: r.buildDNSForwarderOutputAcceptRule(dnsIP),
+			})
+		}
+	}
+
 	for _, dnsIP := range r.dnsServers {
 		conn.AddRule(&nftables.Rule{
 			Table: r.table,
@@ -225,8 +270,6 @@ func (r *NFTablesRules) buildForwardRule(isInput bool) []expr.Any {
 	}
 }
 
-// buildUDPDNSAcceptRule accepts UDP port 53 traffic from the TAP interface
-// to a specific destination IP (e.g. 8.8.8.8).
 func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 	return []expr.Any{
 		&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},
@@ -241,7 +284,6 @@ func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 			Register: 1,
 			Data:     []byte{unix.IPPROTO_UDP},
 		},
-		// Match destination IP
 		&expr.Payload{
 			DestRegister: 1,
 			Base:         expr.PayloadBaseNetworkHeader,
@@ -253,7 +295,122 @@ func (r *NFTablesRules) buildUDPDNSAcceptRule(dstIP net.IP) []expr.Any {
 			Register: 1,
 			Data:     dstIP.To4(),
 		},
-		// Match destination port 53
+		&expr.Payload{
+			DestRegister: 1,
+			Base:         expr.PayloadBaseTransportHeader,
+			Offset:       2,
+			Len:          2,
+		},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     binaryutil.BigEndian.PutUint16(53),
+		},
+		&expr.Verdict{Kind: expr.VerdictAccept},
+	}
+}
+
+func (r *NFTablesRules) buildDNSForwarderDNATRule(dstPort uint16) []expr.Any {
+	return []expr.Any{
+		&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     ifname(r.tapInterface),
+		},
+		&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     []byte{unix.IPPROTO_UDP},
+		},
+		&expr.Payload{
+			DestRegister: 1,
+			Base:         expr.PayloadBaseTransportHeader,
+			Offset:       2,
+			Len:          2,
+		},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     binaryutil.BigEndian.PutUint16(53),
+		},
+		&expr.Immediate{
+			Register: 1,
+			Data:     r.gatewayIP,
+		},
+		&expr.Immediate{
+			Register: 2,
+			Data:     binaryutil.BigEndian.PutUint16(dstPort),
+		},
+		&expr.NAT{
+			Type:        expr.NATTypeDestNAT,
+			Family:      unix.NFPROTO_IPV4,
+			RegAddrMin:  1,
+			RegProtoMin: 2,
+		},
+	}
+}
+
+func (r *NFTablesRules) buildDNSForwarderInputAcceptRule(dstPort uint16) []expr.Any {
+	return []expr.Any{
+		&expr.Meta{Key: expr.MetaKeyIIFNAME, Register: 1},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     ifname(r.tapInterface),
+		},
+		&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     []byte{unix.IPPROTO_UDP},
+		},
+		&expr.Payload{
+			DestRegister: 1,
+			Base:         expr.PayloadBaseNetworkHeader,
+			Offset:       16,
+			Len:          4,
+		},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     r.gatewayIP,
+		},
+		&expr.Payload{
+			DestRegister: 1,
+			Base:         expr.PayloadBaseTransportHeader,
+			Offset:       2,
+			Len:          2,
+		},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     binaryutil.BigEndian.PutUint16(dstPort),
+		},
+		&expr.Verdict{Kind: expr.VerdictAccept},
+	}
+}
+
+func (r *NFTablesRules) buildDNSForwarderOutputAcceptRule(dstIP net.IP) []expr.Any {
+	return []expr.Any{
+		&expr.Meta{Key: expr.MetaKeyL4PROTO, Register: 1},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     []byte{unix.IPPROTO_UDP},
+		},
+		&expr.Payload{
+			DestRegister: 1,
+			Base:         expr.PayloadBaseNetworkHeader,
+			Offset:       16,
+			Len:          4,
+		},
+		&expr.Cmp{
+			Op:       expr.CmpOpEq,
+			Register: 1,
+			Data:     dstIP.To4(),
+		},
 		&expr.Payload{
 			DestRegister: 1,
 			Base:         expr.PayloadBaseTransportHeader,
@@ -318,6 +475,18 @@ func ifname(n string) []byte {
 	b := make([]byte, 16)
 	copy(b, n)
 	return b
+}
+
+func parseDNSIPv4(server string) net.IP {
+	if ip := net.ParseIP(server).To4(); ip != nil {
+		return ip
+	}
+
+	host, _, err := net.SplitHostPort(server)
+	if err != nil {
+		return nil
+	}
+	return net.ParseIP(host).To4()
 }
 
 type NFTablesNAT struct {
