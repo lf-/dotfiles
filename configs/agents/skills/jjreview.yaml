@@ -1,8 +1,0 @@
-name: jjreview
-description: Review a Jujutsu change in depth using pr-review-toolkit plus architectural analysis
-trigger_patterns:
-  - "^/jjreview"
-
-prompt: |
-  ! jj show @- --git
-  review this PR systematically and in depth. for the code itself, use the pr-review-toolkit. But also independently think about higher-level architectural concerns and the negative space -- what do we need to update that we missed?
