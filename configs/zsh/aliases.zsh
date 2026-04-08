@@ -55,3 +55,4 @@ function removepath() {
 }
 
 alias haiku='claude --model haiku'
+alias skep='node ~/co/skepsis/cli.ts'
