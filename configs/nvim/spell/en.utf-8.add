@@ -273,3 +273,6 @@ Kubernetes
 OCI
 k3s
 dotfiles
+externality
+shellcheck
+stderr
