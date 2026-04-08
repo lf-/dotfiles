@@ -78,6 +78,7 @@ pon = ["git", "push", "--remote", "origin", "--allow-new", "-b"]
 pj = ["git", "push", "--remote", "jade"]
 give = ['squash', '--use-destination-message', '--from', '@', '--into']
 take = ['squash', '--use-destination-message', '--into', '@', '--from']
+msg = ["--ignore-working-copy", "log", "--no-graph", "-T", "description", "-r"]
 # pre-commit tool: https://github.com/jj-vcs/jj/issues/405#issuecomment-2744406580
 check = [
   "util",

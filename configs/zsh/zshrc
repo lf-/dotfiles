@@ -54,3 +54,6 @@ fi
 unsetopt extendedglob
 # Disabled due to bad performance bug: https://github.com/BronzeDeer/zsh-completion-sync/issues/1
 # source "${ZIM_HOME}/modules/zsh-completion-sync/zsh-completion-sync.plugin.zsh"
+
+# sentry
+fpath=("/Users/jade/.local/share/zsh/site-functions" $fpath)

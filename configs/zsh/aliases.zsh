@@ -54,3 +54,4 @@ function removepath() {
     path=(${path:|excl})
 }
 
+alias haiku='claude --model haiku'
