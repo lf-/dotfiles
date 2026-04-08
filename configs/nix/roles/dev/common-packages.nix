@@ -59,7 +59,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # Better rust test runner
   cargo-nextest
   # Runs cargo check when you save
-  cargo-watch
+  # FIXME: broken???
+  #cargo-watch
   # Rust snapshot test runner
   cargo-insta
   cargo-mommy
@@ -75,7 +76,6 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   xunit-viewer
 
   jujutsu
-  graphite-cli
 
   rage
   age-plugin-yubikey
@@ -122,6 +122,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   nix-output-monitor
   nix-diff
   niv
+  # woooow this nix package is really bad
+  # codex
   # broken
   # phpPackages.php-cs-fixer
   # phpactor

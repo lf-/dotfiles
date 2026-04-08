@@ -1,9 +1,7 @@
 {
   description = "Computers with the nixos";
   inputs = {
-    # nixpkgs.url = "https://channels.nixos.org/nixos-unstable-small/nixexprs.tar.xz";
-    # busted folly gah https://hydra.nixos.org/build/329277450
-    nixpkgs.url = "github:nixos/nixpkgs/d99b013d5d19";
+    nixpkgs.url = "https://channels.nixos.org/nixos-unstable-small/nixexprs.tar.xz";
     flake-utils.url = "github:numtide/flake-utils";
     polkadots = {
       url = "github:lf-/polkadots";

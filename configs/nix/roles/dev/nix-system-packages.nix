@@ -52,8 +52,6 @@ lib.filter (lib.meta.availableOn stdenv.hostPlatform) (
 
     man-pages-posix
 
-    pipenv
-
     (python3.withPackages pyPkgs)
   ]
   ++ import ../base/packages.nix { inherit pkgs; }

@@ -96,7 +96,8 @@ in
         xclip
         wl-clipboard
         xdg-utils
-        arandr
+        # FIXME: broken!!!
+        # arandr
 
         alsa-utils
         qpwgraph
