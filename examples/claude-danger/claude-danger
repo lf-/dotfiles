@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shlex
 import sys
 import threading
 import time
@@ -52,6 +53,8 @@ GUEST_HOME = "/home/agent"
 GUEST_WORKDIR = "/home/agent"
 GUEST_CLAUDE_CONFIG_DIR = f"{GUEST_HOME}/.claude"
 GUEST_CLAUDE_CONFIG_FILE = f"{GUEST_CLAUDE_CONFIG_DIR}/.config.json"
+DEFAULT_CLAUDE_MODEL = "claude-opus-4-6"
+DEFAULT_CLAUDE_EFFORT = "high"
 DEFAULT_GUEST_CLAUDE_STATE: dict[str, object] = {
     "numStartups": 1,
     "theme": "dark",
@@ -380,7 +383,7 @@ def prepare_guest_claude_home(
     client.exec(f"rm -f {GUEST_CLAUDE_CONFIG_DIR}/.credentials.json")
 
 
-def run_interactive_shell(client: Client) -> None:
+def run_interactive_shell(client: Client, model: str, effort: str) -> None:
     if (
         not sys.stdin.isatty()
         or not sys.stdout.isatty()
@@ -398,13 +401,23 @@ def run_interactive_shell(client: Client) -> None:
     tty.setraw(fd)
     try:
         stdin_reader = _FDReader(fd)
+        claude_command = shlex.join(
+            [
+                "claude",
+                "--dangerously-skip-permissions",
+                "--model",
+                model,
+                "--effort",
+                effort,
+            ]
+        )
         result = client.exec_interactive(
             (
                 f"sh -lc '"
                 f"if [ \"$(id -un)\" = agent ]; then "
-                f"cd {GUEST_WORKDIR} && exec env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} claude --dangerously-skip-permissions; "
+                f"cd {GUEST_WORKDIR} && exec env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} {claude_command}; "
                 f"else "
-                f"exec su agent -c \"cd {GUEST_WORKDIR} && env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} claude --dangerously-skip-permissions\"; "
+                f"exec su agent -c \"cd {GUEST_WORKDIR} && env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} {claude_command}\"; "
                 f"fi'"
             ),
             stdin=cast(IO[bytes], stdin_reader),
@@ -454,12 +467,27 @@ def run_interactive_shell(client: Client) -> None:
     multiple=True,
     help="Host glob to allow. Repeatable. Defaults to '*' when unspecified.",
 )
+@click.option(
+    "--model",
+    default=DEFAULT_CLAUDE_MODEL,
+    show_default=True,
+    help="Claude model to launch.",
+)
+@click.option(
+    "--effort",
+    type=click.Choice(["low", "medium", "high", "max"], case_sensitive=False),
+    default=DEFAULT_CLAUDE_EFFORT,
+    show_default=True,
+    help="Claude reasoning effort.",
+)
 def main(
     image: str,
     credentials_file: Path,
     cpus: float,
     memory_mb: int,
     allowed_hosts: tuple[str, ...],
+    model: str,
+    effort: str,
 ) -> None:
     """Launch Claude Code in a sandbox using host-side Claude subscription."""
 
@@ -477,7 +505,7 @@ def main(
             vm_id = client.create(sandbox.options())
             log.info("sandbox ready vm=%s image=%s", vm_id, image)
             prepare_guest_claude_home(client, guest_state_json, guest_settings_json)
-            run_interactive_shell(client)
+            run_interactive_shell(client, model, effort.lower())
     finally:
         try:
             client.remove()
