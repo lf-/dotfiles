@@ -48,9 +48,9 @@ stdenvNoCC.mkDerivation {
     install -Dm755 $src $out/bin/.claude-unwrapped
   ''
   + lib.optionalString isLinux ''
-    patchelf --set-interpreter ${glibc}/lib/ld-linux-${
-      if stdenvNoCC.hostPlatform.isx86_64 then "x86-64" else "aarch64"
-    }.so.2 $out/bin/.claude-unwrapped
+    patchelf --set-interpreter ${glibc}/lib/${
+      if stdenvNoCC.hostPlatform.isx86_64 then "ld-linux-x86-64.so.2" else "ld-linux-aarch64.so.1"
+    } $out/bin/.claude-unwrapped
     # Replace "google-chrome" with "chromium" in the embedded JS.
     # Both are 15 bytes with quotes, padded with trailing spaces:
     #   "google-chrome"  →  "chromium"
