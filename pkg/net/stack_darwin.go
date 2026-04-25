@@ -5,10 +5,12 @@ package net
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/jingkaihe/matchlock/pkg/api"
 	"github.com/jingkaihe/matchlock/pkg/policy"
@@ -37,6 +39,13 @@ const (
 
 	// writeBufSize is the capacity of pooled write buffers for outbound packets.
 	writeBufSize = 64 * 1024
+
+	// dnsUpstreamTimeout bounds upstream DNS queries. Without a deadline,
+	// transient host outbound-UDP failures pin handleDNS goroutines forever
+	// and leak the upstream UDP socket FD per query, eventually exhausting
+	// the matchlock-process FD limit and silently breaking guest DNS.
+	// 2s matches the default used by CoreDNS (plugin/forward) and miekg/dns.
+	dnsUpstreamTimeout = 2 * time.Second
 )
 
 type NetworkStack struct {
@@ -433,21 +442,39 @@ func (ns *NetworkStack) handleDNS(r *udp.ForwarderRequest) {
 	}
 
 	if len(ns.dnsServers) == 0 {
+		log.Printf("matchlock/net: dropping DNS query, no upstream servers configured")
 		return
 	}
 	idx := ns.dnsIndex.Add(1) - 1
 	server := ns.dnsServers[idx%uint64(len(ns.dnsServers))]
 	dnsConn, err := net.Dial("udp", server+":53")
 	if err != nil {
+		// Most likely cause here is process FD exhaustion (EMFILE). Surface
+		// it loudly because every subsequent guest DNS query will fail until
+		// FDs are released.
+		log.Printf("matchlock/net: dial DNS upstream %s failed: %v", server, err)
 		return
 	}
 	defer dnsConn.Close()
 
-	dnsConn.Write(buf[:n])
+	// Bound write+read so a transient host-side UDP disruption can't pin this
+	// goroutine and its FD forever. Without this we leak one UDP socket per
+	// stuck query and eventually wedge DNS for every VM in the daemon.
+	if err := dnsConn.SetDeadline(time.Now().Add(dnsUpstreamTimeout)); err != nil {
+		log.Printf("matchlock/net: set DNS deadline failed: %v", err)
+		return
+	}
+
+	if _, err := dnsConn.Write(buf[:n]); err != nil {
+		log.Printf("matchlock/net: write to DNS upstream %s failed: %v", server, err)
+		return
+	}
 
 	resp := make([]byte, 512)
 	respN, err := dnsConn.Read(resp)
 	if err != nil {
+		// Timeouts are expected during transient upstream disruptions
+		// (sleep/wake, VPN toggle); the guest resolver will retry.
 		return
 	}
 
