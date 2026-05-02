@@ -443,31 +443,46 @@ func (ns *NetworkStack) handleDNS(r *udp.ForwarderRequest) {
 	}
 	idx := ns.dnsIndex.Add(1) - 1
 	server := ns.dnsServers[idx%uint64(len(ns.dnsServers))]
-	dnsConn, err := net.Dial("udp", server+":53")
+	resp, err := exchangeDNS(buf[:n], server, dnsUpstreamTimeout)
 	if err != nil {
-		slog.Debug("dial DNS upstream failed", "server", server, "error", err)
+		slog.Debug("DNS upstream exchange failed", "server", server, "error", err)
 		return
+	}
+
+	guestConn.Write(resp)
+}
+
+func exchangeDNS(query []byte, server string, timeout time.Duration) ([]byte, error) {
+	dnsConn, err := net.DialTimeout("udp", dnsServerAddr(server), timeout)
+	if err != nil {
+		return nil, err
 	}
 	defer dnsConn.Close()
 
 	// Bound write+read so host-side UDP disruption cannot pin this goroutine.
-	if err := dnsConn.SetDeadline(time.Now().Add(dnsUpstreamTimeout)); err != nil {
-		slog.Warn("set DNS deadline failed", "error", err)
-		return
+	if err := dnsConn.SetDeadline(time.Now().Add(timeout)); err != nil {
+		slog.Warn("set DNS deadline failed", "server", server, "error", err)
+		return nil, err
 	}
 
-	if _, err := dnsConn.Write(buf[:n]); err != nil {
-		slog.Debug("write to DNS upstream failed", "server", server, "error", err)
-		return
+	if _, err := dnsConn.Write(query); err != nil {
+		return nil, err
 	}
 
 	resp := make([]byte, 512)
 	respN, err := dnsConn.Read(resp)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	guestConn.Write(resp[:respN])
+	return resp[:respN], nil
+}
+
+func dnsServerAddr(server string) string {
+	if _, _, err := net.SplitHostPort(server); err == nil {
+		return server
+	}
+	return net.JoinHostPort(server, "53")
 }
 
 func (ns *NetworkStack) emitBlockedEvent(host, reason string) {
