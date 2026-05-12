@@ -2,6 +2,7 @@ import type {
   CreateOptions,
   ImageConfig,
   MountConfig,
+  MountOwnerOptions,
   NetworkInterceptionConfig,
   Secret,
   VFSInterceptionConfig,
@@ -14,8 +15,8 @@ export function cloneCreateOptions(opts: CreateOptions): CreateOptions {
     addHosts: opts.addHosts ? opts.addHosts.map((x) => ({ ...x })) : undefined,
     mounts: opts.mounts
       ? Object.fromEntries(
-          Object.entries(opts.mounts).map(([k, v]) => [k, { ...v }]),
-        )
+        Object.entries(opts.mounts).map(([k, v]) => [k, { ...v }]),
+      )
       : undefined,
     env: opts.env ? { ...opts.env } : undefined,
     secrets: opts.secrets
@@ -23,35 +24,35 @@ export function cloneCreateOptions(opts: CreateOptions): CreateOptions {
       : undefined,
     vfsInterception: opts.vfsInterception
       ? {
-          emitEvents: opts.vfsInterception.emitEvents,
-          rules: opts.vfsInterception.rules
-            ? opts.vfsInterception.rules.map((r) => ({ ...r, ops: r.ops ? [...r.ops] : undefined }))
-            : undefined,
-        }
+        emitEvents: opts.vfsInterception.emitEvents,
+        rules: opts.vfsInterception.rules
+          ? opts.vfsInterception.rules.map((r) => ({ ...r, ops: r.ops ? [...r.ops] : undefined }))
+          : undefined,
+      }
       : undefined,
     networkInterception: opts.networkInterception
       ? {
-          rules: opts.networkInterception.rules
-            ? opts.networkInterception.rules.map((r) => ({
-                ...r,
-                hosts: r.hosts ? [...r.hosts] : undefined,
-                methods: r.methods ? [...r.methods] : undefined,
-                setHeaders: r.setHeaders ? { ...r.setHeaders } : undefined,
-                deleteHeaders: r.deleteHeaders ? [...r.deleteHeaders] : undefined,
-                setQuery: r.setQuery ? { ...r.setQuery } : undefined,
-                deleteQuery: r.deleteQuery ? [...r.deleteQuery] : undefined,
-                setResponseHeaders: r.setResponseHeaders
-                  ? { ...r.setResponseHeaders }
-                  : undefined,
-                deleteResponseHeaders: r.deleteResponseHeaders
-                  ? [...r.deleteResponseHeaders]
-                  : undefined,
-                bodyReplacements: r.bodyReplacements
-                  ? r.bodyReplacements.map((x) => ({ ...x }))
-                  : undefined,
-              }))
-            : undefined,
-        }
+        rules: opts.networkInterception.rules
+          ? opts.networkInterception.rules.map((r) => ({
+            ...r,
+            hosts: r.hosts ? [...r.hosts] : undefined,
+            methods: r.methods ? [...r.methods] : undefined,
+            setHeaders: r.setHeaders ? { ...r.setHeaders } : undefined,
+            deleteHeaders: r.deleteHeaders ? [...r.deleteHeaders] : undefined,
+            setQuery: r.setQuery ? { ...r.setQuery } : undefined,
+            deleteQuery: r.deleteQuery ? [...r.deleteQuery] : undefined,
+            setResponseHeaders: r.setResponseHeaders
+              ? { ...r.setResponseHeaders }
+              : undefined,
+            deleteResponseHeaders: r.deleteResponseHeaders
+              ? [...r.deleteResponseHeaders]
+              : undefined,
+            bodyReplacements: r.bodyReplacements
+              ? r.bodyReplacements.map((x) => ({ ...x }))
+              : undefined,
+          }))
+          : undefined,
+      }
       : undefined,
     dnsServers: opts.dnsServers ? [...opts.dnsServers] : undefined,
     portForwards: opts.portForwards
@@ -62,13 +63,13 @@ export function cloneCreateOptions(opts: CreateOptions): CreateOptions {
       : undefined,
     imageConfig: opts.imageConfig
       ? {
-          ...opts.imageConfig,
-          entrypoint: opts.imageConfig.entrypoint
-            ? [...opts.imageConfig.entrypoint]
-            : undefined,
-          cmd: opts.imageConfig.cmd ? [...opts.imageConfig.cmd] : undefined,
-          env: opts.imageConfig.env ? { ...opts.imageConfig.env } : undefined,
-        }
+        ...opts.imageConfig,
+        entrypoint: opts.imageConfig.entrypoint
+          ? [...opts.imageConfig.entrypoint]
+          : undefined,
+        cmd: opts.imageConfig.cmd ? [...opts.imageConfig.cmd] : undefined,
+        env: opts.imageConfig.env ? { ...opts.imageConfig.env } : undefined,
+      }
       : undefined,
   };
 }
@@ -228,12 +229,14 @@ export class Sandbox {
     return this;
   }
 
-  mountHostDir(guestPath: string, hostPath: string): Sandbox {
-    return this.mount(guestPath, { type: "host_fs", hostPath });
+  mountHostDir(guestPath: string, hostPath: string, opts?: MountOwnerOptions): Sandbox {
+    const { ownerUID, ownerGID } = validatedMountOwnerOptions(opts);
+    return this.mount(guestPath, { type: "host_fs", hostPath, ownerUID, ownerGID });
   }
 
-  mountHostDirReadonly(guestPath: string, hostPath: string): Sandbox {
-    return this.mount(guestPath, { type: "host_fs", hostPath, readonly: true });
+  mountHostDirReadonly(guestPath: string, hostPath: string, opts?: MountOwnerOptions): Sandbox {
+    const { ownerUID, ownerGID } = validatedMountOwnerOptions(opts);
+    return this.mount(guestPath, { type: "host_fs", hostPath, readonly: true, ownerUID, ownerGID });
   }
 
   mountMemory(guestPath: string): Sandbox {
@@ -287,4 +290,21 @@ export class Sandbox {
 
 export function createSandbox(image: string): Sandbox {
   return new Sandbox(image);
+}
+
+function validatedMountOwnerOptions(opts?: MountOwnerOptions): MountOwnerOptions {
+  if (!opts) {
+    return {};
+  }
+
+  validateID("ownerUID", opts.ownerUID)
+  validateID("ownerGID", opts.ownerGID)
+
+  return opts;
+}
+
+function validateID(name: string, id?: number) {
+  if (id !== undefined && !(Number.isInteger(id) || id < 0 || id > 0xffffffff)) {
+    throw new RangeError(`${name} must be an integer in [0, 4294967295], got ${id}`);
+  }
 }

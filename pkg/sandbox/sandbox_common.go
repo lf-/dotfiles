@@ -16,15 +16,52 @@ import (
 	"github.com/jingkaihe/matchlock/pkg/vsock"
 )
 
-func buildVFSProviders(config *api.Config) map[string]vfs.Provider {
+// createProvider builds a VFS Provider for the given mount config.
+// Returns ErrInvalidMountConfig if owner_uid or owner_gid are set on a
+// non-host_fs mount type, since ownership overrides are only applied by the
+// RealFSProvider and have no effect on memory or overlay mounts.
+func createProvider(mount api.MountConfig) (vfs.Provider, error) {
+	if (mount.OwnerUID != nil || mount.OwnerGID != nil) && mount.Type != api.MountTypeHostFS {
+		return nil, errx.With(ErrInvalidMountConfig, ": owner_uid/owner_gid are only supported for host_fs mounts, got %q", mount.Type)
+	}
+
+	switch mount.Type {
+	case api.MountTypeMemory:
+		return vfs.NewMemoryProvider(), nil
+	case api.MountTypeHostFS:
+		p := vfs.NewRealFSProvider(mount.HostPath)
+		if mount.OwnerUID != nil || mount.OwnerGID != nil {
+			uid := uint32(0)
+			gid := uint32(0)
+			if mount.OwnerUID != nil {
+				uid = *mount.OwnerUID
+			}
+			if mount.OwnerGID != nil {
+				gid = *mount.OwnerGID
+			}
+			p = p.WithOwner(uid, gid)
+		}
+		if mount.Readonly {
+			return vfs.NewReadonlyProvider(p), nil
+		}
+		return p, nil
+	default:
+		return vfs.NewMemoryProvider(), nil
+	}
+}
+
+func buildVFSProviders(config *api.Config) (map[string]vfs.Provider, error) {
 	vfsProviders := make(map[string]vfs.Provider)
 	if config.VFS != nil && config.VFS.Mounts != nil {
 		for path, mount := range config.VFS.Mounts {
-			provider := createProvider(mount)
+			provider, err := createProvider(mount)
+			if err != nil {
+				return nil, err
+			}
 			vfsProviders[path] = provider
 		}
 	}
-	return vfsProviders
+	return vfsProviders, nil
 }
 
 func prepareExecEnv(config *api.Config, caPool *sandboxnet.CAPool, pol *policy.Engine) *api.ExecOptions {

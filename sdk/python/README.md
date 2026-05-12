@@ -239,6 +239,17 @@ sandbox = (
 )
 ```
 
+Pass `owner_uid` and/or `owner_gid` to have all files in the mount appear owned by a specific user inside the VM. This is useful when the sandbox runs as a non-root user (via `.with_user()`). Both values must be integers in `[0, 4294967295]`; a `ValueError` is raised otherwise. Only `host_fs` mounts support this option:
+
+```python
+sandbox = (
+    Sandbox("alpine:latest")
+    .with_user("1000:1000")
+    .mount_host_dir("/workspace/src", "/home/user/project/src", owner_uid=1000, owner_gid=1000)
+    .mount_host_dir_readonly("/workspace/config", "/home/user/project/config", owner_uid=1000)
+)
+```
+
 ### Custom Configuration
 
 ```python
@@ -324,8 +335,8 @@ Fluent builder for sandbox configuration.
 | `.with_network_interception(config=None)` | Force interception and optionally apply typed network hook rules |
 | `.add_secret(name, value, *hosts)` | Inject a secret for specific hosts |
 | `.mount(guest_path, config)` | Add a VFS mount with custom `MountConfig` |
-| `.mount_host_dir(guest, host)` | Mount a host directory (read-write) |
-| `.mount_host_dir_readonly(guest, host)` | Mount a host directory (read-only) |
+| `.mount_host_dir(guest, host, *, owner_uid=None, owner_gid=None)` | Mount a host directory (read-write); optionally override file ownership inside the VM |
+| `.mount_host_dir_readonly(guest, host, *, owner_uid=None, owner_gid=None)` | Mount a host directory (read-only); optionally override file ownership inside the VM |
 | `.mount_memory(guest_path)` | Mount an in-memory filesystem |
 | `.mount_overlay(guest, host)` | Mount an isolated snapshot of host path |
 | `.options()` | Return the built `CreateOptions` |

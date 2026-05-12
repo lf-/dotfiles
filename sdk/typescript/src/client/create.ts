@@ -81,6 +81,12 @@ export function buildCreateParams(
         if (config.readonly) {
           mount.readonly = true;
         }
+        if (config.ownerUID !== undefined) {
+          mount.owner_uid = config.ownerUID;
+        }
+        if (config.ownerGID !== undefined) {
+          mount.owner_gid = config.ownerGID;
+        }
         mounts[guestPath] = mount;
       }
       vfs.mounts = mounts;

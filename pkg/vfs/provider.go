@@ -41,6 +41,8 @@ type FileInfo struct {
 	modTime time.Time
 	isDir   bool
 	sys     any
+	uid     uint32
+	gid     uint32
 }
 
 func (fi FileInfo) Name() string       { return fi.name }
@@ -49,6 +51,15 @@ func (fi FileInfo) Mode() os.FileMode  { return fi.mode }
 func (fi FileInfo) ModTime() time.Time { return fi.modTime }
 func (fi FileInfo) IsDir() bool        { return fi.isDir }
 func (fi FileInfo) Sys() any           { return fi.sys }
+func (fi FileInfo) UID() uint32        { return fi.uid }
+func (fi FileInfo) GID() uint32        { return fi.gid }
+
+// WithOwner returns a copy of the FileInfo with the given uid and gid set.
+func (fi FileInfo) WithOwner(uid, gid uint32) FileInfo {
+	fi.uid = uid
+	fi.gid = gid
+	return fi
+}
 
 func NewFileInfo(name string, size int64, mode os.FileMode, modTime time.Time, isDir bool) FileInfo {
 	return NewFileInfoWithSys(name, size, mode, modTime, isDir, nil)

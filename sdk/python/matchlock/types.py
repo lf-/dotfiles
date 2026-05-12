@@ -65,6 +65,11 @@ class Config:
     """Whether to run matchlock with sudo (required for TAP devices on Linux)."""
 
 
+def _validate_id(value: int | None, name: str) -> None:
+    if value is not None and (value < 0 or value > 0xFFFF_FFFF):
+        raise ValueError(f"{name} must be in [0, 4294967295], got {value}")
+
+
 @dataclass
 class MountConfig:
     """VFS mount configuration."""
@@ -78,12 +83,26 @@ class MountConfig:
     readonly: bool = False
     """Whether the mount is read-only."""
 
+    owner_uid: int | None = None
+    """UID reported for all files in this mount (overrides host ownership). Must be in [0, 4294967295]. Only supported for host_fs mounts."""
+
+    owner_gid: int | None = None
+    """GID reported for all files in this mount (overrides host ownership). Must be in [0, 4294967295]. Only supported for host_fs mounts."""
+
+    def __post_init__(self) -> None:
+        _validate_id(self.owner_uid, "owner_uid")
+        _validate_id(self.owner_gid, "owner_gid")
+
     def to_dict(self) -> dict[str, Any]:
         d: dict[str, Any] = {"type": self.type}
         if self.host_path:
             d["host_path"] = self.host_path
         if self.readonly:
             d["readonly"] = self.readonly
+        if self.owner_uid is not None:
+            d["owner_uid"] = self.owner_uid
+        if self.owner_gid is not None:
+            d["owner_gid"] = self.owner_gid
         return d
 
 

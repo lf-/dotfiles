@@ -48,6 +48,7 @@ export type {
   ImageConfig,
   LogStreamOptions,
   MountConfig,
+  MountOwnerOptions,
   NetworkBodyTransform,
   NetworkHookFunc,
   NetworkHookRequest,

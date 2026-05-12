@@ -65,4 +65,5 @@ var (
 	ErrAllowListUnavailable   = errors.New("allow-list updates unavailable")
 	ErrAllowListHosts         = errors.New("invalid allow-list hosts")
 	ErrInteractiveUnsupported = errors.New("interactive exec unsupported")
+	ErrInvalidMountConfig     = errors.New("invalid mount config")
 )

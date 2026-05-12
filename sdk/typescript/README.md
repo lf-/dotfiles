@@ -85,6 +85,31 @@ const sandbox = new Sandbox("alpine:latest").withNetworkInterception({
 - Port forwarding API parity (`portForward`, `portForwardWithAddresses`)
 - Lifecycle control (`close`, `remove`, `vmId`)
 
+## Mounts
+
+Mount host directories or use in-memory/snapshot filesystems:
+
+```ts
+import { Client, Sandbox, MountConfig } from "matchlock-sdk";
+
+const sandbox = new Sandbox("alpine:latest")
+  .mountHostDir("/workspace/src", "/home/user/project/src")
+  .mountHostDirReadonly("/workspace/config", "/home/user/project/config")
+  .mountMemory("/workspace/tmp")
+  .mountOverlay("/workspace/data", "/home/user/project/data")
+  // Or use the generic mount() method:
+  .mount("/workspace/custom", { type: "host_fs", hostPath: "/tmp/custom" });
+```
+
+Pass `ownerUID` and/or `ownerGID` to have all files in the mount appear owned by a specific user inside the VM. This is useful when the sandbox runs as a non-root user (via `.withUser()`):
+
+```ts
+const sandbox = new Sandbox("alpine:latest")
+  .withUser("1000:1000")
+  .mountHostDir("/workspace/src", "/home/user/project/src", { ownerUID: 1000, ownerGID: 1000 })
+  .mountHostDirReadonly("/workspace/config", "/home/user/project/config", { ownerUID: 1000 });
+```
+
 ## Development
 
 ```bash

@@ -164,12 +164,16 @@ type DirectMount struct {
 	Readonly bool   `json:"readonly,omitempty"`
 }
 
+// OwnerUID / OwnerGID overrides the UID / GID reported for all files in this mount (from inside the VM)
+// Only effective for host_fs mounts; setting it on memory or overlay mounts is an error.
 type MountConfig struct {
 	Type     string       `json:"type"`
 	HostPath string       `json:"host_path,omitempty"`
 	Readonly bool         `json:"readonly,omitempty"`
 	Upper    *MountConfig `json:"upper,omitempty"`
 	Lower    *MountConfig `json:"lower,omitempty"`
+	OwnerUID *uint32      `json:"owner_uid,omitempty"`
+	OwnerGID *uint32      `json:"owner_gid,omitempty"`
 }
 
 const (

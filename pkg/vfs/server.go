@@ -67,6 +67,8 @@ type VFSStat struct {
 	ModTime int64  `cbor:"mtime"`
 	IsDir   bool   `cbor:"is_dir"`
 	Ino     uint64 `cbor:"ino,omitempty"`
+	UID     uint32 `cbor:"uid,omitempty"`
+	GID     uint32 `cbor:"gid,omitempty"`
 }
 
 type VFSDirEntry struct {
@@ -297,6 +299,8 @@ func statFromInfo(path string, info FileInfo) *VFSStat {
 		ModTime: info.ModTime().Unix(),
 		IsDir:   info.IsDir(),
 		Ino:     inodeFromFileInfo(path, info, info.IsDir()),
+		UID:     info.UID(),
+		GID:     info.GID(),
 	}
 }
 

@@ -6,11 +6,40 @@ import (
 )
 
 type RealFSProvider struct {
-	root string
+	root     string
+	ownerUID *uint32
+	ownerGID *uint32
 }
 
 func NewRealFSProvider(root string) *RealFSProvider {
 	return &RealFSProvider{root: root}
+}
+
+// WithOwner sets a fixed uid and gid reported for all files in this mount,
+// overriding the actual host ownership. Returns the receiver for chaining.
+func (p *RealFSProvider) WithOwner(uid, gid uint32) *RealFSProvider {
+	p.ownerUID = &uid
+	p.ownerGID = &gid
+	return p
+}
+
+func applyOwnerPtrs(fi FileInfo, uid, gid *uint32) FileInfo {
+	if uid == nil && gid == nil {
+		return fi
+	}
+	u := fi.UID()
+	g := fi.GID()
+	if uid != nil {
+		u = *uid
+	}
+	if gid != nil {
+		g = *gid
+	}
+	return fi.WithOwner(u, g)
+}
+
+func (p *RealFSProvider) applyOwner(fi FileInfo) FileInfo {
+	return applyOwnerPtrs(fi, p.ownerUID, p.ownerGID)
 }
 
 func (p *RealFSProvider) Readonly() bool { return false }
@@ -24,7 +53,7 @@ func (p *RealFSProvider) Stat(path string) (FileInfo, error) {
 	if err != nil {
 		return FileInfo{}, err
 	}
-	return NewFileInfoWithSys(info.Name(), info.Size(), info.Mode(), info.ModTime(), info.IsDir(), info.Sys()), nil
+	return p.applyOwner(NewFileInfoWithSys(info.Name(), info.Size(), info.Mode(), info.ModTime(), info.IsDir(), info.Sys())), nil
 }
 
 func (p *RealFSProvider) ReadDir(path string) ([]DirEntry, error) {
@@ -43,7 +72,7 @@ func (p *RealFSProvider) ReadDir(path string) ([]DirEntry, error) {
 			e.Name(),
 			e.IsDir(),
 			info.Mode(),
-			NewFileInfoWithSys(e.Name(), info.Size(), info.Mode(), info.ModTime(), e.IsDir(), info.Sys()),
+			p.applyOwner(NewFileInfoWithSys(e.Name(), info.Size(), info.Mode(), info.ModTime(), e.IsDir(), info.Sys())),
 		))
 	}
 	return result, nil
@@ -54,7 +83,7 @@ func (p *RealFSProvider) Open(path string, flags int, mode os.FileMode) (Handle,
 	if err != nil {
 		return nil, err
 	}
-	return &realHandle{file: f}, nil
+	return &realHandle{file: f, ownerUID: p.ownerUID, ownerGID: p.ownerGID}, nil
 }
 
 func (p *RealFSProvider) Create(path string, mode os.FileMode) (Handle, error) {
@@ -62,7 +91,7 @@ func (p *RealFSProvider) Create(path string, mode os.FileMode) (Handle, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &realHandle{file: f}, nil
+	return &realHandle{file: f, ownerUID: p.ownerUID, ownerGID: p.ownerGID}, nil
 }
 
 func (p *RealFSProvider) Mkdir(path string, mode os.FileMode) error {
@@ -94,7 +123,9 @@ func (p *RealFSProvider) Readlink(path string) (string, error) {
 }
 
 type realHandle struct {
-	file *os.File
+	file     *os.File
+	ownerUID *uint32
+	ownerGID *uint32
 }
 
 func (h *realHandle) Read(p []byte) (int, error)                { return h.file.Read(p) }
@@ -111,5 +142,6 @@ func (h *realHandle) Stat() (FileInfo, error) {
 	if err != nil {
 		return FileInfo{}, err
 	}
-	return NewFileInfoWithSys(info.Name(), info.Size(), info.Mode(), info.ModTime(), info.IsDir(), info.Sys()), nil
+	fi := NewFileInfoWithSys(info.Name(), info.Size(), info.Mode(), info.ModTime(), info.IsDir(), info.Sys())
+	return applyOwnerPtrs(fi, h.ownerUID, h.ownerGID), nil
 }

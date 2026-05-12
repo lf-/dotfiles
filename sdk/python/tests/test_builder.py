@@ -1,5 +1,7 @@
 """Tests for matchlock.builder (Sandbox)."""
 
+import pytest
+
 from matchlock.builder import Sandbox
 from matchlock.types import (
     CreateOptions,
@@ -295,6 +297,55 @@ class TestSandboxMounts:
         m = opts.mounts["/workspace/custom"]
         assert m.type == "host_fs"
         assert m.readonly is True
+
+    def test_mount_host_dir_with_owner(self):
+        opts = Sandbox("img").mount_host_dir("/data", "/host/data", owner_uid=1000, owner_gid=2000).options()
+        m = opts.mounts["/data"]
+        assert m.type == "host_fs"
+        assert m.host_path == "/host/data"
+        assert m.owner_uid == 1000
+        assert m.owner_gid == 2000
+
+    def test_mount_host_dir_readonly_with_owner(self):
+        opts = Sandbox("img").mount_host_dir_readonly("/cfg", "/host/cfg", owner_uid=500, owner_gid=500).options()
+        m = opts.mounts["/cfg"]
+        assert m.readonly is True
+        assert m.owner_uid == 500
+        assert m.owner_gid == 500
+
+    def test_mount_host_dir_owner_defaults_to_none(self):
+        opts = Sandbox("img").mount_host_dir("/data", "/host/data").options()
+        m = opts.mounts["/data"]
+        assert m.owner_uid is None
+        assert m.owner_gid is None
+
+    def test_mount_config_to_dict_includes_owner(self):
+        cfg = MountConfig(type="host_fs", host_path="/data", owner_uid=1000, owner_gid=2000)
+        d = cfg.to_dict()
+        assert d["owner_uid"] == 1000
+        assert d["owner_gid"] == 2000
+
+    def test_mount_config_to_dict_omits_none_owner(self):
+        cfg = MountConfig(type="host_fs", host_path="/data")
+        d = cfg.to_dict()
+        assert "owner_uid" not in d
+        assert "owner_gid" not in d
+
+    def test_mount_config_rejects_negative_owner_uid(self):
+        with pytest.raises(ValueError, match="owner_uid"):
+            MountConfig(type="host_fs", host_path="/data", owner_uid=-1)
+
+    def test_mount_config_rejects_overflow_owner_uid(self):
+        with pytest.raises(ValueError, match="owner_uid"):
+            MountConfig(type="host_fs", host_path="/data", owner_uid=2**32)
+
+    def test_mount_config_rejects_negative_owner_gid(self):
+        with pytest.raises(ValueError, match="owner_gid"):
+            MountConfig(type="host_fs", host_path="/data", owner_gid=-1)
+
+    def test_mount_config_rejects_overflow_owner_gid(self):
+        with pytest.raises(ValueError, match="owner_gid"):
+            MountConfig(type="host_fs", host_path="/data", owner_gid=4294967296)
 
     def test_multiple_mounts(self):
         opts = (
