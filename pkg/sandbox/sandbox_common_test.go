@@ -1,11 +1,14 @@
 package sandbox
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jingkaihe/matchlock/pkg/api"
 	"github.com/jingkaihe/matchlock/pkg/policy"
 	"github.com/jingkaihe/matchlock/pkg/vfs"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,7 +21,8 @@ func TestBuildVFSProvidersDoesNotAddWorkspaceRootForNestedMounts(t *testing.T) {
 		},
 	}
 
-	providers := buildVFSProviders(config)
+	providers, err := buildVFSProviders(config)
+	require.NoError(t, err)
 	_, ok := providers["/workspace"]
 	require.False(t, ok, "did not expect implicit workspace root mount")
 	_, ok = providers["/workspace/not_exist_folder"]
@@ -34,9 +38,10 @@ func TestBuildVFSProvidersNestedMountStillExposesWorkspaceViaRouter(t *testing.T
 		},
 	}
 
-	providers := buildVFSProviders(config)
+	providers, err := buildVFSProviders(config)
+	require.NoError(t, err)
 	router := vfs.NewMountRouter(providers)
-	_, err := router.Stat("/workspace")
+	_, err = router.Stat("/workspace")
 	require.NoError(t, err, "expected workspace root to resolve")
 }
 
@@ -50,8 +55,62 @@ func TestBuildVFSProvidersKeepsExplicitWorkspaceMount(t *testing.T) {
 		},
 	}
 
-	providers := buildVFSProviders(config)
+	providers, err := buildVFSProviders(config)
+	require.NoError(t, err)
 	require.Len(t, providers, 1)
+}
+
+func TestBuildVFSProvidersHostFSOwnerOverrideFlowsToProvider(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "hello.txt"), []byte("hi"), 0644))
+
+	uid := uint32(1000)
+	gid := uint32(2000)
+	config := &api.Config{
+		VFS: &api.VFSConfig{
+			Mounts: map[string]api.MountConfig{
+				"/workspace": {Type: api.MountTypeHostFS, HostPath: dir, OwnerUID: &uid, OwnerGID: &gid},
+			},
+		},
+	}
+
+	providers, err := buildVFSProviders(config)
+	require.NoError(t, err)
+
+	fi, err := providers["/workspace"].Stat("hello.txt")
+	require.NoError(t, err)
+	assert.Equal(t, uint32(1000), fi.UID())
+	assert.Equal(t, uint32(2000), fi.GID())
+}
+
+func TestBuildVFSProvidersRejectsOwnerOnMemoryMount(t *testing.T) {
+	uid := uint32(1000)
+	config := &api.Config{
+		VFS: &api.VFSConfig{
+			Mounts: map[string]api.MountConfig{
+				"/workspace": {Type: api.MountTypeMemory, OwnerUID: &uid},
+			},
+		},
+	}
+
+	_, err := buildVFSProviders(config)
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrInvalidMountConfig)
+}
+
+func TestBuildVFSProvidersRejectsOwnerOnOverlayMount(t *testing.T) {
+	gid := uint32(2000)
+	config := &api.Config{
+		VFS: &api.VFSConfig{
+			Mounts: map[string]api.MountConfig{
+				"/workspace": {Type: api.MountTypeOverlay, OwnerGID: &gid},
+			},
+		},
+	}
+
+	_, err := buildVFSProviders(config)
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrInvalidMountConfig)
 }
 
 func TestPrepareExecEnv_ConfigEnvOverridesImageEnv(t *testing.T) {

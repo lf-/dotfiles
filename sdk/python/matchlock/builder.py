@@ -141,12 +141,41 @@ class Sandbox:
         self._opts.mounts[guest_path] = config
         return self
 
-    def mount_host_dir(self, guest_path: str, host_path: str) -> Sandbox:
-        return self.mount(guest_path, MountConfig(type="host_fs", host_path=host_path))
-
-    def mount_host_dir_readonly(self, guest_path: str, host_path: str) -> Sandbox:
+    def mount_host_dir(
+        self,
+        guest_path: str,
+        host_path: str,
+        *,
+        owner_uid: int | None = None,
+        owner_gid: int | None = None,
+    ) -> Sandbox:
         return self.mount(
-            guest_path, MountConfig(type="host_fs", host_path=host_path, readonly=True)
+            guest_path,
+            MountConfig(
+                type="host_fs",
+                host_path=host_path,
+                owner_uid=owner_uid,
+                owner_gid=owner_gid,
+            ),
+        )
+
+    def mount_host_dir_readonly(
+        self,
+        guest_path: str,
+        host_path: str,
+        *,
+        owner_uid: int | None = None,
+        owner_gid: int | None = None,
+    ) -> Sandbox:
+        return self.mount(
+            guest_path,
+            MountConfig(
+                type="host_fs",
+                host_path=host_path,
+                readonly=True,
+                owner_uid=owner_uid,
+                owner_gid=owner_gid,
+            ),
         )
 
     def mount_memory(self, guest_path: str) -> Sandbox:

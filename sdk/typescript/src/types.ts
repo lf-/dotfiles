@@ -66,6 +66,16 @@ export interface MountConfig {
   type?: string;
   hostPath?: string;
   readonly?: boolean;
+  ownerUID?: number;
+  ownerGID?: number;
+}
+
+/** Options accepted by {@link Sandbox.mountHostDir} and {@link Sandbox.mountHostDirReadonly}. */
+export interface MountOwnerOptions {
+  /** UID reported for all files in this mount inside the VM. Must be in [0, 4294967295]. */
+  ownerUID?: number;
+  /** GID reported for all files in this mount inside the VM. Must be in [0, 4294967295]. */
+  ownerGID?: number;
 }
 
 export interface Secret {

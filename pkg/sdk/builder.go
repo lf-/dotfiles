@@ -223,6 +223,18 @@ func (b *SandboxBuilder) MountHostDirReadonly(guestPath, hostPath string) *Sandb
 	return b.Mount(guestPath, MountConfig{Type: api.MountTypeHostFS, HostPath: hostPath, Readonly: true})
 }
 
+// MountHostDirAs is a convenience for mounting a host directory into the guest
+// with a fixed UID/GID reported for all files in the mount.
+func (b *SandboxBuilder) MountHostDirAs(guestPath, hostPath string, uid, gid uint32) *SandboxBuilder {
+	return b.Mount(guestPath, MountConfig{Type: api.MountTypeHostFS, HostPath: hostPath, OwnerUID: &uid, OwnerGID: &gid})
+}
+
+// MountHostDirReadonlyAs mounts a host directory into the guest as read-only
+// with a fixed UID/GID reported for all files in the mount.
+func (b *SandboxBuilder) MountHostDirReadonlyAs(guestPath, hostPath string, uid, gid uint32) *SandboxBuilder {
+	return b.Mount(guestPath, MountConfig{Type: api.MountTypeHostFS, HostPath: hostPath, Readonly: true, OwnerUID: &uid, OwnerGID: &gid})
+}
+
 // MountMemory creates an in-memory filesystem at the given guest path.
 func (b *SandboxBuilder) MountMemory(guestPath string) *SandboxBuilder {
 	return b.Mount(guestPath, MountConfig{Type: api.MountTypeMemory})

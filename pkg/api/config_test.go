@@ -297,6 +297,55 @@ func TestValidateVFS_AllowsValidWorkspaceMounts(t *testing.T) {
 	assert.Equal(t, "/workspace/project", cfg.GetWorkspace())
 }
 
+func TestValidateVFS_RejectsOwnerOverrideOnMemoryMount(t *testing.T) {
+	uid := uint32(1000)
+	cfg := &Config{
+		VFS: &VFSConfig{
+			Workspace: "/workspace",
+			Mounts: map[string]MountConfig{
+				"/workspace/data": {Type: MountTypeMemory, OwnerUID: &uid},
+			},
+		},
+	}
+
+	err := cfg.ValidateVFS()
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidConfig)
+	assert.Contains(t, err.Error(), "owner_uid/owner_gid are only supported for host_fs")
+}
+
+func TestValidateVFS_RejectsOwnerOverrideOnOverlayMount(t *testing.T) {
+	gid := uint32(1000)
+	cfg := &Config{
+		VFS: &VFSConfig{
+			Workspace: "/workspace",
+			Mounts: map[string]MountConfig{
+				"/workspace/data": {Type: MountTypeOverlay, HostPath: "/tmp/data", OwnerGID: &gid},
+			},
+		},
+	}
+
+	err := cfg.ValidateVFS()
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidConfig)
+	assert.Contains(t, err.Error(), "owner_uid/owner_gid are only supported for host_fs")
+}
+
+func TestValidateVFS_AllowsOwnerOverrideOnHostFSMount(t *testing.T) {
+	uid := uint32(1000)
+	gid := uint32(1000)
+	cfg := &Config{
+		VFS: &VFSConfig{
+			Workspace: "/workspace",
+			Mounts: map[string]MountConfig{
+				"/workspace/data": {Type: MountTypeHostFS, HostPath: "/tmp/data", OwnerUID: &uid, OwnerGID: &gid},
+			},
+		},
+	}
+
+	require.NoError(t, cfg.ValidateVFS())
+}
+
 func TestValidateVFS_AllowsInterceptionWithMounts(t *testing.T) {
 	cfg := &Config{
 		VFS: &VFSConfig{

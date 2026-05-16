@@ -102,6 +102,27 @@ func TestInodeFromSysNamespacesByDevice(t *testing.T) {
 	assert.Equal(t, sameInoDevA, repeated)
 }
 
+func TestStatFromInfoIncludesOwnerUIDGID(t *testing.T) {
+	info := NewFileInfo("file.txt", 0, 0644, time.Unix(1700000000, 0), false)
+	info = info.WithOwner(1000, 2000)
+
+	stat := statFromInfo("/workspace/file.txt", info)
+
+	require.NotNil(t, stat)
+	assert.Equal(t, uint32(1000), stat.UID)
+	assert.Equal(t, uint32(2000), stat.GID)
+}
+
+func TestStatFromInfoDefaultsOwnerToZero(t *testing.T) {
+	info := NewFileInfo("file.txt", 0, 0644, time.Unix(1700000000, 0), false)
+
+	stat := statFromInfo("/workspace/file.txt", info)
+
+	require.NotNil(t, stat)
+	assert.Equal(t, uint32(0), stat.UID)
+	assert.Equal(t, uint32(0), stat.GID)
+}
+
 type denyStatProvider struct {
 	Provider
 }

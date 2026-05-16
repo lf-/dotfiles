@@ -129,6 +129,64 @@ describe("Sandbox builder", () => {
     });
   });
 
+  it("sets ownerUID and ownerGID on mountHostDir", () => {
+    const opts = new Sandbox("img")
+      .mountHostDir("/data", "/host/data", { ownerUID: 1000, ownerGID: 2000 })
+      .options();
+
+    expect(opts.mounts!["/data"]).toMatchObject({
+      type: "host_fs",
+      hostPath: "/host/data",
+      ownerUID: 1000,
+      ownerGID: 2000,
+    });
+  });
+
+  it("sets ownerUID and ownerGID on mountHostDirReadonly", () => {
+    const opts = new Sandbox("img")
+      .mountHostDirReadonly("/config", "/host/config", { ownerUID: 1000, ownerGID: 2000 })
+      .options();
+
+    expect(opts.mounts!["/config"]).toMatchObject({
+      type: "host_fs",
+      hostPath: "/host/config",
+      readonly: true,
+      ownerUID: 1000,
+      ownerGID: 2000,
+    });
+  });
+
+  it("omits ownerUID and ownerGID when not provided", () => {
+    const opts = new Sandbox("img")
+      .mountHostDir("/data", "/host/data")
+      .options();
+
+    const mount = opts.mounts!["/data"];
+    expect(mount.ownerUID).toBeUndefined();
+    expect(mount.ownerGID).toBeUndefined();
+  });
+
+  it("sets only ownerUID on mountHostDir", () => {
+    const opts = new Sandbox("img")
+      .mountHostDir("/data", "/host/data", { ownerUID: 500 })
+      .options();
+
+    expect(opts.mounts!["/data"]).toMatchObject({ ownerUID: 500 });
+    expect(opts.mounts!["/data"].ownerGID).toBeUndefined();
+  });
+
+  it("throws on negative ownerUID", () => {
+    expect(() =>
+      new Sandbox("img").mountHostDir("/data", "/host/data", { ownerUID: -1 }),
+    ).toThrow(RangeError);
+  });
+
+  it("throws on out-of-range ownerGID", () => {
+    expect(() =>
+      new Sandbox("img").mountHostDir("/data", "/host/data", { ownerGID: 4294967296 }),
+    ).toThrow(RangeError);
+  });
+
   it("builds vfs interception and image config", () => {
     const opts = new Sandbox("img")
       .withVFSInterception({

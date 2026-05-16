@@ -82,6 +82,8 @@ type VFSStat struct {
 	ModTime int64  `cbor:"mtime"`
 	IsDir   bool   `cbor:"is_dir"`
 	Ino     uint64 `cbor:"ino,omitempty"`
+	UID     uint32 `cbor:"uid,omitempty"`
+	GID     uint32 `cbor:"gid,omitempty"`
 }
 
 type VFSDirEntry struct {
@@ -654,6 +656,8 @@ func fillAttr(attr *fuse.Attr, stat *VFSStat) {
 	attr.Blksize = 4096
 	attr.Blocks = (uint64(stat.Size) + 511) / 512
 	attr.Ino = stat.Ino
+	attr.Uid = stat.UID
+	attr.Gid = stat.GID
 	if stat.IsDir {
 		attr.Mode = syscall.S_IFDIR | (stat.Mode & 0777)
 		attr.Nlink = 2

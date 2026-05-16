@@ -322,12 +322,25 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		}
 	}
 
+	cleanupVM := func() {
+		if netStack != nil {
+			netStack.Close()
+		}
+		machine.Close(ctx)
+		releaseSubnet()
+		stateMgr.Unregister(id)
+	}
+
 	var vfsRoot vfs.Provider
 	var vfsHooks *vfs.HookEngine
 	var vfsServer *vfs.VFSServer
 	var vfsStopFunc func()
 	if vfsEnabled {
-		vfsProviders := buildVFSProviders(config)
+		vfsProviders, err := buildVFSProviders(config)
+		if err != nil {
+			cleanupVM()
+			return nil, err
+		}
 		vfsRouter := vfs.NewMountRouter(vfsProviders)
 		vfsRoot = vfsRouter
 		vfsHooks = buildVFSHookEngine(config)
@@ -340,12 +353,7 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 
 		vfsListener, err := darwinMachine.SetupVFSListener()
 		if err != nil {
-			if netStack != nil {
-				netStack.Close()
-			}
-			machine.Close(ctx)
-			releaseSubnet()
-			stateMgr.Unregister(id)
+			cleanupVM()
 			return nil, errx.Wrap(ErrVFSListener, err)
 		}
 
@@ -637,19 +645,4 @@ func (s *Sandbox) Close(ctx context.Context) error {
 		}
 	}
 	return nil
-}
-
-func createProvider(mount api.MountConfig) vfs.Provider {
-	switch mount.Type {
-	case api.MountTypeMemory:
-		return vfs.NewMemoryProvider()
-	case api.MountTypeHostFS:
-		p := vfs.NewRealFSProvider(mount.HostPath)
-		if mount.Readonly {
-			return vfs.NewReadonlyProvider(p)
-		}
-		return p
-	default:
-		return vfs.NewMemoryProvider()
-	}
 }

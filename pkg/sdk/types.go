@@ -198,9 +198,11 @@ type NetworkInterceptionConfig struct {
 
 // MountConfig defines a VFS mount
 type MountConfig struct {
-	Type     string `json:"type"` // memory, host_fs, overlay
-	HostPath string `json:"host_path,omitempty"`
-	Readonly bool   `json:"readonly,omitempty"`
+	Type     string  `json:"type"` // memory, host_fs, overlay
+	HostPath string  `json:"host_path,omitempty"`
+	Readonly bool    `json:"readonly,omitempty"`
+	OwnerUID *uint32 `json:"owner_uid,omitempty"`
+	OwnerGID *uint32 `json:"owner_gid,omitempty"`
 }
 
 // VFSInterceptionConfig configures host-side VFS interception rules.

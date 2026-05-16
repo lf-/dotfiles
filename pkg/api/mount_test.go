@@ -63,6 +63,86 @@ func TestParseVolumeMountSpecReadonlyOptionStaysHostFS(t *testing.T) {
 	assert.True(t, spec.Readonly)
 }
 
+func TestParseVolumeMountSpecHostFSOwnerOptions(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	spec, err := ParseVolumeMountSpec(hostDir+":subdir:"+MountTypeHostFS+",uid=1000,gid=2000", workspace)
+	require.NoError(t, err)
+	assert.Equal(t, MountTypeHostFS, spec.Type)
+	require.NotNil(t, spec.OwnerUID)
+	require.NotNil(t, spec.OwnerGID)
+	assert.Equal(t, uint32(1000), *spec.OwnerUID)
+	assert.Equal(t, uint32(2000), *spec.OwnerGID)
+}
+
+func TestParseVolumeMountSpecOwnerOption(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	spec, err := ParseVolumeMountSpec(hostDir+":subdir:"+MountTypeHostFS+",owner=1001:2001", workspace)
+	require.NoError(t, err)
+	assert.Equal(t, MountTypeHostFS, spec.Type)
+	require.NotNil(t, spec.OwnerUID)
+	require.NotNil(t, spec.OwnerGID)
+	assert.Equal(t, uint32(1001), *spec.OwnerUID)
+	assert.Equal(t, uint32(2001), *spec.OwnerGID)
+}
+
+func TestParseVolumeMountSpecReadonlyOwnerOptions(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	spec, err := ParseVolumeMountSpec(hostDir+":subdir:"+MountOptionReadonlyShort+",uid=1000,gid=2000", workspace)
+	require.NoError(t, err)
+	assert.Equal(t, MountTypeHostFS, spec.Type)
+	assert.True(t, spec.Readonly)
+	require.NotNil(t, spec.OwnerUID)
+	require.NotNil(t, spec.OwnerGID)
+	assert.Equal(t, uint32(1000), *spec.OwnerUID)
+	assert.Equal(t, uint32(2000), *spec.OwnerGID)
+}
+
+func TestParseVolumeMountSpecRejectsOwnerOptionsOnOverlay(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	_, err := ParseVolumeMountSpec(hostDir+":subdir:overlay,uid=1000", workspace)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidMountOwner)
+	assert.Contains(t, err.Error(), "host_fs")
+}
+
+func TestParseVolumeMountSpecRejectsOwnerOptionsWithoutHostFS(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	_, err := ParseVolumeMountSpec(hostDir+":subdir:uid=1000,gid=2000", workspace)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidMountOwner)
+	assert.Contains(t, err.Error(), "host_fs")
+}
+
+func TestParseVolumeMountSpecRejectsInvalidOwnerID(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	_, err := ParseVolumeMountSpec(hostDir+":subdir:"+MountTypeHostFS+",uid=-1", workspace)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidMountOwner)
+	assert.Contains(t, err.Error(), "uid")
+}
+
+func TestParseVolumeMountSpecRejectsMalformedOwnerOption(t *testing.T) {
+	hostDir := t.TempDir()
+	workspace := "/workspace"
+
+	_, err := ParseVolumeMountSpec(hostDir+":subdir:"+MountTypeHostFS+",owner=1000", workspace)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrInvalidMountOwner)
+	assert.Contains(t, err.Error(), "UID:GID")
+}
+
 func TestParseVolumeMountSpecSingleFileDefaultsToOverlay(t *testing.T) {
 	hostDir := t.TempDir()
 	hostFile := filepath.Join(hostDir, "file.txt")
