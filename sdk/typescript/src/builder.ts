@@ -304,7 +304,7 @@ function validatedMountOwnerOptions(opts?: MountOwnerOptions): MountOwnerOptions
 }
 
 function validateID(name: string, id?: number) {
-  if (id !== undefined && !(Number.isInteger(id) || id < 0 || id > 0xffffffff)) {
+  if (id !== undefined && (!Number.isInteger(id) || id < 0 || id > 0xffffffff)) {
     throw new RangeError(`${name} must be an integer in [0, 4294967295], got ${id}`);
   }
 }
