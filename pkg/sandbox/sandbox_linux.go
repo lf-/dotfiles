@@ -390,6 +390,9 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		if fwRules != nil {
 			fwRules.Cleanup()
 		}
+		if natRules != nil {
+			natRules.Cleanup()
+		}
 		machine.Close(ctx)
 		releaseSubnet()
 		stateMgr.Unregister(id)

@@ -126,6 +126,16 @@ func ValidateVFSMountsWithinWorkspace(mounts map[string]MountConfig, workspace s
 	return nil
 }
 
+// ValidateVFSMountOwnership checks ownership override invariants for VFS mounts.
+func ValidateVFSMountOwnership(mounts map[string]MountConfig) error {
+	for guestPath, mount := range mounts {
+		if (mount.OwnerUID != nil || mount.OwnerGID != nil) && mount.Type != MountTypeHostFS {
+			return errx.With(ErrInvalidConfig, ": %s: owner_uid/owner_gid are only supported for host_fs mounts", guestPath)
+		}
+	}
+	return nil
+}
+
 func isWithinWorkspace(path string, workspace string) bool {
 	path = filepath.Clean(path)
 	workspace = filepath.Clean(workspace)

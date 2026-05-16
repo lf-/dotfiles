@@ -251,6 +251,9 @@ func (c *Config) ValidateVFS() error {
 	if err := ValidateVFSMountsWithinWorkspace(c.VFS.Mounts, workspace); err != nil {
 		return errx.With(ErrInvalidConfig, ": %v", err)
 	}
+	if err := ValidateVFSMountOwnership(c.VFS.Mounts); err != nil {
+		return errx.With(ErrInvalidConfig, ": %v", err)
+	}
 	return nil
 }
 
