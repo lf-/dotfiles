@@ -103,6 +103,43 @@ func TestCLIRunVolumeMountSingleFile(t *testing.T) {
 	assert.Contains(t, stdout, "single-file-mounted")
 }
 
+func TestCLIRunVolumeMountOwnerOverrideAllowsNonRootAccess(t *testing.T) {
+	hostDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(hostDir, "seed.txt"), []byte("seed"), 0600), "write seed file")
+	require.NoError(t, os.Chmod(hostDir, 0700), "lock down host dir")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"--user", "65534:65534",
+		"-v", hostDir+":/workspace/repo:host_fs,uid=65534,gid=65534",
+		"--",
+		"sh", "-c", strings.Join([]string{
+			"set -eu",
+			"cd /workspace/repo",
+			"stat -c '%u:%g:%a' .",
+			"stat -c '%u:%g:%a' seed.txt",
+			"test -w .",
+			"echo cli-non-root-write > created.txt",
+			"cat created.txt",
+		}, "; "),
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+
+	lines := strings.Split(strings.TrimSpace(stdout), "\n")
+	require.Len(t, lines, 3, "stdout: %q", stdout)
+	assert.Equal(t, "65534:65534:700", lines[0])
+	assert.Equal(t, "65534:65534:600", lines[1])
+	assert.Equal(t, "cli-non-root-write", lines[2])
+
+	body, err := os.ReadFile(filepath.Join(hostDir, "created.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "cli-non-root-write", strings.TrimSpace(string(body)))
+}
+
 func TestCLIRunInteractiveGitInitInWorkspaceKeepsPhysicalCWD(t *testing.T) {
 	hostWorkspace := t.TempDir()
 	args := withAcceptanceRunCPUs([]string{

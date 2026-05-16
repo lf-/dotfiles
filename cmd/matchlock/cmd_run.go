@@ -65,6 +65,8 @@ Volume Mounts (-v):
   ./data:/workspace/data           Same as above (explicit guest path)
   /host/path:subdir:host_fs        Read-write host mount to <workspace>/subdir
   /host/path:subdir:ro             Read-only host mount to <workspace>/subdir
+  /host/path:subdir:host_fs,uid=1000,gid=1000
+                                    Host mount whose files appear owned by 1000:1000
 
 Raw Disk Mounts (--disk):
   Attach an ext4 disk image directly as a block device.
@@ -106,7 +108,7 @@ func init() {
 	runCmd.Flags().String("kernel", "", "Guest kernel ref: file:///absolute/path or OCI image reference")
 	runCmd.Flags().StringSlice("allow-host", nil, "Allowed hosts (can be repeated)")
 	runCmd.Flags().StringSlice("add-host", nil, "Add a custom host-to-IP mapping (host:ip, can be repeated)")
-	runCmd.Flags().StringSliceP("volume", "v", nil, fmt.Sprintf("Volume mount (host:guest = overlay snapshot by default; use :%s for direct rw host mount, :%s for read-only host mount)", api.MountTypeHostFS, api.MountOptionReadonlyShort))
+	runCmd.Flags().StringArrayP("volume", "v", nil, fmt.Sprintf("Volume mount, repeatable (host:guest = overlay snapshot by default; use :%s for direct rw host mount, :%s for read-only host mount; host_fs supports uid/gid owner options)", api.MountTypeHostFS, api.MountOptionReadonlyShort))
 	runCmd.Flags().StringSlice("disk", nil, "Attach raw ext4 disk image (host_path:guest_mount[:ro] or @volume_name:guest_mount[:ro])")
 	runCmd.Flags().StringArrayP("env", "e", nil, "Environment variable (KEY=VALUE or KEY; can be repeated)")
 	runCmd.Flags().StringArray("env-file", nil, "Environment file (KEY=VALUE or KEY per line; can be repeated)")
@@ -202,7 +204,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 	// Network & security
 	allowHosts, _ := cmd.Flags().GetStringSlice("allow-host")
 	addHostSpecs, _ := cmd.Flags().GetStringSlice("add-host")
-	volumes, _ := cmd.Flags().GetStringSlice("volume")
+	volumes, _ := cmd.Flags().GetStringArray("volume")
 	diskMountSpecs, _ := cmd.Flags().GetStringSlice("disk")
 	envVars, _ := cmd.Flags().GetStringArray("env")
 	envFiles, _ := cmd.Flags().GetStringArray("env-file")
@@ -342,6 +344,8 @@ func runRun(cmd *cobra.Command, args []string) error {
 				Type:     spec.Type,
 				HostPath: spec.HostPath,
 				Readonly: spec.Readonly,
+				OwnerUID: spec.OwnerUID,
+				OwnerGID: spec.OwnerGID,
 			}
 			mounts[spec.GuestPath] = mount
 		}

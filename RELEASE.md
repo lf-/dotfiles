@@ -2,7 +2,7 @@
 
 ## 0.2.11
 
-* Added `host_fs` mount owner overrides so files can appear with a configured UID/GID inside the VM, including Go, Python, and TypeScript SDK support, contributed by [@chriszwickerergon](https://github.com/chriszwickerergon) in [#101](https://github.com/jingkaihe/matchlock/pull/101).
+* Added `host_fs` mount owner overrides so files can appear with a configured UID/GID inside the VM, including CLI `-v host:guest:host_fs,uid=1000,gid=1000` support plus Go, Python, and TypeScript SDK support, contributed by [@chriszwickerergon](https://github.com/chriszwickerergon) in [#101](https://github.com/jingkaihe/matchlock/pull/101).
 
 ## 0.2.10
 
