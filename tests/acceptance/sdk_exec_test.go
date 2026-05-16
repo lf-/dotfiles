@@ -248,6 +248,41 @@ func TestHostFSMountGitHeadLockRenamePreservesReadability(t *testing.T) {
 	assert.Contains(t, result.Stdout, "ref: refs/heads/main")
 }
 
+func TestHostFSMountOwnerOverrideAllowsNonRootAccess(t *testing.T) {
+	t.Parallel()
+	hostRepo := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(hostRepo, "seed.txt"), []byte("seed"), 0600))
+	require.NoError(t, os.Chmod(hostRepo, 0700))
+
+	client := launchWithBuilder(t, sdk.New("alpine:latest").
+		WithWorkspace("/workspace").
+		WithUser("65534:65534").
+		MountHostDirAs("/workspace/repo", hostRepo, 65534, 65534),
+	)
+
+	script := strings.Join([]string{
+		"set -eu",
+		"stat -c '%u:%g:%a' .",
+		"stat -c '%u:%g:%a' seed.txt",
+		"test -w .",
+		"echo non-root-write > created.txt",
+		"cat created.txt",
+	}, "; ")
+	result, err := client.ExecWithDir(context.Background(), script, "/workspace/repo")
+	require.NoError(t, err, "ExecWithDir")
+	require.Equalf(t, 0, result.ExitCode, "stdout: %s\nstderr: %s", result.Stdout, result.Stderr)
+
+	lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+	require.Len(t, lines, 3, "stdout: %q", result.Stdout)
+	assert.Equal(t, "65534:65534:700", lines[0])
+	assert.Equal(t, "65534:65534:600", lines[1])
+	assert.Equal(t, "non-root-write", lines[2])
+
+	body, err := osReadTrim(filepath.Join(hostRepo, "created.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "non-root-write", body)
+}
+
 func TestHostFSMountGitCheckoutAndStatusSucceed(t *testing.T) {
 	hostRepo := t.TempDir()
 	client := launchWithBuilder(t, sdk.New("alpine/git:latest").
