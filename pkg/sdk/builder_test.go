@@ -220,21 +220,41 @@ func TestBuilderMounts(t *testing.T) {
 	opts := New("alpine:latest").
 		MountHostDir("/data", "/host/data").
 		MountHostDirReadonly("/config", "/host/config").
+		MountHostDirAs("/owned", "/host/owned", 1000, 2000).
+		MountHostDirReadonlyAs("/owned-ro", "/host/owned-ro", 1001, 2001).
 		MountMemory("/tmp/scratch").
 		MountOverlay("/workspace", "/host/workspace").
 		Options()
 
-	require.Len(t, opts.Mounts, 4)
+	require.Len(t, opts.Mounts, 6)
 
 	m := opts.Mounts["/data"]
 	assert.Equal(t, api.MountTypeHostFS, m.Type)
 	assert.Equal(t, "/host/data", m.HostPath)
 	assert.False(t, m.Readonly)
+	assert.Nil(t, m.OwnerUID)
+	assert.Nil(t, m.OwnerGID)
 
 	m = opts.Mounts["/config"]
 	assert.Equal(t, api.MountTypeHostFS, m.Type)
 	assert.Equal(t, "/host/config", m.HostPath)
 	assert.True(t, m.Readonly)
+
+	m = opts.Mounts["/owned"]
+	assert.Equal(t, api.MountTypeHostFS, m.Type)
+	assert.Equal(t, "/host/owned", m.HostPath)
+	require.NotNil(t, m.OwnerUID)
+	require.NotNil(t, m.OwnerGID)
+	assert.Equal(t, uint32(1000), *m.OwnerUID)
+	assert.Equal(t, uint32(2000), *m.OwnerGID)
+
+	m = opts.Mounts["/owned-ro"]
+	assert.Equal(t, api.MountTypeHostFS, m.Type)
+	assert.True(t, m.Readonly)
+	require.NotNil(t, m.OwnerUID)
+	require.NotNil(t, m.OwnerGID)
+	assert.Equal(t, uint32(1001), *m.OwnerUID)
+	assert.Equal(t, uint32(2001), *m.OwnerGID)
 
 	m = opts.Mounts["/tmp/scratch"]
 	assert.Equal(t, api.MountTypeMemory, m.Type)
