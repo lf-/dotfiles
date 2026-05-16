@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.11
+
+* Added `host_fs` mount owner overrides so files can appear with a configured UID/GID inside the VM, including Go, Python, and TypeScript SDK support, contributed by [@chriszwickerergon](https://github.com/chriszwickerergon) in [#101](https://github.com/jingkaihe/matchlock/pull/101).
+
 ## 0.2.10
 
 * Improved macOS interception-mode DNS reliability by bounding upstream DNS exchanges with timeouts and logging failed upstream queries instead of letting blackholed DNS requests pin goroutines.
