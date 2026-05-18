@@ -20,6 +20,7 @@ type Provider interface {
 	Rename(oldPath, newPath string) error
 	Symlink(target, link string) error
 	Readlink(path string) (string, error)
+	Fsync(path string) error
 }
 
 type Handle interface {

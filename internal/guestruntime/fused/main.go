@@ -51,6 +51,7 @@ const (
 	OpSymlink
 	OpReadlink
 	OpLink
+	OpFsyncPath
 )
 
 type VFSRequest struct {
@@ -191,6 +192,26 @@ var _ = (fs.NodeUnlinker)((*VFSNode)(nil))
 var _ = (fs.NodeRmdirer)((*VFSNode)(nil))
 var _ = (fs.NodeRenamer)((*VFSNode)(nil))
 var _ = (fs.NodeSetattrer)((*VFSNode)(nil))
+var _ = (fs.NodeFsyncer)((*VFSNode)(nil))
+
+// Fsync handles fsync on the directory inode (e.g. postgres calling
+// fsync(dir_fd) during WAL recovery). File-level fsync usually arrives via
+// VFSFileHandle.Fsync directly; if the kernel routes one through the node
+// with a handle attached, delegate to that. Otherwise issue a path-based
+// fsync RPC so the host actually flushes the file/dir to disk.
+func (n *VFSNode) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
+	if fh, ok := f.(*VFSFileHandle); ok {
+		return fh.Fsync(ctx, flags)
+	}
+	resp, err := n.client.RequestCtx(ctx, &VFSRequest{Op: OpFsyncPath, Path: n.path})
+	if err != nil {
+		return syscall.EIO
+	}
+	if resp.Err != 0 {
+		return syscall.Errno(-resp.Err)
+	}
+	return 0
+}
 
 func (r *VFSRoot) Getattr(ctx context.Context, fh fs.FileHandle, out *fuse.AttrOut) syscall.Errno {
 	resp, err := r.client.RequestCtx(ctx, &VFSRequest{Op: OpGetattr, Path: r.basePath})

@@ -186,6 +186,16 @@ func (p *interceptProvider) Readlink(path string) (string, error) {
 	return result, err
 }
 
+func (p *interceptProvider) Fsync(path string) error {
+	req := p.baseRequest(HookOpSync, path)
+	if err := p.hooks.Before(&req); err != nil {
+		return err
+	}
+	err := p.inner.Fsync(req.Path)
+	p.hooks.After(req, HookResult{Err: err})
+	return err
+}
+
 type interceptHandle struct {
 	inner Handle
 	hooks *HookEngine

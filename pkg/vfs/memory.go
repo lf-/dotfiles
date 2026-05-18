@@ -273,6 +273,8 @@ func (p *MemoryProvider) Readlink(path string) (string, error) {
 	return "", syscall.ENOSYS
 }
 
+func (p *MemoryProvider) Fsync(path string) error { return nil }
+
 type memHandle struct {
 	file   *memFile
 	flags  int
