@@ -24,9 +24,6 @@ func TestRealFSProvider_Fsync_Directory(t *testing.T) {
 	p := NewRealFSProvider(dir)
 
 	require.NoError(t, p.Mkdir("/sub", 0755))
-	// Directory fsync is the scenario postgres hits during WAL recovery.
-	// On Linux this opens the dir O_RDONLY and calls fsync(fd), which the
-	// kernel forwards as FSYNCDIR to the FUSE daemon.
 	require.NoError(t, p.Fsync("/sub"))
 }
 
@@ -41,8 +38,6 @@ func TestMemoryProvider_Fsync_Noop(t *testing.T) {
 	mp := NewMemoryProvider()
 	require.NoError(t, mp.Mkdir("/dir", 0755))
 	require.NoError(t, mp.WriteFile("/file.txt", []byte("hi"), 0644))
-	// Memory provider has no persistence layer to flush; fsync is a no-op
-	// that returns nil for paths that exist.
 	require.NoError(t, mp.Fsync("/dir"))
 	require.NoError(t, mp.Fsync("/file.txt"))
 	err := mp.Fsync("/does-not-exist")
@@ -71,7 +66,6 @@ func TestMountRouter_Fsync_RoutesToOwningMount(t *testing.T) {
 
 	require.NoError(t, router.Fsync("/mnt/a/in-a"))
 	require.NoError(t, router.Fsync("/mnt/b/in-b"))
-	// Cross-mount path that doesn't exist on the routed provider.
 	require.Error(t, router.Fsync("/mnt/a/in-b"))
 }
 
@@ -118,7 +112,7 @@ func TestDispatch_OpFsyncPath_Directory(t *testing.T) {
 	require.Equal(t, int32(0), s.dispatch(&VFSRequest{Op: OpMkdir, Path: "/sub", Mode: 0755}).Err)
 
 	resp := s.dispatch(&VFSRequest{Op: OpFsyncPath, Path: "/sub"})
-	assert.Equal(t, int32(0), resp.Err, "directory fsync via OpFsyncPath should succeed (this is the postgres-WAL-recovery scenario)")
+	assert.Equal(t, int32(0), resp.Err)
 }
 
 func TestDispatch_OpFsyncPath_PropagatesProviderError(t *testing.T) {

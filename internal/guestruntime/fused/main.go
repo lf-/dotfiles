@@ -206,7 +206,6 @@ func fsyncPath(ctx context.Context, client *VFSClient, path string) syscall.Errn
 	return 0
 }
 
-// Fsync handles fsync on the workspace root inode.
 func (r *VFSRoot) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
 	if fh, ok := f.(*VFSFileHandle); ok {
 		return fh.Fsync(ctx, flags)
@@ -214,11 +213,6 @@ func (r *VFSRoot) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) sysc
 	return fsyncPath(ctx, r.client, r.basePath)
 }
 
-// Fsync handles fsync on the directory inode (e.g. postgres calling
-// fsync(dir_fd) during WAL recovery). File-level fsync usually arrives via
-// VFSFileHandle.Fsync directly; if the kernel routes one through the node
-// with a handle attached, delegate to that. Otherwise issue a path-based
-// fsync RPC so the host actually flushes the file/dir to disk.
 func (n *VFSNode) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
 	if fh, ok := f.(*VFSFileHandle); ok {
 		return fh.Fsync(ctx, flags)
