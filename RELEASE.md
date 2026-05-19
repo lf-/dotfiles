@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.12
+
+* Fixed VFS directory fsync support for `host_fs` mounts, including fsync on the workspace root and child directory file descriptors, addressing atomic-write durability workflows (e.g. RDBMS), contributed by [@sosso](https://github.com/sosso) in [#103](https://github.com/jingkaihe/matchlock/pull/103).
+
 ## 0.2.11
 
 * Added `host_fs` mount owner overrides so files can appear with a configured UID/GID inside the VM, including CLI `-v host:guest:host_fs,uid=1000,gid=1000` support plus Go, Python, and TypeScript SDK support, contributed by [@chriszwickerergon](https://github.com/chriszwickerergon) in [#101](https://github.com/jingkaihe/matchlock/pull/101).

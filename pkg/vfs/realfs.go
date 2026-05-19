@@ -122,6 +122,15 @@ func (p *RealFSProvider) Readlink(path string) (string, error) {
 	return os.Readlink(p.realPath(path))
 }
 
+func (p *RealFSProvider) Fsync(path string) error {
+	f, err := os.Open(p.realPath(path))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return f.Sync()
+}
+
 type realHandle struct {
 	file     *os.File
 	ownerUID *uint32

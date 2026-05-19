@@ -289,6 +289,14 @@ func (r *MountRouter) Readlink(path string) (string, error) {
 	return p.Readlink(rel)
 }
 
+func (r *MountRouter) Fsync(path string) error {
+	p, rel, err := r.resolve(path)
+	if err != nil {
+		return err
+	}
+	return p.Fsync(rel)
+}
+
 func (r *MountRouter) AddMount(path string, provider Provider) {
 	path = filepath.Clean(path)
 	r.mounts = append(r.mounts, mount{path: path, provider: provider})

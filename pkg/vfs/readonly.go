@@ -39,6 +39,7 @@ func (p *ReadonlyProvider) RemoveAll(path string) error               { return s
 func (p *ReadonlyProvider) Rename(oldPath, newPath string) error      { return syscall.EROFS }
 func (p *ReadonlyProvider) Symlink(target, link string) error         { return syscall.EROFS }
 func (p *ReadonlyProvider) Readlink(path string) (string, error)      { return p.inner.Readlink(path) }
+func (p *ReadonlyProvider) Fsync(path string) error                   { return p.inner.Fsync(path) }
 
 type readonlyHandle struct {
 	inner Handle

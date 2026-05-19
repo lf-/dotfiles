@@ -51,6 +51,7 @@ const (
 	OpSymlink
 	OpReadlink
 	OpLink
+	OpFsyncPath
 )
 
 type VFSRequest struct {
@@ -172,6 +173,7 @@ var _ = (fs.NodeCreater)((*VFSRoot)(nil))
 var _ = (fs.NodeUnlinker)((*VFSRoot)(nil))
 var _ = (fs.NodeRmdirer)((*VFSRoot)(nil))
 var _ = (fs.NodeRenamer)((*VFSRoot)(nil))
+var _ = (fs.NodeFsyncer)((*VFSRoot)(nil))
 
 // VFSNode represents a file or directory in the VFS
 type VFSNode struct {
@@ -191,6 +193,32 @@ var _ = (fs.NodeUnlinker)((*VFSNode)(nil))
 var _ = (fs.NodeRmdirer)((*VFSNode)(nil))
 var _ = (fs.NodeRenamer)((*VFSNode)(nil))
 var _ = (fs.NodeSetattrer)((*VFSNode)(nil))
+var _ = (fs.NodeFsyncer)((*VFSNode)(nil))
+
+func fsyncPath(ctx context.Context, client *VFSClient, path string) syscall.Errno {
+	resp, err := client.RequestCtx(ctx, &VFSRequest{Op: OpFsyncPath, Path: path})
+	if err != nil {
+		return syscall.EIO
+	}
+	if resp.Err != 0 {
+		return syscall.Errno(-resp.Err)
+	}
+	return 0
+}
+
+func (r *VFSRoot) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
+	if fh, ok := f.(*VFSFileHandle); ok {
+		return fh.Fsync(ctx, flags)
+	}
+	return fsyncPath(ctx, r.client, r.basePath)
+}
+
+func (n *VFSNode) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
+	if fh, ok := f.(*VFSFileHandle); ok {
+		return fh.Fsync(ctx, flags)
+	}
+	return fsyncPath(ctx, n.client, n.path)
+}
 
 func (r *VFSRoot) Getattr(ctx context.Context, fh fs.FileHandle, out *fuse.AttrOut) syscall.Errno {
 	resp, err := r.client.RequestCtx(ctx, &VFSRequest{Op: OpGetattr, Path: r.basePath})
