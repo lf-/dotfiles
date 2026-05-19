@@ -265,7 +265,9 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 
 	case OpFsync:
 		if hi, ok := s.handles.Load(req.Handle); ok {
-			hi.(Handle).Sync()
+			if err := hi.(Handle).Sync(); err != nil {
+				return &VFSResponse{Err: errnoFromError(err)}
+			}
 		}
 		return &VFSResponse{}
 

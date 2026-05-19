@@ -273,7 +273,19 @@ func (p *MemoryProvider) Readlink(path string) (string, error) {
 	return "", syscall.ENOSYS
 }
 
-func (p *MemoryProvider) Fsync(path string) error { return nil }
+func (p *MemoryProvider) Fsync(path string) error {
+	path = p.normPath(path)
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	if _, ok := p.dirs[path]; ok {
+		return nil
+	}
+	if _, ok := p.files[path]; ok {
+		return nil
+	}
+	return syscall.ENOENT
+}
 
 type memHandle struct {
 	file   *memFile

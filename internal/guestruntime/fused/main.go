@@ -173,6 +173,7 @@ var _ = (fs.NodeCreater)((*VFSRoot)(nil))
 var _ = (fs.NodeUnlinker)((*VFSRoot)(nil))
 var _ = (fs.NodeRmdirer)((*VFSRoot)(nil))
 var _ = (fs.NodeRenamer)((*VFSRoot)(nil))
+var _ = (fs.NodeFsyncer)((*VFSRoot)(nil))
 
 // VFSNode represents a file or directory in the VFS
 type VFSNode struct {
@@ -194,6 +195,25 @@ var _ = (fs.NodeRenamer)((*VFSNode)(nil))
 var _ = (fs.NodeSetattrer)((*VFSNode)(nil))
 var _ = (fs.NodeFsyncer)((*VFSNode)(nil))
 
+func fsyncPath(ctx context.Context, client *VFSClient, path string) syscall.Errno {
+	resp, err := client.RequestCtx(ctx, &VFSRequest{Op: OpFsyncPath, Path: path})
+	if err != nil {
+		return syscall.EIO
+	}
+	if resp.Err != 0 {
+		return syscall.Errno(-resp.Err)
+	}
+	return 0
+}
+
+// Fsync handles fsync on the workspace root inode.
+func (r *VFSRoot) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) syscall.Errno {
+	if fh, ok := f.(*VFSFileHandle); ok {
+		return fh.Fsync(ctx, flags)
+	}
+	return fsyncPath(ctx, r.client, r.basePath)
+}
+
 // Fsync handles fsync on the directory inode (e.g. postgres calling
 // fsync(dir_fd) during WAL recovery). File-level fsync usually arrives via
 // VFSFileHandle.Fsync directly; if the kernel routes one through the node
@@ -203,14 +223,7 @@ func (n *VFSNode) Fsync(ctx context.Context, f fs.FileHandle, flags uint32) sysc
 	if fh, ok := f.(*VFSFileHandle); ok {
 		return fh.Fsync(ctx, flags)
 	}
-	resp, err := n.client.RequestCtx(ctx, &VFSRequest{Op: OpFsyncPath, Path: n.path})
-	if err != nil {
-		return syscall.EIO
-	}
-	if resp.Err != 0 {
-		return syscall.Errno(-resp.Err)
-	}
-	return 0
+	return fsyncPath(ctx, n.client, n.path)
 }
 
 func (r *VFSRoot) Getattr(ctx context.Context, fh fs.FileHandle, out *fuse.AttrOut) syscall.Errno {

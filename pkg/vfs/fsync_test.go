@@ -39,12 +39,14 @@ func TestRealFSProvider_Fsync_Missing(t *testing.T) {
 
 func TestMemoryProvider_Fsync_Noop(t *testing.T) {
 	mp := NewMemoryProvider()
-	mp.Mkdir("/dir", 0755)
+	require.NoError(t, mp.Mkdir("/dir", 0755))
+	require.NoError(t, mp.WriteFile("/file.txt", []byte("hi"), 0644))
 	// Memory provider has no persistence layer to flush; fsync is a no-op
-	// that returns nil. Behaviour parity with RealFS keeps the Provider
-	// interface uniform.
+	// that returns nil for paths that exist.
 	require.NoError(t, mp.Fsync("/dir"))
-	require.NoError(t, mp.Fsync("/does-not-exist"))
+	require.NoError(t, mp.Fsync("/file.txt"))
+	err := mp.Fsync("/does-not-exist")
+	require.ErrorIs(t, err, syscall.ENOENT)
 }
 
 func TestReadonlyProvider_Fsync_DelegatesToInner(t *testing.T) {
@@ -84,6 +86,13 @@ func (p *spyFsyncProvider) Fsync(path string) error {
 	return p.err
 }
 
+type syncErrHandle struct {
+	Handle
+	err error
+}
+
+func (h syncErrHandle) Sync() error { return h.err }
+
 func TestInterceptProvider_Fsync_DelegatesAndPropagatesError(t *testing.T) {
 	want := errors.New("disk gone")
 	spy := &spyFsyncProvider{Provider: NewMemoryProvider(), err: want}
@@ -117,5 +126,14 @@ func TestDispatch_OpFsyncPath_PropagatesProviderError(t *testing.T) {
 	s := NewVFSServer(&spyFsyncProvider{Provider: NewMemoryProvider(), err: want})
 
 	resp := s.dispatch(&VFSRequest{Op: OpFsyncPath, Path: "/x"})
+	assert.Equal(t, -int32(want), resp.Err)
+}
+
+func TestDispatch_OpFsync_PropagatesHandleError(t *testing.T) {
+	want := syscall.EIO
+	s := NewVFSServer(NewMemoryProvider())
+	s.handles.Store(uint64(42), syncErrHandle{err: want})
+
+	resp := s.dispatch(&VFSRequest{Op: OpFsync, Handle: 42})
 	assert.Equal(t, -int32(want), resp.Err)
 }

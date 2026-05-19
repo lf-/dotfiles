@@ -172,6 +172,30 @@ func TestVFSNodeRenameDefersTreeMoveToGoFuse(t *testing.T) {
 	assert.Equal(t, newPath, childNode.path)
 }
 
+func TestVFSRootFsyncUsesBasePath(t *testing.T) {
+	client, cleanup := newSingleRequestClient(t, func(req *VFSRequest) error {
+		return verifyFsyncPathRequest(req, "/workspace")
+	})
+	defer cleanup()
+
+	root := &VFSRoot{client: client, basePath: "/workspace"}
+
+	errno := root.Fsync(context.Background(), nil, 0)
+	assert.Equal(t, syscall.Errno(0), errno)
+}
+
+func TestVFSNodeFsyncUsesNodePath(t *testing.T) {
+	client, cleanup := newSingleRequestClient(t, func(req *VFSRequest) error {
+		return verifyFsyncPathRequest(req, "/workspace/repo")
+	})
+	defer cleanup()
+
+	node := &VFSNode{client: client, path: "/workspace/repo", isDir: true}
+
+	errno := node.Fsync(context.Background(), nil, 0)
+	assert.Equal(t, syscall.Errno(0), errno)
+}
+
 func newSingleRequestClient(t *testing.T, validate func(*VFSRequest) error) (*VFSClient, func()) {
 	t.Helper()
 
@@ -242,6 +266,16 @@ func verifyRenameRequest(req *VFSRequest, expectedOldPath string, expectedNewPat
 	}
 	if req.NewPath != expectedNewPath {
 		return errors.New("unexpected rename destination path: " + req.NewPath)
+	}
+	return nil
+}
+
+func verifyFsyncPathRequest(req *VFSRequest, expectedPath string) error {
+	if req.Op != OpFsyncPath {
+		return errors.New("unexpected op")
+	}
+	if req.Path != expectedPath {
+		return errors.New("unexpected fsync path: " + req.Path)
 	}
 	return nil
 }
