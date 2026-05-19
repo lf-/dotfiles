@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -137,6 +138,48 @@ func TestParseBootConfigDiskReadonly(t *testing.T) {
 	assert.Equal(t, "vdb", cfg.Disks[0].Device)
 	assert.Equal(t, "/var/lib/buildkit", cfg.Disks[0].Path)
 	assert.True(t, cfg.Disks[0].ReadOnly)
+}
+
+func TestParseBootConfigDiskOwner(t *testing.T) {
+	dir := t.TempDir()
+	cmdline := filepath.Join(dir, "cmdline")
+	require.NoError(t, os.WriteFile(cmdline, []byte("matchlock.dns=1.1.1.1 matchlock.disk.vdb=/var/lib/postgresql,uid=999,gid=999"), 0644))
+
+	cfg, err := parseBootConfig(cmdline)
+	require.NoError(t, err)
+	require.Len(t, cfg.Disks, 1)
+	require.NotNil(t, cfg.Disks[0].OwnerUID)
+	require.NotNil(t, cfg.Disks[0].OwnerGID)
+	assert.Equal(t, uint32(999), *cfg.Disks[0].OwnerUID)
+	assert.Equal(t, uint32(999), *cfg.Disks[0].OwnerGID)
+}
+
+func TestParseBootConfigDiskReadonlyOwnerRejected(t *testing.T) {
+	dir := t.TempDir()
+	cmdline := filepath.Join(dir, "cmdline")
+	require.NoError(t, os.WriteFile(cmdline, []byte("matchlock.dns=1.1.1.1 matchlock.disk.vdb=/var/lib/postgresql,ro,uid=999"), 0644))
+
+	cfg, err := parseBootConfig(cmdline)
+	require.Error(t, err)
+	assert.Nil(t, cfg)
+	assert.ErrorIs(t, err, ErrInvalidDiskMount)
+}
+
+func TestChownDiskMountRoot(t *testing.T) {
+	dir := t.TempDir()
+	mountPath := filepath.Join(dir, "mnt")
+	require.NoError(t, os.Mkdir(mountPath, 0755))
+
+	uid := uint32(os.Geteuid())
+	gid := uint32(os.Getegid())
+	require.NoError(t, chownDiskMountRoot(diskMount{Path: mountPath, OwnerUID: &uid, OwnerGID: &gid}))
+
+	info, err := os.Stat(mountPath)
+	require.NoError(t, err)
+	st, ok := info.Sys().(*syscall.Stat_t)
+	require.True(t, ok)
+	assert.Equal(t, uid, st.Uid)
+	assert.Equal(t, gid, st.Gid)
 }
 
 func TestParseBootConfigDiskInvalidOption(t *testing.T) {

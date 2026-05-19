@@ -113,6 +113,38 @@ func TestBuildVFSProvidersRejectsOwnerOnOverlayMount(t *testing.T) {
 	require.ErrorIs(t, err, ErrInvalidMountConfig)
 }
 
+func TestBuildExtraDiskConfigsCopiesOwner(t *testing.T) {
+	uid := uint32(999)
+	gid := uint32(999)
+
+	disks, err := buildExtraDiskConfigs([]api.DiskMount{{
+		HostPath:   "/tmp/pgdata.ext4",
+		GuestMount: "/var/lib/postgresql",
+		OwnerUID:   &uid,
+		OwnerGID:   &gid,
+	}})
+	require.NoError(t, err)
+	require.Len(t, disks, 1)
+	require.NotNil(t, disks[0].OwnerUID)
+	require.NotNil(t, disks[0].OwnerGID)
+	assert.Equal(t, uid, *disks[0].OwnerUID)
+	assert.Equal(t, gid, *disks[0].OwnerGID)
+}
+
+func TestBuildExtraDiskConfigsRejectsReadonlyOwner(t *testing.T) {
+	uid := uint32(999)
+
+	_, err := buildExtraDiskConfigs([]api.DiskMount{{
+		HostPath:   "/tmp/pgdata.ext4",
+		GuestMount: "/var/lib/postgresql",
+		ReadOnly:   true,
+		OwnerUID:   &uid,
+	}})
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrInvalidDiskCfg)
+	assert.Contains(t, err.Error(), "writable disk")
+}
+
 func TestPrepareExecEnv_ConfigEnvOverridesImageEnv(t *testing.T) {
 	config := &api.Config{
 		VFS: &api.VFSConfig{Workspace: "/workspace"},

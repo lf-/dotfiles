@@ -64,6 +64,26 @@ func buildVFSProviders(config *api.Config) (map[string]vfs.Provider, error) {
 	return vfsProviders, nil
 }
 
+func buildExtraDiskConfigs(disks []api.DiskMount) ([]vm.DiskConfig, error) {
+	extraDisks := make([]vm.DiskConfig, 0, len(disks))
+	for _, d := range disks {
+		if err := api.ValidateGuestMount(d.GuestMount); err != nil {
+			return nil, errx.Wrap(ErrInvalidDiskCfg, err)
+		}
+		if d.ReadOnly && (d.OwnerUID != nil || d.OwnerGID != nil) {
+			return nil, errx.With(ErrInvalidDiskCfg, ": ownership options require writable disk")
+		}
+		extraDisks = append(extraDisks, vm.DiskConfig{
+			HostPath:   d.HostPath,
+			GuestMount: d.GuestMount,
+			ReadOnly:   d.ReadOnly,
+			OwnerUID:   d.OwnerUID,
+			OwnerGID:   d.OwnerGID,
+		})
+	}
+	return extraDisks, nil
+}
+
 func prepareExecEnv(config *api.Config, caPool *sandboxnet.CAPool, pol *policy.Engine) *api.ExecOptions {
 	opts := &api.ExecOptions{
 		// Matchlock defaults execution to image WORKDIR, falling back to the

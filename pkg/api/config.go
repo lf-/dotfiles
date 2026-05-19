@@ -50,9 +50,11 @@ type Config struct {
 
 // DiskMount describes a persistent ext4 disk image to attach as a block device.
 type DiskMount struct {
-	HostPath   string `json:"host_path"`
-	GuestMount string `json:"guest_mount"`
-	ReadOnly   bool   `json:"readonly,omitempty"`
+	HostPath   string  `json:"host_path"`
+	GuestMount string  `json:"guest_mount"`
+	ReadOnly   bool    `json:"readonly,omitempty"`
+	OwnerUID   *uint32 `json:"owner_uid,omitempty"`
+	OwnerGID   *uint32 `json:"owner_gid,omitempty"`
 }
 
 var validGuestMountPath = regexp.MustCompile(`^/[a-zA-Z0-9/_.-]+$`)

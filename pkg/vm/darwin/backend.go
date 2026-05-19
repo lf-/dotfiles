@@ -238,10 +238,7 @@ func (b *DarwinBackend) buildKernelArgs(config *vm.VMConfig) string {
 	for _, disk := range config.ExtraDisks {
 		dev := fmt.Sprintf("vd%c", devLetter)
 		devLetter++
-		diskMount := disk.GuestMount
-		if disk.ReadOnly {
-			diskMount += ",ro"
-		}
+		diskMount := diskKernelArg(disk)
 		diskArgs += fmt.Sprintf(" matchlock.disk.%s=%s", dev, diskMount)
 	}
 
@@ -276,6 +273,20 @@ func (b *DarwinBackend) buildKernelArgs(config *vm.VMConfig) string {
 		"console=hvc0 root=/dev/vda rw init=/init reboot=k panic=1 ip=dhcp hostname=%s%s matchlock.dns=%s matchlock.mtu=%d%s%s%s matchlock.cpus=%g",
 		hostname, workspaceArg, vm.KernelDNSParam(config.DNSServers), mtu, privilegedArg, diskArgs, addHostArgs, config.CPUs,
 	)
+}
+
+func diskKernelArg(disk vm.DiskConfig) string {
+	parts := []string{disk.GuestMount}
+	if disk.ReadOnly {
+		parts = append(parts, "ro")
+	}
+	if disk.OwnerUID != nil {
+		parts = append(parts, fmt.Sprintf("uid=%d", *disk.OwnerUID))
+	}
+	if disk.OwnerGID != nil {
+		parts = append(parts, fmt.Sprintf("gid=%d", *disk.OwnerGID))
+	}
+	return strings.Join(parts, ",")
 }
 
 func effectiveMTU(mtu int) int {

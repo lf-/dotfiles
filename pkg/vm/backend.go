@@ -14,6 +14,8 @@ type DiskConfig struct {
 	HostPath   string // Path to the ext4 image on the host
 	GuestMount string // Mount point inside the guest (e.g., "/var/lib/buildkit")
 	ReadOnly   bool
+	OwnerUID   *uint32
+	OwnerGID   *uint32
 }
 
 type VMConfig struct {

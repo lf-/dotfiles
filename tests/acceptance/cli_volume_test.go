@@ -52,6 +52,34 @@ func TestCLIRunDiskMountNamedVolumePersists(t *testing.T) {
 	assert.Equal(t, "persisted", strings.TrimSpace(stdout))
 }
 
+func TestCLIRunDiskMountNamedVolumeOwnerIDs(t *testing.T) {
+	requireVolumeFormatTool(t)
+
+	volumeName := uniqueVolumeName("acc-disk-owner")
+	t.Cleanup(func() {
+		_, _, _ = runCLI(t, "volume", "rm", volumeName)
+	})
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"volume", "create", volumeName, "--size", "32",
+	)
+	require.Equalf(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+
+	stdout, stderr, exitCode = runCLIWithTimeout(
+		t,
+		3*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--no-network",
+		"--disk", "@"+volumeName+":/pgdata:uid=1234,gid=1235",
+		"--", "stat", "-c", "%u:%g", "/pgdata",
+	)
+	require.Equalf(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "1234:1235", strings.TrimSpace(stdout))
+}
+
 func TestCLIVolumeCreateLsRm(t *testing.T) {
 	requireVolumeFormatTool(t)
 

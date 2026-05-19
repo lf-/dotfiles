@@ -25,6 +25,19 @@ func TestParseDiskMountSpec(t *testing.T) {
 	assert.False(t, got.ReadOnly)
 }
 
+func TestParseDiskMountSpecUIDGID(t *testing.T) {
+	dir := t.TempDir()
+	hostDisk := filepath.Join(dir, "pgdata.ext4")
+	require.NoError(t, os.WriteFile(hostDisk, []byte("disk"), 0644))
+
+	got, err := parseDiskMountSpec(hostDisk + ":/var/lib/postgresql:uid=1000,gid=2000")
+	require.NoError(t, err)
+	require.NotNil(t, got.OwnerUID)
+	require.NotNil(t, got.OwnerGID)
+	assert.Equal(t, uint32(1000), *got.OwnerUID)
+	assert.Equal(t, uint32(2000), *got.OwnerGID)
+}
+
 func TestParseDiskMountSpecRelativeHostPath(t *testing.T) {
 	dir := t.TempDir()
 	hostDisk := filepath.Join(dir, "data.ext4")
@@ -66,6 +79,26 @@ func TestParseDiskMountSpecRejectsUnknownOption(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown disk option")
 }
 
+func TestParseDiskMountSpecRejectsReadonlyOwner(t *testing.T) {
+	dir := t.TempDir()
+	hostDisk := filepath.Join(dir, "cache.ext4")
+	require.NoError(t, os.WriteFile(hostDisk, []byte("disk"), 0644))
+
+	_, err := parseDiskMountSpec(hostDisk + ":/var/lib/buildkit:ro,uid=1000")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "writable")
+}
+
+func TestParseDiskMountSpecRejectsInvalidOwnerID(t *testing.T) {
+	dir := t.TempDir()
+	hostDisk := filepath.Join(dir, "cache.ext4")
+	require.NoError(t, os.WriteFile(hostDisk, []byte("disk"), 0644))
+
+	_, err := parseDiskMountSpec(hostDisk + ":/var/lib/buildkit:uid=abc")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsigned 32-bit integer")
+}
+
 func TestParseDiskMountSpecNamedVolume(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
@@ -80,6 +113,24 @@ func TestParseDiskMountSpecNamedVolume(t *testing.T) {
 	assert.Equal(t, volumePath, got.HostPath)
 	assert.Equal(t, "/var/lib/buildkit", got.GuestMount)
 	assert.True(t, got.ReadOnly)
+}
+
+func TestParseDiskMountSpecNamedVolumeOwnerIDs(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	volumeDir := filepath.Join(home, ".cache", "matchlock", "volumes")
+	require.NoError(t, os.MkdirAll(volumeDir, 0755))
+	volumePath := filepath.Join(volumeDir, "pgdata.ext4")
+	require.NoError(t, os.WriteFile(volumePath, []byte("disk"), 0644))
+
+	got, err := parseDiskMountSpec("@pgdata:/var/lib/postgresql:uid=999,gid=999")
+	require.NoError(t, err)
+	assert.Equal(t, volumePath, got.HostPath)
+	require.NotNil(t, got.OwnerUID)
+	require.NotNil(t, got.OwnerGID)
+	assert.Equal(t, uint32(999), *got.OwnerUID)
+	assert.Equal(t, uint32(999), *got.OwnerGID)
 }
 
 func TestParseDiskMountSpecNamedVolumeMissing(t *testing.T) {

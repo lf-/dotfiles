@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -74,6 +75,8 @@ Raw Disk Mounts (--disk):
   /host/cache.ext4:/var/lib/buildkit
   @buildkit-cache:/var/lib/buildkit
   /host/data.ext4:/mnt/data:ro
+  @pgdata:/var/lib/postgresql:uid=999,gid=999
+  Ownership options chown the mount root only and require a writable disk.
 
 Wildcard Patterns for --allow-host:
   *                      Allow all hosts
@@ -109,7 +112,7 @@ func init() {
 	runCmd.Flags().StringSlice("allow-host", nil, "Allowed hosts (can be repeated)")
 	runCmd.Flags().StringSlice("add-host", nil, "Add a custom host-to-IP mapping (host:ip, can be repeated)")
 	runCmd.Flags().StringArrayP("volume", "v", nil, fmt.Sprintf("Volume mount, repeatable (host:guest = overlay snapshot by default; use :%s for direct rw host mount, :%s for read-only host mount; host_fs supports uid/gid owner options)", api.MountTypeHostFS, api.MountOptionReadonlyShort))
-	runCmd.Flags().StringSlice("disk", nil, "Attach raw ext4 disk image (host_path:guest_mount[:ro] or @volume_name:guest_mount[:ro])")
+	runCmd.Flags().StringArray("disk", nil, "Attach raw ext4 disk image (host_path:guest_mount[:option[,option...]] or @volume_name:guest_mount[:option[,option...]])")
 	runCmd.Flags().StringArrayP("env", "e", nil, "Environment variable (KEY=VALUE or KEY; can be repeated)")
 	runCmd.Flags().StringArray("env-file", nil, "Environment file (KEY=VALUE or KEY per line; can be repeated)")
 	runCmd.Flags().StringArray("secret", nil, "Secret (NAME=VALUE@host1,host2 or NAME@host1,host2)")
@@ -205,7 +208,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 	allowHosts, _ := cmd.Flags().GetStringSlice("allow-host")
 	addHostSpecs, _ := cmd.Flags().GetStringSlice("add-host")
 	volumes, _ := cmd.Flags().GetStringArray("volume")
-	diskMountSpecs, _ := cmd.Flags().GetStringSlice("disk")
+	diskMountSpecs, _ := cmd.Flags().GetStringArray("disk")
 	envVars, _ := cmd.Flags().GetStringArray("env")
 	envFiles, _ := cmd.Flags().GetStringArray("env-file")
 	secrets, _ := cmd.Flags().GetStringArray("secret")
@@ -778,9 +781,9 @@ func openVMLogAppender(path string) (*os.File, error) {
 }
 
 func parseDiskMountSpec(spec string) (api.DiskMount, error) {
-	parts := strings.Split(spec, ":")
+	parts := strings.SplitN(spec, ":", 3)
 	if len(parts) < 2 || len(parts) > 3 {
-		return api.DiskMount{}, fmt.Errorf("expected format host_path:guest_mount[:ro] or @volume_name:guest_mount[:ro]")
+		return api.DiskMount{}, fmt.Errorf("expected format host_path:guest_mount[:option[,option...]] or @volume_name:guest_mount[:option[,option...]]")
 	}
 
 	hostPath := strings.TrimSpace(parts[0])
@@ -817,20 +820,77 @@ func parseDiskMountSpec(spec string) (api.DiskMount, error) {
 	}
 
 	readonly := false
+	var ownerUID *uint32
+	var ownerGID *uint32
 	if len(parts) == 3 {
-		switch strings.ToLower(strings.TrimSpace(parts[2])) {
-		case api.MountOptionReadonlyShort, api.MountOptionReadonly:
-			readonly = true
-		default:
-			return api.DiskMount{}, fmt.Errorf("unknown disk option %q (use %q)", parts[2], api.MountOptionReadonlyShort)
+		for _, rawOption := range strings.Split(parts[2], ",") {
+			option := strings.TrimSpace(rawOption)
+			key, value, hasValue := strings.Cut(option, "=")
+			key = strings.ToLower(strings.TrimSpace(key))
+			value = strings.TrimSpace(value)
+
+			switch key {
+			case "":
+				continue
+			case api.MountOptionReadonlyShort, api.MountOptionReadonly:
+				if hasValue {
+					return api.DiskMount{}, unknownDiskMountOption(option)
+				}
+				readonly = true
+			case "rw":
+				if hasValue {
+					return api.DiskMount{}, unknownDiskMountOption(option)
+				}
+				readonly = false
+			case "uid":
+				if !hasValue {
+					return api.DiskMount{}, unknownDiskMountOption(option)
+				}
+				uid, err := parseDiskOwnerID("uid", value)
+				if err != nil {
+					return api.DiskMount{}, err
+				}
+				ownerUID = &uid
+			case "gid":
+				if !hasValue {
+					return api.DiskMount{}, unknownDiskMountOption(option)
+				}
+				gid, err := parseDiskOwnerID("gid", value)
+				if err != nil {
+					return api.DiskMount{}, err
+				}
+				ownerGID = &gid
+			default:
+				return api.DiskMount{}, unknownDiskMountOption(option)
+			}
 		}
+	}
+	if readonly && (ownerUID != nil || ownerGID != nil) {
+		return api.DiskMount{}, fmt.Errorf("disk ownership options require a writable mount")
 	}
 
 	return api.DiskMount{
 		HostPath:   hostPath,
 		GuestMount: guestMount,
 		ReadOnly:   readonly,
+		OwnerUID:   ownerUID,
+		OwnerGID:   ownerGID,
 	}, nil
+}
+
+func unknownDiskMountOption(option string) error {
+	return fmt.Errorf("unknown disk option %q (use 'ro', 'readonly', 'rw', 'uid=UID', or 'gid=GID')", option)
+}
+
+func parseDiskOwnerID(name string, value string) (uint32, error) {
+	if value == "" {
+		return 0, fmt.Errorf("invalid disk owner: %s cannot be empty", name)
+	}
+	parsed, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid disk owner: %s %q must be an unsigned 32-bit integer: %w", name, value, err)
+	}
+	return uint32(parsed), nil
 }
 
 func diskMountShadowedByWorkspace(guestMount, workspace string) bool {

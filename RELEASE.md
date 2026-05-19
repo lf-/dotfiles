@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.13
+
+* Added root-only ownership initialization for raw/named disk mounts via `--disk ...:uid=UID,gid=GID`, useful for writable ext4 volumes mounted for database workloads.
+
 ## 0.2.12
 
 * Fixed VFS directory fsync support for `host_fs` mounts, including fsync on the workspace root and child directory file descriptors, addressing atomic-write durability workflows (e.g. RDBMS), contributed by [@sosso](https://github.com/sosso) in [#103](https://github.com/jingkaihe/matchlock/pull/103).

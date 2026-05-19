@@ -331,10 +331,7 @@ func (m *LinuxMachine) generateFirecrackerConfig() []byte {
 		for _, disk := range m.config.ExtraDisks {
 			dev := fmt.Sprintf("vd%c", devLetter)
 			devLetter++
-			diskMount := disk.GuestMount
-			if disk.ReadOnly {
-				diskMount += ",ro"
-			}
+			diskMount := diskKernelArg(disk)
 			kernelArgs += fmt.Sprintf(" matchlock.disk.%s=%s", dev, diskMount)
 		}
 		for i, mapping := range m.config.AddHosts {
@@ -436,6 +433,20 @@ func (m *LinuxMachine) generateFirecrackerConfig() []byte {
 		panic(fmt.Sprintf("failed to marshal firecracker config: %v", err))
 	}
 	return data
+}
+
+func diskKernelArg(disk vm.DiskConfig) string {
+	parts := []string{disk.GuestMount}
+	if disk.ReadOnly {
+		parts = append(parts, "ro")
+	}
+	if disk.OwnerUID != nil {
+		parts = append(parts, fmt.Sprintf("uid=%d", *disk.OwnerUID))
+	}
+	if disk.OwnerGID != nil {
+		parts = append(parts, fmt.Sprintf("gid=%d", *disk.OwnerGID))
+	}
+	return strings.Join(parts, ",")
 }
 
 func effectiveMTU(mtu int) int {

@@ -58,6 +58,8 @@ type diskMount struct {
 	Device   string
 	Path     string
 	ReadOnly bool
+	OwnerUID *uint32
+	OwnerGID *uint32
 }
 
 type hostIPMapping struct {
@@ -222,11 +224,12 @@ func parseBootConfig(cmdlinePath string) (*bootConfig, error) {
 			if i <= 0 || i == len(spec)-1 {
 				continue
 			}
-			mountPath, readonly, parseErr := parseDiskMountSpec(spec[i+1:])
+			disk, parseErr := parseDiskMountSpec(spec[i+1:])
 			if parseErr != nil {
 				return nil, parseErr
 			}
-			cfg.Disks = append(cfg.Disks, diskMount{Device: spec[:i], Path: mountPath, ReadOnly: readonly})
+			disk.Device = spec[:i]
+			cfg.Disks = append(cfg.Disks, disk)
 
 		case strings.HasPrefix(field, "matchlock.overlay="):
 			v := strings.TrimPrefix(field, "matchlock.overlay=")
@@ -458,36 +461,78 @@ func parseAddHostField(value string) (hostIPMapping, error) {
 	return hostIPMapping{Host: host, IP: ip}, nil
 }
 
-func parseDiskMountSpec(value string) (string, bool, error) {
+func parseDiskMountSpec(value string) (diskMount, error) {
 	parts := strings.Split(value, ",")
 	if len(parts) == 0 {
-		return "", false, errx.With(ErrInvalidDiskMount, ": %q", value)
+		return diskMount{}, errx.With(ErrInvalidDiskMount, ": %q", value)
 	}
 
 	path := strings.TrimSpace(parts[0])
 	if path == "" {
-		return "", false, errx.With(ErrInvalidDiskMount, ": %q has empty mount path", value)
+		return diskMount{}, errx.With(ErrInvalidDiskMount, ": %q has empty mount path", value)
 	}
 	if !strings.HasPrefix(path, "/") {
-		return "", false, errx.With(ErrInvalidDiskMount, ": %q must be an absolute path", path)
+		return diskMount{}, errx.With(ErrInvalidDiskMount, ": %q must be an absolute path", path)
 	}
 
-	readonly := false
+	disk := diskMount{Path: path}
 	for _, opt := range parts[1:] {
-		opt = strings.TrimSpace(strings.ToLower(opt))
-		switch opt {
+		opt = strings.TrimSpace(opt)
+		key, value, hasValue := strings.Cut(opt, "=")
+		key = strings.ToLower(strings.TrimSpace(key))
+		value = strings.TrimSpace(value)
+
+		switch key {
 		case "":
 			continue
 		case "ro", "readonly":
-			readonly = true
+			if hasValue {
+				return diskMount{}, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
+			}
+			disk.ReadOnly = true
 		case "rw":
-			readonly = false
+			if hasValue {
+				return diskMount{}, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
+			}
+			disk.ReadOnly = false
+		case "uid":
+			if !hasValue {
+				return diskMount{}, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
+			}
+			uid, err := parseDiskOwnerID("uid", value)
+			if err != nil {
+				return diskMount{}, err
+			}
+			disk.OwnerUID = &uid
+		case "gid":
+			if !hasValue {
+				return diskMount{}, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
+			}
+			gid, err := parseDiskOwnerID("gid", value)
+			if err != nil {
+				return diskMount{}, err
+			}
+			disk.OwnerGID = &gid
 		default:
-			return "", false, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
+			return diskMount{}, errx.With(ErrInvalidDiskMount, ": unknown option %q", opt)
 		}
 	}
+	if disk.ReadOnly && (disk.OwnerUID != nil || disk.OwnerGID != nil) {
+		return diskMount{}, errx.With(ErrInvalidDiskMount, ": ownership options require writable disk")
+	}
 
-	return path, readonly, nil
+	return disk, nil
+}
+
+func parseDiskOwnerID(name string, value string) (uint32, error) {
+	if value == "" {
+		return 0, errx.With(ErrInvalidDiskMount, ": %s cannot be empty", name)
+	}
+	parsed, err := strconv.ParseUint(value, 10, 32)
+	if err != nil {
+		return 0, errx.With(ErrInvalidDiskMount, ": %s %q must be an unsigned 32-bit integer: %w", name, value, err)
+	}
+	return uint32(parsed), nil
 }
 
 // configureHostname calls sethostname and writes /etc/hostname.
@@ -685,6 +730,27 @@ func mountExtraDisks(disks []diskMount) error {
 		if err := unix.Mount(filepath.Join("/dev", d.Device), d.Path, "ext4", flags, ""); err != nil {
 			return errx.With(ErrMountExtraDisk, " /dev/%s -> %s: %w", d.Device, d.Path, err)
 		}
+		if err := chownDiskMountRoot(d); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func chownDiskMountRoot(d diskMount) error {
+	if d.OwnerUID == nil && d.OwnerGID == nil {
+		return nil
+	}
+	uid := -1
+	gid := -1
+	if d.OwnerUID != nil {
+		uid = int(*d.OwnerUID)
+	}
+	if d.OwnerGID != nil {
+		gid = int(*d.OwnerGID)
+	}
+	if err := os.Chown(d.Path, uid, gid); err != nil {
+		return errx.With(ErrMountExtraDisk, " chown %s: %w", d.Path, err)
 	}
 	return nil
 }

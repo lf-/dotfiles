@@ -198,18 +198,11 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 		}
 	}
 
-	var extraDisks []vm.DiskConfig
-	for _, d := range config.ExtraDisks {
-		if err := api.ValidateGuestMount(d.GuestMount); err != nil {
-			releaseSubnet()
-			stateMgr.Unregister(id)
-			return nil, errx.Wrap(ErrInvalidDiskCfg, err)
-		}
-		extraDisks = append(extraDisks, vm.DiskConfig{
-			HostPath:   d.HostPath,
-			GuestMount: d.GuestMount,
-			ReadOnly:   d.ReadOnly,
-		})
+	extraDisks, err := buildExtraDiskConfigs(config.ExtraDisks)
+	if err != nil {
+		releaseSubnet()
+		stateMgr.Unregister(id)
+		return nil, err
 	}
 	if err := validateOverlayDiskLayout(len(rootfsPaths), len(extraDisks)); err != nil {
 		releaseSubnet()
