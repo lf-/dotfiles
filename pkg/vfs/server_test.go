@@ -123,6 +123,123 @@ func TestStatFromInfoDefaultsOwnerToZero(t *testing.T) {
 	assert.Equal(t, uint32(0), stat.GID)
 }
 
+func TestDispatchWriteAppend(t *testing.T) {
+	s := NewVFSServer(NewMemoryProvider())
+
+	createResp := s.dispatch(&VFSRequest{Op: OpCreate, Path: "/log.txt", Mode: 0644})
+	require.Equal(t, int32(0), createResp.Err)
+
+	writeResp := s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte("hello"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: createResp.Handle})
+
+	openResp := s.dispatch(&VFSRequest{
+		Op: OpOpen, Path: "/log.txt",
+		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+	})
+	require.Equal(t, int32(0), openResp.Err)
+
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: openResp.Handle,
+		Data: []byte(" world"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: openResp.Handle})
+
+	readResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/log.txt",
+		Flags: uint32(syscall.O_RDONLY),
+	})
+	require.Equal(t, int32(0), readResp.Err)
+
+	dataResp := s.dispatch(&VFSRequest{
+		Op: OpRead, Handle: readResp.Handle, Size: 100, Offset: 0,
+	})
+	assert.Equal(t, "hello world", string(dataResp.Data))
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: readResp.Handle})
+}
+
+func TestDispatchWriteAppendMultiple(t *testing.T) {
+	s := NewVFSServer(NewMemoryProvider())
+
+	createResp := s.dispatch(&VFSRequest{Op: OpCreate, Path: "/log.txt", Mode: 0644})
+	require.Equal(t, int32(0), createResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: createResp.Handle})
+
+	openResp := s.dispatch(&VFSRequest{
+		Op: OpOpen, Path: "/log.txt",
+		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+	})
+	require.Equal(t, int32(0), openResp.Err)
+
+	for _, line := range []string{"line1\n", "line2\n", "line3\n"} {
+		writeResp := s.dispatch(&VFSRequest{
+			Op: OpWrite, Handle: openResp.Handle,
+			Data: []byte(line), Offset: 0,
+		})
+		require.Equal(t, int32(0), writeResp.Err)
+	}
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: openResp.Handle})
+
+	readResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/log.txt",
+		Flags: uint32(syscall.O_RDONLY),
+	})
+	require.Equal(t, int32(0), readResp.Err)
+
+	dataResp := s.dispatch(&VFSRequest{
+		Op: OpRead, Handle: readResp.Handle, Size: 1000, Offset: 0,
+	})
+	assert.Equal(t, "line1\nline2\nline3\n", string(dataResp.Data))
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: readResp.Handle})
+}
+
+func TestDispatchWriteNonAppendStillUsesOffset(t *testing.T) {
+	s := NewVFSServer(NewMemoryProvider())
+
+	createResp := s.dispatch(&VFSRequest{Op: OpCreate, Path: "/file.txt", Mode: 0644})
+	require.Equal(t, int32(0), createResp.Err)
+
+	writeResp := s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte("AAAAAAAAAA"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: createResp.Handle})
+
+	openResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/file.txt",
+		Flags: uint32(syscall.O_RDWR),
+	})
+	require.Equal(t, int32(0), openResp.Err)
+
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: openResp.Handle,
+		Data: []byte("BB"), Offset: 3,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: openResp.Handle})
+
+	readResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/file.txt",
+		Flags: uint32(syscall.O_RDONLY),
+	})
+	require.Equal(t, int32(0), readResp.Err)
+
+	dataResp := s.dispatch(&VFSRequest{
+		Op: OpRead, Handle: readResp.Handle, Size: 100, Offset: 0,
+	})
+	assert.Equal(t, "AAABBAAAAA", string(dataResp.Data))
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: readResp.Handle})
+}
+
 type denyStatProvider struct {
 	Provider
 }

@@ -3,6 +3,7 @@ package vfs
 import (
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -80,6 +81,32 @@ func TestRealFSProviderReadDirOwnerOverride(t *testing.T) {
 		assert.Equal(t, uint32(1000), vfi.UID(), "entry %q: expected UID 1000", e.Name())
 		assert.Equal(t, uint32(2000), vfi.GID(), "entry %q: expected GID 2000", e.Name())
 	}
+}
+
+func TestRealFSAppend(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "log.txt"), []byte("initial"), 0644))
+
+	p := NewRealFSProvider(dir)
+	s := NewVFSServer(p)
+
+	openResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "log.txt",
+		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+	})
+	require.Equal(t, int32(0), openResp.Err)
+
+	writeResp := s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: openResp.Handle,
+		Data: []byte("+appended"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: openResp.Handle})
+
+	content, err := os.ReadFile(filepath.Join(dir, "log.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "initial+appended", string(content))
 }
 
 func TestRealFSProviderOwnerOverrideViaDispatch(t *testing.T) {

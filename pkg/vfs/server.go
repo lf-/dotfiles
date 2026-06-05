@@ -80,6 +80,11 @@ type VFSDirEntry struct {
 	Ino   uint64 `cbor:"ino,omitempty"`
 }
 
+type openHandle struct {
+	handle     Handle
+	appendMode bool
+}
+
 type VFSServer struct {
 	provider Provider
 	handles  sync.Map
@@ -170,7 +175,10 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
 		fh := atomic.AddUint64(&s.nextFH, 1)
-		s.handles.Store(fh, h)
+		s.handles.Store(fh, &openHandle{
+			handle:     h,
+			appendMode: int(req.Flags)&syscall.O_APPEND != 0,
+		})
 		return &VFSResponse{Handle: fh}
 
 	case OpCreate:
@@ -184,7 +192,7 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
 		fh := atomic.AddUint64(&s.nextFH, 1)
-		s.handles.Store(fh, h)
+		s.handles.Store(fh, &openHandle{handle: h})
 		return &VFSResponse{Handle: fh, Stat: statFromInfo(req.Path, info)}
 
 	case OpRead:
@@ -192,9 +200,9 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 		if !ok {
 			return &VFSResponse{Err: -int32(syscall.EBADF)}
 		}
-		h := hi.(Handle)
+		oh := hi.(*openHandle)
 		buf := make([]byte, req.Size)
-		n, err := h.ReadAt(buf, req.Offset)
+		n, err := oh.handle.ReadAt(buf, req.Offset)
 		if err != nil && err != io.EOF {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
@@ -205,8 +213,17 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 		if !ok {
 			return &VFSResponse{Err: -int32(syscall.EBADF)}
 		}
-		h := hi.(Handle)
-		n, err := h.WriteAt(req.Data, req.Offset)
+		oh := hi.(*openHandle)
+		var n int
+		var err error
+		if oh.appendMode {
+			if _, seekErr := oh.handle.Seek(0, io.SeekEnd); seekErr != nil {
+				return &VFSResponse{Err: errnoFromError(seekErr)}
+			}
+			n, err = oh.handle.Write(req.Data)
+		} else {
+			n, err = oh.handle.WriteAt(req.Data, req.Offset)
+		}
 		if err != nil {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
@@ -214,7 +231,7 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 
 	case OpRelease:
 		if hi, ok := s.handles.LoadAndDelete(req.Handle); ok {
-			hi.(Handle).Close()
+			hi.(*openHandle).handle.Close()
 		}
 		return &VFSResponse{}
 
@@ -265,7 +282,7 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 
 	case OpFsync:
 		if hi, ok := s.handles.Load(req.Handle); ok {
-			if err := hi.(Handle).Sync(); err != nil {
+			if err := hi.(*openHandle).handle.Sync(); err != nil {
 				return &VFSResponse{Err: errnoFromError(err)}
 			}
 		}
