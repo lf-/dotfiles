@@ -3,7 +3,6 @@ package vfs
 import (
 	"os"
 	"path/filepath"
-	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -93,7 +92,7 @@ func TestRealFSAppend(t *testing.T) {
 	openResp := s.dispatch(&VFSRequest{
 		Op:    OpOpen,
 		Path:  "log.txt",
-		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
 	})
 	require.Equal(t, int32(0), openResp.Err)
 
@@ -107,6 +106,49 @@ func TestRealFSAppend(t *testing.T) {
 	content, err := os.ReadFile(filepath.Join(dir, "log.txt"))
 	require.NoError(t, err)
 	assert.Equal(t, "initial+appended", string(content))
+}
+
+func TestRealFSAppendAfterCreate(t *testing.T) {
+	dir := t.TempDir()
+	s := NewVFSServer(NewRealFSProvider(dir))
+
+	createResp := s.dispatch(&VFSRequest{
+		Op:    OpCreate,
+		Path:  "log.txt",
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
+		Mode:  0644,
+	})
+	require.Equal(t, int32(0), createResp.Err)
+
+	writeResp := s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte("first"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+
+	openResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "log.txt",
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
+	})
+	require.Equal(t, int32(0), openResp.Err)
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: openResp.Handle,
+		Data: []byte(" second"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: openResp.Handle})
+
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte(" third"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: createResp.Handle})
+
+	content, err := os.ReadFile(filepath.Join(dir, "log.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "first second third", string(content))
 }
 
 func TestRealFSProviderOwnerOverrideViaDispatch(t *testing.T) {

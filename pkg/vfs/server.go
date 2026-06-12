@@ -85,6 +85,57 @@ type openHandle struct {
 	appendMode bool
 }
 
+const (
+	linuxOpenReadOnly  = 0
+	linuxOpenWriteOnly = 1
+	linuxOpenReadWrite = 2
+	linuxOpenAccess    = 3
+	linuxOpenCreate    = 0x40
+	linuxOpenExclusive = 0x80
+	linuxOpenTruncate  = 0x200
+	linuxOpenAppend    = 0x400
+)
+
+func linuxOpenFlagsToHost(flags uint32) int {
+	var hostFlags int
+
+	switch flags & linuxOpenAccess {
+	case linuxOpenWriteOnly:
+		hostFlags |= os.O_WRONLY
+	case linuxOpenReadWrite:
+		hostFlags |= os.O_RDWR
+	default:
+		hostFlags |= os.O_RDONLY
+	}
+
+	if flags&linuxOpenAppend != 0 {
+		hostFlags |= os.O_APPEND
+	}
+	if flags&linuxOpenCreate != 0 {
+		hostFlags |= os.O_CREATE
+	}
+	if flags&linuxOpenExclusive != 0 {
+		hostFlags |= os.O_EXCL
+	}
+	if flags&linuxOpenTruncate != 0 {
+		hostFlags |= os.O_TRUNC
+	}
+
+	return hostFlags
+}
+
+func linuxOpenFlagsAppend(flags uint32) bool {
+	return flags&linuxOpenAppend != 0
+}
+
+func linuxOpenFlagsToHostCreate(flags uint32) int {
+	hostFlags := linuxOpenFlagsToHost(flags) | os.O_CREATE | os.O_TRUNC
+	if hostFlags&(os.O_WRONLY|os.O_RDWR) == 0 {
+		hostFlags |= os.O_RDWR
+	}
+	return hostFlags
+}
+
 type VFSServer struct {
 	provider Provider
 	handles  sync.Map
@@ -170,19 +221,19 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 		return &VFSResponse{Stat: statFromInfo(req.Path, info)}
 
 	case OpOpen:
-		h, err := provider.Open(req.Path, int(req.Flags), os.FileMode(req.Mode))
+		h, err := provider.Open(req.Path, linuxOpenFlagsToHost(req.Flags), os.FileMode(req.Mode))
 		if err != nil {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
 		fh := atomic.AddUint64(&s.nextFH, 1)
 		s.handles.Store(fh, &openHandle{
 			handle:     h,
-			appendMode: int(req.Flags)&syscall.O_APPEND != 0,
+			appendMode: linuxOpenFlagsAppend(req.Flags),
 		})
 		return &VFSResponse{Handle: fh}
 
 	case OpCreate:
-		h, err := provider.Create(req.Path, os.FileMode(req.Mode))
+		h, err := provider.Open(req.Path, linuxOpenFlagsToHostCreate(req.Flags), os.FileMode(req.Mode))
 		if err != nil {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
@@ -192,7 +243,7 @@ func (s *VFSServer) dispatch(req *VFSRequest) *VFSResponse {
 			return &VFSResponse{Err: errnoFromError(err)}
 		}
 		fh := atomic.AddUint64(&s.nextFH, 1)
-		s.handles.Store(fh, &openHandle{handle: h})
+		s.handles.Store(fh, &openHandle{handle: h, appendMode: linuxOpenFlagsAppend(req.Flags)})
 		return &VFSResponse{Handle: fh, Stat: statFromInfo(req.Path, info)}
 
 	case OpRead:

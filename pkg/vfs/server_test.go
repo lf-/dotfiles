@@ -123,6 +123,31 @@ func TestStatFromInfoDefaultsOwnerToZero(t *testing.T) {
 	assert.Equal(t, uint32(0), stat.GID)
 }
 
+func TestLinuxOpenFlagsToHostTranslatesWireFlags(t *testing.T) {
+	flags := linuxOpenFlagsToHost(linuxOpenWriteOnly | linuxOpenAppend | linuxOpenCreate | linuxOpenTruncate)
+
+	assert.NotZero(t, flags&os.O_WRONLY)
+	assert.NotZero(t, flags&os.O_APPEND)
+	assert.NotZero(t, flags&os.O_CREATE)
+	assert.NotZero(t, flags&os.O_TRUNC)
+}
+
+func TestLinuxOpenFlagsToHostReadWrite(t *testing.T) {
+	flags := linuxOpenFlagsToHost(linuxOpenReadWrite)
+
+	assert.NotZero(t, flags&os.O_RDWR)
+	assert.Zero(t, flags&os.O_APPEND)
+}
+
+func TestLinuxOpenFlagsToHostCreateAddsWriteAccess(t *testing.T) {
+	flags := linuxOpenFlagsToHostCreate(linuxOpenAppend)
+
+	assert.NotZero(t, flags&os.O_RDWR)
+	assert.NotZero(t, flags&os.O_CREATE)
+	assert.NotZero(t, flags&os.O_TRUNC)
+	assert.NotZero(t, flags&os.O_APPEND)
+}
+
 func TestDispatchWriteAppend(t *testing.T) {
 	s := NewVFSServer(NewMemoryProvider())
 
@@ -138,7 +163,7 @@ func TestDispatchWriteAppend(t *testing.T) {
 
 	openResp := s.dispatch(&VFSRequest{
 		Op: OpOpen, Path: "/log.txt",
-		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
 	})
 	require.Equal(t, int32(0), openResp.Err)
 
@@ -172,7 +197,7 @@ func TestDispatchWriteAppendMultiple(t *testing.T) {
 
 	openResp := s.dispatch(&VFSRequest{
 		Op: OpOpen, Path: "/log.txt",
-		Flags: uint32(syscall.O_WRONLY | syscall.O_APPEND),
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
 	})
 	require.Equal(t, int32(0), openResp.Err)
 
@@ -196,6 +221,57 @@ func TestDispatchWriteAppendMultiple(t *testing.T) {
 		Op: OpRead, Handle: readResp.Handle, Size: 1000, Offset: 0,
 	})
 	assert.Equal(t, "line1\nline2\nline3\n", string(dataResp.Data))
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: readResp.Handle})
+}
+
+func TestDispatchWriteAppendAfterCreateUsesAppendFlag(t *testing.T) {
+	s := NewVFSServer(NewMemoryProvider())
+
+	createResp := s.dispatch(&VFSRequest{
+		Op:    OpCreate,
+		Path:  "/log.txt",
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
+		Mode:  0644,
+	})
+	require.Equal(t, int32(0), createResp.Err)
+
+	writeResp := s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte("first"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+
+	otherResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/log.txt",
+		Flags: uint32(linuxOpenWriteOnly | linuxOpenAppend),
+	})
+	require.Equal(t, int32(0), otherResp.Err)
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: otherResp.Handle,
+		Data: []byte(" second"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: otherResp.Handle})
+
+	writeResp = s.dispatch(&VFSRequest{
+		Op: OpWrite, Handle: createResp.Handle,
+		Data: []byte(" third"), Offset: 0,
+	})
+	require.Equal(t, int32(0), writeResp.Err)
+	s.dispatch(&VFSRequest{Op: OpRelease, Handle: createResp.Handle})
+
+	readResp := s.dispatch(&VFSRequest{
+		Op:    OpOpen,
+		Path:  "/log.txt",
+		Flags: uint32(linuxOpenReadOnly),
+	})
+	require.Equal(t, int32(0), readResp.Err)
+
+	dataResp := s.dispatch(&VFSRequest{
+		Op: OpRead, Handle: readResp.Handle, Size: 100, Offset: 0,
+	})
+	assert.Equal(t, "first second third", string(dataResp.Data))
 	s.dispatch(&VFSRequest{Op: OpRelease, Handle: readResp.Handle})
 }
 
