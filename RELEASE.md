@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.14
+
+* Fixed `host_fs` append writes by preserving guest `O_APPEND` semantics across VFS open/create requests, including Linux open-flag translation and append-mode writes for real and in-memory providers, contributed by [@vojtapolasek](https://github.com/vojtapolasek).
+
 ## 0.2.13
 
 * Added root-only ownership initialization for raw/named disk mounts via `--disk ...:uid=UID,gid=GID`, useful for writable ext4 volumes mounted for database workloads.
