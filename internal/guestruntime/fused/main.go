@@ -301,7 +301,7 @@ func (r *VFSRoot) Mkdir(ctx context.Context, name string, mode uint32, out *fuse
 
 func (r *VFSRoot) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (inode *fs.Inode, fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
 	path := filepath.Join(r.basePath, name)
-	resp, err := r.client.RequestCtx(ctx, &VFSRequest{Op: OpCreate, Path: path, Mode: mode})
+	resp, err := r.client.RequestCtx(ctx, &VFSRequest{Op: OpCreate, Path: path, Flags: flags, Mode: mode})
 	if err != nil {
 		return nil, nil, 0, syscall.EIO
 	}
@@ -530,7 +530,7 @@ func (n *VFSNode) Mkdir(ctx context.Context, name string, mode uint32, out *fuse
 
 func (n *VFSNode) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (inode *fs.Inode, fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
 	path := filepath.Join(n.path, name)
-	resp, err := n.client.RequestCtx(ctx, &VFSRequest{Op: OpCreate, Path: path, Mode: mode})
+	resp, err := n.client.RequestCtx(ctx, &VFSRequest{Op: OpCreate, Path: path, Flags: flags, Mode: mode})
 	if err != nil {
 		return nil, nil, 0, syscall.EIO
 	}

@@ -146,6 +146,13 @@ func (p *MemoryProvider) Open(path string, flags int, mode os.FileMode) (Handle,
 		return nil, syscall.ENOENT
 	}
 
+	if flags&os.O_TRUNC != 0 {
+		f.mu.Lock()
+		f.data = nil
+		f.modTime = time.Now()
+		f.mu.Unlock()
+	}
+
 	return &memHandle{
 		file:   f,
 		flags:  flags,

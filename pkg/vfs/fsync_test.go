@@ -126,7 +126,7 @@ func TestDispatch_OpFsyncPath_PropagatesProviderError(t *testing.T) {
 func TestDispatch_OpFsync_PropagatesHandleError(t *testing.T) {
 	want := syscall.EIO
 	s := NewVFSServer(NewMemoryProvider())
-	s.handles.Store(uint64(42), syncErrHandle{err: want})
+	s.handles.Store(uint64(42), &openHandle{handle: syncErrHandle{err: want}})
 
 	resp := s.dispatch(&VFSRequest{Op: OpFsync, Handle: 42})
 	assert.Equal(t, -int32(want), resp.Err)

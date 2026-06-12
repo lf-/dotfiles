@@ -196,6 +196,34 @@ func TestVFSNodeFsyncUsesNodePath(t *testing.T) {
 	assert.Equal(t, syscall.Errno(0), errno)
 }
 
+func TestVFSRootCreateForwardsFlags(t *testing.T) {
+	client, cleanup := newSingleRequestClient(t, func(req *VFSRequest) error {
+		return verifyCreateRequest(req, "/workspace/file.txt", syscall.O_WRONLY|syscall.O_APPEND, 0644)
+	})
+	defer cleanup()
+
+	root := &VFSRoot{client: client, basePath: "/workspace"}
+	fs.NewNodeFS(root, &fs.Options{})
+
+	var out fuse.EntryOut
+	_, _, _, errno := root.Create(context.Background(), "file.txt", syscall.O_WRONLY|syscall.O_APPEND, 0644, &out)
+	assert.Equal(t, syscall.Errno(0), errno)
+}
+
+func TestVFSNodeCreateForwardsFlags(t *testing.T) {
+	client, cleanup := newSingleRequestClient(t, func(req *VFSRequest) error {
+		return verifyCreateRequest(req, "/workspace/dir/file.txt", syscall.O_WRONLY|syscall.O_APPEND, 0600)
+	})
+	defer cleanup()
+
+	node := &VFSNode{client: client, path: "/workspace/dir", isDir: true}
+	fs.NewNodeFS(node, &fs.Options{})
+
+	var out fuse.EntryOut
+	_, _, _, errno := node.Create(context.Background(), "file.txt", syscall.O_WRONLY|syscall.O_APPEND, 0600, &out)
+	assert.Equal(t, syscall.Errno(0), errno)
+}
+
 func newSingleRequestClient(t *testing.T, validate func(*VFSRequest) error) (*VFSClient, func()) {
 	t.Helper()
 
@@ -276,6 +304,22 @@ func verifyFsyncPathRequest(req *VFSRequest, expectedPath string) error {
 	}
 	if req.Path != expectedPath {
 		return errors.New("unexpected fsync path: " + req.Path)
+	}
+	return nil
+}
+
+func verifyCreateRequest(req *VFSRequest, expectedPath string, expectedFlags uint32, expectedMode uint32) error {
+	if req.Op != OpCreate {
+		return errors.New("unexpected op")
+	}
+	if req.Path != expectedPath {
+		return errors.New("unexpected create path: " + req.Path)
+	}
+	if req.Flags != expectedFlags {
+		return errors.New("unexpected create flags")
+	}
+	if req.Mode != expectedMode {
+		return errors.New("unexpected create mode")
 	}
 	return nil
 }

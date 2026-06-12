@@ -159,3 +159,21 @@ func TestMemoryProvider_Truncate(t *testing.T) {
 	content, _ := mp.ReadFile("/trunc.txt")
 	assert.Equal(t, "01234", string(content))
 }
+
+func TestMemoryProvider_OpenTruncatesExistingFile(t *testing.T) {
+	mp := NewMemoryProvider()
+
+	h, err := mp.Create("/trunc-open.txt", 0644)
+	require.NoError(t, err)
+	_, err = h.Write([]byte("existing"))
+	require.NoError(t, err)
+	require.NoError(t, h.Close())
+
+	h, err = mp.Open("/trunc-open.txt", os.O_RDWR|os.O_TRUNC, 0644)
+	require.NoError(t, err)
+	require.NoError(t, h.Close())
+
+	content, err := mp.ReadFile("/trunc-open.txt")
+	require.NoError(t, err)
+	assert.Empty(t, content)
+}
