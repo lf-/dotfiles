@@ -27,6 +27,7 @@ from matchlock.types import (
     ExecResult,
     ExecStreamResult,
     FileInfo,
+    HostIPMapping,
     MatchlockError,
     MountConfig,
     NetworkBodyTransform,
@@ -368,6 +369,51 @@ class TestClientCreate:
                         "hosts": ["a.com"],
                     }
                 },
+            }
+            t.join(timeout=2)
+        finally:
+            fake.close_stdout()
+
+    def test_create_sends_add_hosts(self):
+        client, fake = make_client_with_fake()
+        try:
+
+            def respond():
+                import time
+
+                time.sleep(0.05)
+                fake.push_response(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {"id": "vm-add-hosts"},
+                    }
+                )
+
+            t = threading.Thread(target=respond, daemon=True)
+            t.start()
+
+            vm_id = client.create(
+                CreateOptions(
+                    image="img",
+                    add_hosts=[
+                        HostIPMapping(host="api.internal", ip="10.0.0.10"),
+                        HostIPMapping(host="db.internal", ip="10.0.0.11"),
+                    ],
+                )
+            )
+            assert vm_id == "vm-add-hosts"
+
+            req_line = fake.stdin.getvalue().splitlines()[0]
+            req = json.loads(req_line)
+            assert req["method"] == "create"
+            assert req["params"]["network"] == {
+                "allowed_hosts": [],
+                "block_private_ips": True,
+                "add_hosts": [
+                    {"host": "api.internal", "ip": "10.0.0.10"},
+                    {"host": "db.internal", "ip": "10.0.0.11"},
+                ],
             }
             t.join(timeout=2)
         finally:

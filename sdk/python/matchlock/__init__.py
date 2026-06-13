@@ -27,6 +27,7 @@ from .types import (
     ExecInteractiveResult,
     ExecStreamResult,
     FileInfo,
+    HostIPMapping,
     ImageConfig,
     MatchlockError,
     MountConfig,

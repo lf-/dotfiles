@@ -92,6 +92,7 @@ class TestSandboxChaining:
         assert isinstance(s.with_env("K", "V"), Sandbox)
         assert isinstance(s.with_env_map({"K": "V"}), Sandbox)
         assert isinstance(s.allow_host("x.com"), Sandbox)
+        assert isinstance(s.add_host("api.internal", "10.0.0.10"), Sandbox)
         assert isinstance(s.block_private_ips(), Sandbox)
         assert isinstance(s.with_block_private_ips(False), Sandbox)
         assert isinstance(s.allow_private_ips(), Sandbox)
@@ -110,6 +111,19 @@ class TestSandboxChaining:
 
 
 class TestSandboxNetwork:
+    def test_add_host(self):
+        opts = (
+            Sandbox("img")
+            .add_host("api.internal", "10.0.0.10")
+            .add_host("db.internal", "10.0.0.11")
+            .options()
+        )
+
+        assert [(mapping.host, mapping.ip) for mapping in opts.add_hosts] == [
+            ("api.internal", "10.0.0.10"),
+            ("db.internal", "10.0.0.11"),
+        ]
+
     def test_network_interception_force_without_rules(self):
         opts = Sandbox("img").with_network_interception().options()
         assert opts.force_interception is True

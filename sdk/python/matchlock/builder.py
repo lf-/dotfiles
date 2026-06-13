@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from .types import (
     CreateOptions,
+    HostIPMapping,
     ImageConfig,
     MountConfig,
     NetworkInterceptionConfig,
@@ -76,6 +77,10 @@ class Sandbox:
 
     def allow_host(self, *hosts: str) -> Sandbox:
         self._opts.allowed_hosts.extend(hosts)
+        return self
+
+    def add_host(self, host: str, ip: str) -> Sandbox:
+        self._opts.add_hosts.append(HostIPMapping(host=host, ip=ip))
         return self
 
     def block_private_ips(self) -> Sandbox:

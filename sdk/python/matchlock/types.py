@@ -449,6 +449,17 @@ class PortForwardBinding:
 
 
 @dataclass
+class HostIPMapping:
+    """Static host-to-IP mapping injected into guest /etc/hosts."""
+
+    host: str
+    """Hostname to resolve inside the guest."""
+
+    ip: str
+    """IP address for the hostname."""
+
+
+@dataclass
 class CreateOptions:
     """Options for creating a sandbox."""
 
@@ -475,6 +486,9 @@ class CreateOptions:
 
     allowed_hosts: list[str] = field(default_factory=list)
     """List of allowed network hosts (supports wildcards like *.example.com)."""
+
+    add_hosts: list[HostIPMapping] = field(default_factory=list)
+    """Static host-to-IP mappings injected into guest /etc/hosts."""
 
     block_private_ips: bool = False
     """Whether to block access to private IP ranges."""

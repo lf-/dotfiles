@@ -1174,6 +1174,7 @@ class Client:
         self, opts: CreateOptions, wire_interception: dict[str, Any] | None = None
     ) -> dict[str, Any] | None:
         has_allowed_hosts = bool(opts.allowed_hosts)
+        has_add_hosts = bool(opts.add_hosts)
         has_secrets = bool(opts.secrets)
         has_dns_servers = bool(opts.dns_servers)
         has_hostname = bool(opts.hostname)
@@ -1188,6 +1189,7 @@ class Client:
 
         include_network = (
             has_allowed_hosts
+            or has_add_hosts
             or has_secrets
             or has_dns_servers
             or has_hostname
@@ -1219,6 +1221,10 @@ class Client:
             "allowed_hosts": opts.allowed_hosts,
             "block_private_ips": block_private_ips,
         }
+        if has_add_hosts:
+            network["add_hosts"] = [
+                {"host": mapping.host, "ip": mapping.ip} for mapping in opts.add_hosts
+            ]
         if has_force_interception or has_network_interception:
             network["intercept"] = True
         if has_network_interception:
