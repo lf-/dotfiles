@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.15
+
+* Added Python SDK support for static guest host mappings via `Sandbox.add_host(host, ip)`.
+
 ## 0.2.14
 
 * Fixed `host_fs` append writes by preserving guest `O_APPEND` semantics across VFS open/create requests, including Linux open-flag translation and append-mode writes for real and in-memory providers, contributed by [@vojtapolasek](https://github.com/vojtapolasek).
