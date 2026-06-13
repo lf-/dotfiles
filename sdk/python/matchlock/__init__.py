@@ -93,6 +93,7 @@ __all__ = [
     "ExecInteractiveResult",
     "ExecStreamResult",
     "FileInfo",
+    "HostIPMapping",
     "ImageConfig",
     "MatchlockError",
     "MountConfig",
