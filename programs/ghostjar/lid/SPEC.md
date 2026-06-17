@@ -1,0 +1,266 @@
+# lid config language — specification
+
+This document is normative for `internal/config`. Property tests are written
+against this spec, not against the implementation.
+
+## Files
+
+- Project config: `lid.star`, found by walking up from the working directory.
+- Global config: `${XDG_CONFIG_HOME:-~/.config}/lid/lid.star`.
+- Both optional; at least one must define a profile for `lid run` to work.
+- Merge rule: global is evaluated first, project second. A project profile
+  with the same name **replaces** the global one entirely (no field merge).
+
+File discovery and merging happen in the CLI layer. `internal/config`
+exposes pure functions over source text (see §Go API).
+
+## Evaluation environment
+
+Starlark (go.starlark.net) with:
+
+- default dialect safety: no `while`, no recursion, float allowed, sets not
+  required;
+- an execution step limit (10,000,000 steps) — configs that exceed it fail
+  with `ErrEval`;
+- no I/O, no env access, no time: the only predeclared name is `lid`.
+- Evaluation is deterministic: evaluating the same source twice yields
+  deeply-equal `File` results.
+
+Any starlark evaluation failure (syntax error, step limit, exception raised
+by a builtin, `fail()`) is reported wrapped as `ErrEval`.
+
+## The `lid` module
+
+Predeclared as `lid`, with members: `sandbox`, `network`, `secret`, `github`,
+`hosts`. All builtin calls validate eagerly: a bad argument raises an error at
+the call site (surfacing from `LoadFile` wrapped in `ErrEval`, with the
+underlying sentinel — see §Errors — matchable via `errors.Is`).
+
+### `lid.sandbox(...)` — register a profile
+
+Keyword-only arguments (positional args are an error):
+
+| kwarg       | type                          | default        | notes |
+|-------------|-------------------------------|----------------|-------|
+| `name`      | `str`, required, nonempty     | —              | duplicate name in same file ⇒ `ErrDuplicateProfile` |
+| `image`     | `str`, required, nonempty     | —              | OCI image ref, passed through verbatim |
+| `cpus`      | `int` or `float` > 0          | `2`            | ≤ 128; else `ErrInvalidCPU` |
+| `memory`    | size (see §Sizes)             | `"2GiB"`       | |
+| `disk`      | size                          | `"10GiB"`      | |
+| `timeout`   | `int` seconds or duration str | `"12h"`        | positive; duration strings use Go syntax (`"90m"`, `"2h30m"`); else `ErrInvalidTimeout` |
+| `workspace` | `str` absolute path           | `"/workspace"` | must start with `/`; else `ErrInvalidWorkspace` |
+| `mount_cwd` | `"rw"`, `"ro"`, `"off"`       | `"rw"`         | else `ErrInvalidMount` |
+| `network`   | `lid.network(...)` or `None`  | `None`         | `None` ⇒ no NIC |
+| `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github` |
+| `env`       | `dict[str, str]`              | `{}`           | |
+| `command`   | `list[str]`, nonempty         | `["claude"]`   | argv run by `lid run`; else `ErrBadCommand` |
+
+Unknown kwargs ⇒ error (`ErrEval` wrapping a message naming the kwarg).
+Returns `None`. Registers the profile in file order.
+
+### `lid.network(...)`
+
+Keyword-only:
+
+| kwarg           | type                     | default | notes |
+|-----------------|--------------------------|---------|-------|
+| `allow`         | `list[str]` of host globs| `[]`    | see §Hosts |
+| `allow_all`     | `bool`                   | `False` | mutually exclusive with non-empty `allow` ⇒ `ErrAllowAllConflict` |
+| `allow_private` | `bool`                   | `False` | `False` ⇒ private IP ranges (10/8, 172.16/12, 192.168/16) blocked |
+| `add_hosts`     | `dict[str, str]` host→IP | `{}`    | static /etc/hosts entries; IP must parse as IPv4/IPv6 ⇒ else `ErrInvalidHost` |
+| `dns`           | `list[str]` of IPs       | `[]`    | empty ⇒ matchlock defaults |
+
+`allow == []` and `allow_all == False` is an error (`ErrEmptyAllow`): to run
+without network, omit `network` entirely (or pass `None`).
+
+### `lid.secret(name, from_env=None, from_cmd=None, value=None, hosts=[...])`
+
+- `name`: required nonempty `str`, must match `[A-Za-z_][A-Za-z0-9_]*`
+  (it becomes an env var in the guest); else `ErrSecretName`.
+- Exactly one of `from_env` (`str`, nonempty), `from_cmd` (`list[str]`,
+  nonempty), `value` (`str`, nonempty literal — discouraged, for tests) must
+  be given; zero or ≥2 sources ⇒ `ErrSecretSource`.
+- `hosts`: required non-empty `list[str]` of host globs (§Hosts); empty ⇒
+  `ErrSecretHosts`.
+
+Returns an opaque secret value usable only inside `secrets=[...]`.
+
+### `lid.github(hosts=None)`
+
+Sugar for GitHub credential injection. Equivalent to a secret with:
+
+- `Name = "GITHUB_TOKEN"`,
+- source kind `github` (runner resolves: `$GITHUB_TOKEN`, `$GH_TOKEN`,
+  else `gh auth token` on the host),
+- `GitCredential = true` (runner installs a guest git credential helper and
+  mirrors the placeholder into `GH_TOKEN`),
+- default hosts (used when `hosts=None`):
+  `github.com`, `api.github.com`, `codeload.github.com`,
+  `objects.githubusercontent.com`, `raw.githubusercontent.com`,
+  `*.githubusercontent.com`, `ghcr.io`.
+- explicit `hosts` (non-empty list) replaces the default list; empty list ⇒
+  `ErrSecretHosts`.
+
+### `lid.hosts` — allowlist presets
+
+A frozen struct of frozen `list[str]` members. Exact contents (normative):
+
+| member      | hosts |
+|-------------|-------|
+| `anthropic` | `api.anthropic.com`, `statsig.anthropic.com` |
+| `github`    | same list as `lid.github()` default hosts |
+| `pypi`      | `pypi.org`, `files.pythonhosted.org` |
+| `npm`       | `registry.npmjs.org` |
+| `crates`    | `crates.io`, `static.crates.io`, `index.crates.io` |
+| `golang`    | `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` |
+| `debian`    | `deb.debian.org`, `security.debian.org` |
+| `ubuntu`    | `archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com` |
+| `alpine`    | `dl-cdn.alpinelinux.org` |
+| `nix`       | `cache.nixos.org`, `channels.nixos.org`, `nixos.org` |
+
+## Hosts (§Hosts)
+
+A host glob is valid iff:
+
+- nonempty after trimming ASCII whitespace (trimmed form is used);
+- contains no scheme (`://` anywhere ⇒ invalid), no `/`, no whitespace
+  inside, no `@`, no port suffix (`:` ⇒ invalid);
+- consists of characters `[A-Za-z0-9.*-]` and is not solely dots/hyphens.
+
+Invalid host anywhere (allow, secret hosts, add_hosts keys) ⇒
+`ErrInvalidHost`. Hosts are case-lowered during normalization.
+
+## Sizes (§Sizes)
+
+A size is an `int` (MiB) or a `str` matching `^[0-9]+(MiB|GiB|MB|GB)$`
+(no spaces). `MB` ≡ `MiB`; `GB` ≡ `GiB` = 1024 MiB. Result must be > 0 and
+≤ 1,048,576 MiB. Violations ⇒ `ErrInvalidSize`.
+
+## Compilation semantics
+
+`LoadFile` returns profiles already validated and normalized ("plans"):
+
+- **Network:**
+  - `network` omitted/`None` ⇒ `Net.NoNetwork = true`, all other network
+    fields zero, `Net.BlockPrivateIPs = true`.
+  - `allow_all=True` ⇒ `Net.AllowAll = true`, `Net.AllowedHosts` contains
+    only the secret-host union (may be empty).
+  - otherwise ⇒ `Net.AllowedHosts = normalize(allow) ∪ normalize(secret
+    hosts, in secret order)`, deduplicated preserving first occurrence.
+  - `Net.BlockPrivateIPs = !allow_private` — always explicitly materialized.
+- **Secrets with no network** (`network` omitted) ⇒ `ErrNoNetworkSecrets`.
+- **Env:** copied verbatim. Compilation never inserts secret material into
+  `Env` (sources are symbolic; there are no values to insert — the invariant
+  is that `value=` literals never appear in `Env` or any non-secret field).
+- **Command, workspace, mount mode, resources:** validated & defaulted per
+  the tables above; `MemoryMB`/`DiskMB` in MiB; `TimeoutSeconds` in seconds.
+
+## Go API (pinned)
+
+```go
+package config
+
+type MountMode string // "rw" | "ro" | "off"
+
+type SourceKind string // "env" | "cmd" | "literal" | "github"
+
+type Source struct {
+    Kind    SourceKind
+    EnvName string   // Kind == "env"
+    Cmd     []string // Kind == "cmd"
+    Literal string   // Kind == "literal"
+}
+
+type SecretSpec struct {
+    Name          string
+    Source        Source
+    Hosts         []string // normalized
+    GitCredential bool
+}
+
+type HostIP struct{ Host, IP string }
+
+type Network struct {
+    NoNetwork       bool
+    AllowAll        bool
+    AllowedHosts    []string // normalized union; nil iff NoNetwork or (AllowAll && no secrets)
+    BlockPrivateIPs bool
+    AddHosts        []HostIP // sorted by Host
+    DNS             []string
+}
+
+type Profile struct {
+    Name           string
+    Image          string
+    CPUs           float64
+    MemoryMB       int
+    DiskMB         int
+    TimeoutSeconds int
+    Workspace      string
+    MountCwd       MountMode
+    Command        []string
+    Env            map[string]string
+    Net            Network
+    Secrets        []SecretSpec
+}
+
+type File struct {
+    Profiles []*Profile // registration order
+}
+
+// LoadFile evaluates starlark source. filename is for error messages only;
+// no filesystem access occurs.
+func LoadFile(filename string, src []byte) (*File, error)
+
+// Merge overlays project over global (either may be nil); project profiles
+// replace same-named global profiles, otherwise order is: global profiles
+// (registration order), then project-only profiles (registration order).
+func Merge(global, project *File) *File
+
+// Lookup resolves a profile by name. name == "" resolves to the profile
+// named "default", or, if the file has exactly one profile, that profile.
+// Errors: ErrUnknownProfile, ErrAmbiguousProfile.
+func (f *File) Lookup(name string) (*Profile, error)
+```
+
+### Errors
+
+Exported sentinels, all matchable with `errors.Is` on `LoadFile`/`Lookup`
+results: `ErrEval`, `ErrDuplicateProfile`, `ErrUnknownProfile`,
+`ErrAmbiguousProfile`, `ErrInvalidHost`, `ErrInvalidSize`, `ErrInvalidCPU`,
+`ErrInvalidTimeout`, `ErrInvalidWorkspace`, `ErrInvalidMount`,
+`ErrSecretName`, `ErrSecretSource`, `ErrSecretHosts`, `ErrEmptyAllow`,
+`ErrAllowAllConflict`, `ErrNoNetworkSecrets`, `ErrBadCommand`.
+
+Builtin-argument failures surface from `LoadFile` such that **both**
+`errors.Is(err, ErrEval)` and `errors.Is(err, ErrTheSpecificOne)` hold.
+
+## Invariants (property-test targets)
+
+For every well-formed generated config:
+
+1. **Closed by default.** Profile without `network` ⇒ `Net.NoNetwork` and
+   `Net.BlockPrivateIPs` and `Net.AllowedHosts == nil`.
+2. **No accidental allow-all.** `Net.AllowAll` ⇒ the source config passed
+   `allow_all=True`. Never any other way.
+3. **Private IPs.** `Net.BlockPrivateIPs == !allow_private` in all cases.
+4. **Allowlist is exactly the union.** Every normalized `allow` host and
+   every normalized secret host is in `AllowedHosts`; every `AllowedHosts`
+   element originates from one of those; dedup keeps first occurrence; order
+   is allow-list order then secret order.
+5. **Secret containment.** With `value=` literals, the literal string appears
+   nowhere in the Profile except `Secrets[i].Source.Literal` (in particular
+   not in `Env`, `Command`, `AllowedHosts`).
+6. **Size round-trip.** For n in [1, 1024]: `memory = "<n>GiB"` ⇒
+   `MemoryMB == 1024*n`; `memory = n` (int) ⇒ `MemoryMB == n`.
+7. **Determinism.** Two `LoadFile` calls on identical bytes produce
+   `reflect.DeepEqual` results.
+8. **Idempotent normalization.** Feeding `AllowedHosts` back as `allow`
+   yields the same `AllowedHosts` (given no secrets).
+9. **Error totality.** Malformed inputs from the error tables produce their
+   documented sentinel (and never a panic). `LoadFile` never panics on
+   arbitrary byte input.
+10. **Merge/Lookup laws.** `Merge(nil, f) ≡ f ≡ Merge(f, nil)` (profile
+    lists equal); project profile with duplicate name shadows global;
+    `Lookup("")` on single-profile file returns it; on multi-profile file
+    without "default" returns `ErrAmbiguousProfile`.
