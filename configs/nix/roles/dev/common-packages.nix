@@ -68,6 +68,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # will make completions work. yolo!
   buck2
   bazel-buildtools
+  pyrefly
 
   xonsh
 
