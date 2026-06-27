@@ -128,7 +128,7 @@ func KernelVersion() string {
 
 // KernelArch returns the current kernel architecture.
 func KernelArch() string {
-	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+	if runtime.GOARCH == "arm64" {
 		return "arm64"
 	}
 	return "x86_64"
