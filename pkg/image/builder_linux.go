@@ -5,16 +5,27 @@ package image
 import (
 	"os"
 	"os/exec"
+	"runtime"
 
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/uuid"
 	"github.com/jingkaihe/matchlock/internal/errx"
 )
 
-// platformOptions returns remote options for linux (uses default platform detection)
+// platformOptions pins the pulled image to linux/<host arch>. Without an
+// explicit platform, go-containerregistry defaults to linux/amd64, so on an
+// arm64 host the rootfs would be x86_64 and every guest binary fails to exec
+// with "exec format error". Mirrors the darwin builder.
 func (b *Builder) platformOptions() []remote.Option {
-	return nil
+	return []remote.Option{
+		remote.WithPlatform(v1.Platform{
+			OS:           "linux",
+			Architecture: runtime.GOARCH,
+		}),
+	}
 }
+
 func (b *Builder) createEROFSFromTar(tarPath, destPath string) error {
 	mkfsPath, err := exec.LookPath("mkfs.erofs")
 	if err != nil {
