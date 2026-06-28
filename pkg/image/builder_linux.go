@@ -13,10 +13,8 @@ import (
 	"github.com/jingkaihe/matchlock/internal/errx"
 )
 
-// platformOptions pins the pulled image to linux/<host arch>. Without an
-// explicit platform, go-containerregistry defaults to linux/amd64, so on an
-// arm64 host the rootfs would be x86_64 and every guest binary fails to exec
-// with "exec format error". Mirrors the darwin builder.
+// Pin image pulls to the host architecture; otherwise go-containerregistry
+// resolves multi-arch images to its default linux/amd64 platform.
 func (b *Builder) platformOptions() []remote.Option {
 	return []remote.Option{
 		remote.WithPlatform(v1.Platform{
