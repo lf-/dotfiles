@@ -5,16 +5,25 @@ package image
 import (
 	"os"
 	"os/exec"
+	"runtime"
 
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/uuid"
 	"github.com/jingkaihe/matchlock/internal/errx"
 )
 
-// platformOptions returns remote options for linux (uses default platform detection)
+// Pin image pulls to the host architecture; otherwise go-containerregistry
+// resolves multi-arch images to its default linux/amd64 platform.
 func (b *Builder) platformOptions() []remote.Option {
-	return nil
+	return []remote.Option{
+		remote.WithPlatform(v1.Platform{
+			OS:           "linux",
+			Architecture: runtime.GOARCH,
+		}),
+	}
 }
+
 func (b *Builder) createEROFSFromTar(tarPath, destPath string) error {
 	mkfsPath, err := exec.LookPath("mkfs.erofs")
 	if err != nil {

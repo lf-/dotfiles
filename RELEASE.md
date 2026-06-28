@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.16
+
+* Fixed Linux arm64 sandbox startup by selecting arm64 guest kernels, pulling arm64 image rootfs layers, and enabling Firecracker's arm64 serial console support, contributed by [@rubiojr](https://github.com/rubiojr) in [#111](https://github.com/jingkaihe/matchlock/pull/111).
+
 ## 0.2.15
 
 * Added Python SDK support for static guest host mappings via `Sandbox.add_host(host, ip)`.
