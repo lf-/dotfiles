@@ -3,6 +3,8 @@
 // SPEC.md in the repo root is normative for this package.
 package config
 
+import "fmt"
+
 // MountMode controls how the working directory is mounted into the guest.
 type MountMode string
 
@@ -75,18 +77,63 @@ type File struct {
 // LoadFile evaluates starlark source into validated profiles. filename is
 // used for error messages only; no filesystem access occurs.
 func LoadFile(filename string, src []byte) (*File, error) {
-	panic("unimplemented")
+	return loadFile(filename, src)
 }
 
 // Merge overlays project over global (either may be nil). Project profiles
 // replace same-named global profiles; otherwise global registration order is
 // kept, followed by project-only profiles in registration order.
 func Merge(global, project *File) *File {
-	panic("unimplemented")
+	merged := &File{}
+	byName := make(map[string]*Profile)
+	if project != nil {
+		for _, p := range project.Profiles {
+			byName[p.Name] = p
+		}
+	}
+	inGlobal := make(map[string]bool)
+	if global != nil {
+		for _, g := range global.Profiles {
+			inGlobal[g.Name] = true
+			if p, ok := byName[g.Name]; ok {
+				merged.Profiles = append(merged.Profiles, p) // project shadows global
+			} else {
+				merged.Profiles = append(merged.Profiles, g)
+			}
+		}
+	}
+	if project != nil {
+		for _, p := range project.Profiles {
+			if !inGlobal[p.Name] {
+				merged.Profiles = append(merged.Profiles, p)
+			}
+		}
+	}
+	return merged
 }
 
 // Lookup resolves a profile by name. name == "" resolves to the profile
 // named "default", or, if the file has exactly one profile, that profile.
 func (f *File) Lookup(name string) (*Profile, error) {
-	panic("unimplemented")
+	if name == "" {
+		for _, p := range f.Profiles {
+			if p.Name == "default" {
+				return p, nil
+			}
+		}
+		switch len(f.Profiles) {
+		case 0:
+			return nil, fmt.Errorf("%w: no profiles defined", ErrUnknownProfile)
+		case 1:
+			return f.Profiles[0], nil
+		default:
+			return nil, fmt.Errorf("%w: %d profiles and none named %q", ErrAmbiguousProfile, len(f.Profiles), "default")
+		}
+	}
+	for _, p := range f.Profiles {
+		if p.Name == name {
+			return p, nil
+		}
+	}
+	return nil, fmt.Errorf("%w: %q", ErrUnknownProfile, name)
 }
