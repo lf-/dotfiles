@@ -235,6 +235,21 @@ results: `ErrEval`, `ErrDuplicateProfile`, `ErrUnknownProfile`,
 Builtin-argument failures surface from `LoadFile` such that **both**
 `errors.Is(err, ErrEval)` and `errors.Is(err, ErrTheSpecificOne)` hold.
 
+## Clarifications
+
+Pinned after test review (the tests deliberately leave these untested; the
+implementation must still follow them):
+
+- `Lookup` on a file with zero profiles ⇒ `ErrUnknownProfile` (for any name,
+  including `""`).
+- `Merge(nil, nil)` ⇒ non-nil empty `*File`.
+- `from_env=""` and `from_cmd=[]` count as "source not given" ⇒
+  `ErrSecretSource` (not a distinct type error).
+- Omitting `hosts` in `lid.secret` is the same as `hosts=[]` ⇒
+  `ErrSecretHosts`.
+- `add_hosts` keys are host-normalized (trimmed, lowercased) like all hosts.
+- Whether default/empty `Env` is nil or an empty map is unspecified.
+
 ## Invariants (property-test targets)
 
 For every well-formed generated config:
