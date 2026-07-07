@@ -49,7 +49,10 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		opts.Resolver = NewResolver()
 	}
 	if opts.CloseTimeout == 0 {
-		opts.CloseTimeout = 10 * time.Second
+		// The VM is disposable and Remove deletes its state right after, so a
+		// long graceful-shutdown wait only delays exit (Close blocks for the
+		// full timeout when the rpc process lingers).
+		opts.CloseTimeout = 2 * time.Second
 	}
 
 	secrets, err := opts.Resolver.ResolveAll(ctx, opts.Profile.Secrets)
