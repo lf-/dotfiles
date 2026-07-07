@@ -32,9 +32,10 @@ by a builtin, `fail()`) is reported wrapped as `ErrEval`.
 ## The `lid` module
 
 Predeclared as `lid`, with members: `sandbox`, `network`, `secret`, `github`,
-`hosts`. All builtin calls validate eagerly: a bad argument raises an error at
-the call site (surfacing from `LoadFile` wrapped in `ErrEval`, with the
-underlying sentinel — see §Errors — matchable via `errors.Is`).
+`claude_subscription`, `hosts`. All builtin calls validate eagerly: a bad
+argument raises an error at the call site (surfacing from `LoadFile` wrapped in
+`ErrEval`, with the underlying sentinel — see §Errors — matchable via
+`errors.Is`).
 
 ### `lid.sandbox(...)` — register a profile
 
@@ -51,7 +52,7 @@ Keyword-only arguments (positional args are an error):
 | `workspace` | `str` absolute path           | `"/workspace"` | must start with `/`; else `ErrInvalidWorkspace` |
 | `mount_cwd` | `"rw"`, `"ro"`, `"off"`       | `"rw"`         | else `ErrInvalidMount` |
 | `network`   | `lid.network(...)` or `None`  | `None`         | `None` ⇒ no NIC |
-| `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github` |
+| `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github`/`lid.claude_subscription` |
 | `env`       | `dict[str, str]`              | `{}`           | |
 | `command`   | `list[str]`, nonempty         | `["claude"]`   | argv run by `lid run`; else `ErrBadCommand` |
 
@@ -100,6 +101,51 @@ Sugar for GitHub credential injection. Equivalent to a secret with:
   `*.githubusercontent.com`, `ghcr.io`.
 - explicit `hosts` (non-empty list) replaces the default list; empty list ⇒
   `ErrSecretHosts`.
+
+### `lid.claude_subscription(credentials_file=None, hosts=None)`
+
+Sugar for Claude Pro/Max subscription auth via OAuth tokens. Belongs in
+`secrets=[...]`. Unlike `lid.secret`, the token is **never** injected into
+guest env or via placeholder replacement; instead a host-side network hook
+rewrites outbound requests to the configured hosts:
+
+- Removes any `X-Api-Key` header.
+- Adds `Authorization: Bearer <access_token>`.
+- Ensures `anthropic-beta` includes `oauth-2025-04-20`.
+
+Credentials are loaded on the host at launch time, not at config-evaluation
+time. Token refresh is handled host-side (guest never contacts
+`console.anthropic.com`).
+
+| kwarg              | type             | default | notes |
+|--------------------|------------------|---------|-------|
+| `credentials_file` | `str` or `None`  | `None`  | path to credentials JSON; `None`/absent ⇒ auto-detect (see below) |
+| `hosts`            | `list[str]` or `None` | `None` | host globs for the hook; `None`/absent ⇒ defaults; empty list ⇒ `ErrSecretHosts` |
+
+Default hosts: `api.anthropic.com`, `platform.claude.com`.
+
+**Credentials resolution order** (when `credentials_file` is absent):
+
+1. On macOS: try the Keychain service `"Claude Code-credentials"` via
+   `security find-generic-password -s "..." -w"`.
+2. Fall back to `~/.claude/.credentials.json`.
+3. Non-macOS: file only.
+
+Returns an opaque secret value usable only inside `secrets=[...]`.
+
+Represented as a `SecretSpec` with `Name = "ANTHROPIC_API_KEY"` (kept for
+consistency; not used for placeholder swap) and
+`Source.Kind = SourceAnthropicOAuth`.
+
+The runner also seeds the guest with Claude state files (`.claude.json`,
+`.claude/.config.json`, `.claude/settings.json`) to suppress onboarding
+prompts, and removes any `.credentials.json` from the guest to prevent
+accidental use of stale file-based credentials. Guest `HOME` defaults to
+`/root`; override via `env={"HOME": "..."}` for non-root images.
+
+Because it is a secret, existing semantics apply automatically: its hosts are
+unioned into `AllowedHosts`, and a profile with it but no `network` ⇒
+`ErrNoNetworkSecrets`.
 
 ### `lid.hosts` — allowlist presets
 
@@ -162,13 +208,14 @@ package config
 
 type MountMode string // "rw" | "ro" | "off"
 
-type SourceKind string // "env" | "cmd" | "literal" | "github"
+type SourceKind string // "env" | "cmd" | "literal" | "github" | "anthropic_oauth"
 
 type Source struct {
     Kind    SourceKind
     EnvName string   // Kind == "env"
     Cmd     []string // Kind == "cmd"
     Literal string   // Kind == "literal"
+    Path    string   // Kind == "anthropic_oauth"; credentials file path, "" = auto-detect
 }
 
 type SecretSpec struct {

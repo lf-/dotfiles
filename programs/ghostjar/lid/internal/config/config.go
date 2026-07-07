@@ -18,10 +18,11 @@ const (
 type SourceKind string
 
 const (
-	SourceEnv     SourceKind = "env"
-	SourceCmd     SourceKind = "cmd"
-	SourceLiteral SourceKind = "literal"
-	SourceGitHub  SourceKind = "github"
+	SourceEnv            SourceKind = "env"
+	SourceCmd            SourceKind = "cmd"
+	SourceLiteral        SourceKind = "literal"
+	SourceGitHub         SourceKind = "github"
+	SourceAnthropicOAuth SourceKind = "anthropic_oauth"
 )
 
 // Source describes how the runner obtains a secret value on the host.
@@ -30,6 +31,7 @@ type Source struct {
 	EnvName string   // Kind == SourceEnv
 	Cmd     []string // Kind == SourceCmd
 	Literal string   // Kind == SourceLiteral
+	Path    string   // Kind == SourceAnthropicOAuth; credentials file path, "" = auto-detect
 }
 
 // SecretSpec is a secret to inject via matchlock MITM replacement.

@@ -18,6 +18,13 @@ import (
 // §Evaluation environment).
 const maxExecutionSteps = 10_000_000
 
+// claudeSubscriptionDefaultHosts is the normative default host list for
+// lid.claude_subscription (SPEC §lid.claude_subscription).
+var claudeSubscriptionDefaultHosts = []string{
+	"api.anthropic.com",
+	"platform.claude.com",
+}
+
 // githubDefaultHosts is the normative default host list of lid.github and
 // lid.hosts.github (SPEC §lid.github).
 var githubDefaultHosts = []string{
@@ -255,11 +262,12 @@ func (ld *loader) module() *starlarkstruct.Module {
 	return &starlarkstruct.Module{
 		Name: "lid",
 		Members: starlark.StringDict{
-			"sandbox": starlark.NewBuiltin("lid.sandbox", ld.sandbox),
-			"network": starlark.NewBuiltin("lid.network", networkBuiltin),
-			"secret":  starlark.NewBuiltin("lid.secret", secretBuiltin),
-			"github":  starlark.NewBuiltin("lid.github", githubBuiltin),
-			"hosts":   hostsStruct,
+			"sandbox":             starlark.NewBuiltin("lid.sandbox", ld.sandbox),
+			"network":             starlark.NewBuiltin("lid.network", networkBuiltin),
+			"secret":              starlark.NewBuiltin("lid.secret", secretBuiltin),
+			"github":              starlark.NewBuiltin("lid.github", githubBuiltin),
+			"claude_subscription": starlark.NewBuiltin("lid.claude_subscription", claudeSubscriptionBuiltin),
+			"hosts":               hostsStruct,
 		},
 	}
 }
@@ -437,6 +445,54 @@ func githubBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple,
 		Source:        Source{Kind: SourceGitHub},
 		Hosts:         hosts,
 		GitCredential: true,
+	}}, nil
+}
+
+func claudeSubscriptionBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	var (
+		credentialsFileV starlark.Value
+		hostsV           starlark.Value
+	)
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"credentials_file?", &credentialsFileV,
+		"hosts?", &hostsV,
+	); err != nil {
+		return nil, err
+	}
+
+	// Parse credentials_file: must be string or None/absent.
+	var credentialsFile string
+	switch v := credentialsFileV.(type) {
+	case nil, starlark.NoneType:
+		credentialsFile = ""
+	case starlark.String:
+		credentialsFile = string(v)
+	default:
+		return nil, fmt.Errorf("%s: credentials_file: got %s, want string or None", b.Name(), credentialsFileV.Type())
+	}
+
+	// Parse hosts: list or None/absent.
+	var hosts []string
+	switch hv := hostsV.(type) {
+	case nil, starlark.NoneType:
+		hosts = append([]string(nil), claudeSubscriptionDefaultHosts...)
+	case *starlark.List:
+		var err error
+		hosts, err = normalizeHostList(hv, "hosts")
+		if err != nil {
+			return nil, err
+		}
+		if len(hosts) == 0 {
+			return nil, errf(ErrSecretHosts, "lid.claude_subscription hosts list is empty")
+		}
+	default:
+		return nil, fmt.Errorf("%s: hosts: got %s, want list or None", b.Name(), hostsV.Type())
+	}
+
+	return &secretValue{spec: SecretSpec{
+		Name:   "ANTHROPIC_API_KEY",
+		Source: Source{Kind: SourceAnthropicOAuth, Path: credentialsFile},
+		Hosts:  hosts,
 	}}, nil
 }
 

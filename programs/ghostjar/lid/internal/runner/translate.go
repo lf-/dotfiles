@@ -1,6 +1,10 @@
 package runner
 
 import (
+	"context"
+	"slices"
+	"strings"
+
 	"github.com/jingkaihe/matchlock/pkg/sdk"
 
 	"jade.fyi/ghostjar/lid/internal/config"
@@ -13,7 +17,10 @@ import (
 //
 // It is pure (no I/O): the caller resolves secrets beforehand and passes them
 // in with their placeholders.
-func Translate(p *config.Profile, cwd string, secrets []Resolved) *sdk.SandboxBuilder {
+//
+// oauthProvider is non-nil when the profile contains a claude_subscription
+// secret. oauthHosts lists the hosts the network hook should intercept.
+func Translate(p *config.Profile, cwd string, secrets []Resolved, oauthProvider *ClaudeOAuthProvider, oauthHosts []string) *sdk.SandboxBuilder {
 	b := sdk.New(p.Image).
 		WithCPUs(p.CPUs).
 		WithMemory(p.MemoryMB).
@@ -75,6 +82,81 @@ func Translate(p *config.Profile, cwd string, secrets []Resolved) *sdk.SandboxBu
 		if s.GitCredential {
 			b.WithEnv("GH_TOKEN", s.Placeholder)
 			b.WithEnv("GIT_TERMINAL_PROMPT", "0")
+		}
+	}
+
+	// Claude subscription OAuth: inject headers via a host-side network hook.
+	// The guest never sees the real access token.
+	if oauthProvider != nil && len(oauthHosts) > 0 {
+		provider := oauthProvider // capture for closure
+
+		hook := func(ctx context.Context, req sdk.NetworkHookRequest) (*sdk.NetworkHookResult, error) {
+			// Clone the incoming headers.
+			headers := make(map[string][]string, len(req.RequestHeaders))
+			for k, v := range req.RequestHeaders {
+				headers[k] = append([]string(nil), v...)
+			}
+
+			// Remove any X-Api-Key header (case-insensitive).
+			for k := range headers {
+				if strings.EqualFold(k, "X-Api-Key") {
+					delete(headers, k)
+				}
+			}
+
+			// Get a fresh access token (refreshes if near expiry).
+			token, err := provider.AccessToken(ctx)
+			if err != nil {
+				return nil, err
+			}
+			headers["Authorization"] = []string{"Bearer " + token}
+
+			// Ensure anthropic-beta includes oauth-2025-04-20.
+			var betaValues []string
+			for k, vals := range headers {
+				if strings.EqualFold(k, "anthropic-beta") {
+					for _, v := range vals {
+						for item := range strings.SplitSeq(v, ",") {
+							if s := strings.TrimSpace(item); s != "" {
+								betaValues = append(betaValues, s)
+							}
+						}
+					}
+					delete(headers, k)
+				}
+			}
+			if !slices.Contains(betaValues, "oauth-2025-04-20") {
+				betaValues = append(betaValues, "oauth-2025-04-20")
+			}
+			headers["anthropic-beta"] = betaValues
+
+			return &sdk.NetworkHookResult{
+				Action: sdk.NetworkHookActionMutate,
+				Request: &sdk.NetworkHookRequestMutation{
+					Headers: headers,
+				},
+			}, nil
+		}
+
+		b.WithNetworkInterception(&sdk.NetworkInterceptionConfig{
+			Rules: []sdk.NetworkHookRule{
+				{
+					Name:  "lid-claude-subscription",
+					Phase: sdk.NetworkHookPhaseBefore,
+					Hosts: append([]string(nil), oauthHosts...),
+					Hook:  hook,
+				},
+			},
+		})
+
+		// Set CLAUDE_CONFIG_DIR and HOME so Claude finds its config in the guest.
+		home := "/root"
+		if h, ok := p.Env["HOME"]; ok && h != "" {
+			home = h
+		}
+		b.WithEnv("HOME", home)
+		if _, ok := p.Env["CLAUDE_CONFIG_DIR"]; !ok {
+			b.WithEnv("CLAUDE_CONFIG_DIR", home+"/.claude")
 		}
 	}
 

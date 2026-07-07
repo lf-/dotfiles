@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -55,12 +56,38 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		opts.CloseTimeout = 2 * time.Second
 	}
 
-	secrets, err := opts.Resolver.ResolveAll(ctx, opts.Profile.Secrets)
+	// Partition secrets: separate the at-most-one OAuth spec from normal secrets.
+	var oauthSpec *config.SecretSpec
+	var normalSpecs []config.SecretSpec
+	for i := range opts.Profile.Secrets {
+		s := &opts.Profile.Secrets[i]
+		if s.Source.Kind == config.SourceAnthropicOAuth {
+			if oauthSpec != nil {
+				return 1, fmt.Errorf("profile %q has more than one claude_subscription secret; at most one is allowed", opts.Profile.Name)
+			}
+			oauthSpec = s
+		} else {
+			normalSpecs = append(normalSpecs, *s)
+		}
+	}
+
+	secrets, err := opts.Resolver.ResolveAll(ctx, normalSpecs)
 	if err != nil {
 		return 1, err
 	}
 
-	builder := Translate(opts.Profile, opts.Cwd, secrets)
+	// Construct the OAuth provider if needed (reads host creds; may hit keychain).
+	var oauthProvider *ClaudeOAuthProvider
+	var oauthHosts []string
+	if oauthSpec != nil {
+		oauthProvider, err = NewClaudeOAuthProvider(ctx, oauthSpec.Source.Path, opts.Stderr)
+		if err != nil {
+			return 1, err
+		}
+		oauthHosts = oauthSpec.Hosts
+	}
+
+	builder := Translate(opts.Profile, opts.Cwd, secrets, oauthProvider, oauthHosts)
 
 	client, err := sdk.NewClient(sdk.DefaultConfig())
 	if err != nil {
@@ -81,6 +108,12 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 
 	if err := bootstrapGitCredential(ctx, client, secrets, opts.Stderr); err != nil {
 		return 1, err
+	}
+
+	if oauthSpec != nil {
+		if err := bootstrapClaudeOAuth(ctx, client, opts.Profile, opts.Stderr); err != nil {
+			return 1, err
+		}
 	}
 
 	workdir := ""
@@ -178,6 +211,99 @@ func gitCredentialScript(placeholder string) string {
 		"  echo username=x-access-token\n" +
 		"  echo password=" + placeholder + "\n" +
 		"fi\n"
+}
+
+// guestAPIKeyPlaceholder is the dummy API key embedded in guest Claude config.
+// It never leaves the guest because the network hook strips X-Api-Key headers.
+const guestAPIKeyPlaceholder = "sk-ant-api03-lid-guest-placeholder"
+
+// bootstrapClaudeOAuth seeds the guest with Claude state files analogous to
+// what the claude-danger Python reference does in prepare_guest_claude_home.
+// Errors writing core state files are returned; non-critical ops only warn.
+func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Profile, logw io.Writer) error {
+	home := "/root"
+	if h, ok := p.Env["HOME"]; ok && h != "" {
+		home = h
+	}
+	configDir := home + "/.claude"
+
+	// Create .claude directory.
+	res, err := client.Exec(ctx, "mkdir -p "+configDir+" && chmod 700 "+configDir)
+	if err != nil {
+		return fmt.Errorf("create .claude dir: %w", err)
+	}
+	if res.ExitCode != 0 {
+		return fmt.Errorf("create .claude dir: exit code %d", res.ExitCode)
+	}
+
+	// Build state JSON (written to both .claude.json and .claude/.config.json).
+	stateJSON := buildGuestClaudeStateJSON(p.Workspace)
+
+	if err := client.WriteFileMode(ctx, home+"/.claude.json", []byte(stateJSON), 0o644); err != nil {
+		return fmt.Errorf("write .claude.json: %w", err)
+	}
+	if err := client.WriteFileMode(ctx, configDir+"/.config.json", []byte(stateJSON), 0o644); err != nil {
+		return fmt.Errorf("write .claude/.config.json: %w", err)
+	}
+
+	// Build settings JSON.
+	settingsJSON := buildGuestClaudeSettingsJSON()
+	if err := client.WriteFileMode(ctx, configDir+"/settings.json", []byte(settingsJSON), 0o644); err != nil {
+		return fmt.Errorf("write .claude/settings.json: %w", err)
+	}
+
+	// Remove any credentials file so the guest doesn't try to use it.
+	res, err = client.Exec(ctx, "rm -f "+configDir+"/.credentials.json")
+	if err != nil {
+		fmt.Fprintf(logw, "lid: warning: could not remove guest .credentials.json: %v\n", err)
+	} else if res.ExitCode != 0 {
+		fmt.Fprintf(logw, "lid: warning: rm .credentials.json exited %d\n", res.ExitCode)
+	}
+
+	return nil
+}
+
+func buildGuestClaudeStateJSON(workspace string) string {
+	// Last 20 chars of the placeholder, matching what the Python example uses.
+	ph := guestAPIKeyPlaceholder
+	if len(ph) > 20 {
+		ph = ph[len(ph)-20:]
+	}
+
+	projectState := map[string]any{
+		"allowedTools":                            []any{},
+		"mcpContextUris":                          []any{},
+		"mcpServers":                              map[string]any{},
+		"enabledMcpjsonServers":                   []any{},
+		"disabledMcpjsonServers":                  []any{},
+		"exampleFiles":                            []any{},
+		"hasTrustDialogAccepted":                  true,
+		"hasCompletedProjectOnboarding":           true,
+		"projectOnboardingSeenCount":              1,
+		"hasClaudeMdExternalIncludesApproved":     false,
+		"hasClaudeMdExternalIncludesWarningShown": false,
+	}
+
+	state := map[string]any{
+		"numStartups":            1,
+		"theme":                  "dark",
+		"hasCompletedOnboarding": true,
+		"lastOnboardingVersion":  "2.1.96",
+		"customApiKeyResponses":  map[string]any{"approved": []string{ph}},
+		"projects":               map[string]any{workspace: projectState},
+	}
+
+	data, _ := json.MarshalIndent(state, "", "  ")
+	return string(data) + "\n"
+}
+
+func buildGuestClaudeSettingsJSON() string {
+	settings := map[string]any{
+		"apiKeyHelper":                      "printf %s " + guestAPIKeyPlaceholder,
+		"skipDangerousModePermissionPrompt": true,
+	}
+	data, _ := json.MarshalIndent(settings, "", "  ")
+	return string(data) + "\n"
 }
 
 func isExecNotFound(err error) bool {

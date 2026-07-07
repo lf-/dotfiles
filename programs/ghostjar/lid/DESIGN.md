@@ -87,6 +87,51 @@ generated config can ever produce a plan with an open network or unblocked
 private IPs unless it explicitly asked for it, and that secret values never
 appear outside secret specs.
 
+## Claude subscription auth (`lid.claude_subscription`)
+
+Claude Pro/Max users authenticate via OAuth rather than static API keys.
+The subscription auth flow is fundamentally different from placeholder MITM:
+
+1. **Credential loading (host-side, at launch):** The runner reads
+   `claudeAiOauth.{accessToken,refreshToken,expiresAt}` from either the macOS
+   Keychain service `"Claude Code-credentials"` (via `security
+   find-generic-password -s … -w`) or `~/.claude/.credentials.json`.
+   An explicit `credentials_file` in the config skips auto-detection.
+
+2. **Token refresh (host-side, on demand):** `ClaudeOAuthProvider.AccessToken`
+   checks expiry; if within 10 minutes, POSTs to
+   `https://console.anthropic.com/v1/oauth/token` with the refresh token and
+   stores the new tokens in memory. Best-effort persistence writes the new creds
+   back to their original source (keychain or file) so the host's own Claude
+   Code stays in sync; persistence failure is logged and never fatal.
+
+3. **Network hook (host-side, per-request):** A `sdk.NetworkHookRule` with
+   `Phase="before"` is registered for the configured hosts
+   (`api.anthropic.com`, `platform.claude.com` by default). On each matching
+   outbound request the hook:
+   - Removes any `X-Api-Key` header (case-insensitive).
+   - Calls `AccessToken(ctx)` to get a fresh token and sets
+     `Authorization: Bearer <token>`.
+   - Appends `oauth-2025-04-20` to `anthropic-beta` if not already present.
+   The access token exists only in the hook closure on the host; the guest
+   sees no API key at all.
+
+4. **Guest state seeding (post-launch):** Analogous to `bootstrapGitCredential`,
+   the runner calls `bootstrapClaudeOAuth` which:
+   - Creates `<home>/.claude/` (chmod 700).
+   - Writes a dummy-key-approved state JSON to both `<home>/.claude.json` and
+     `<home>/.claude/.config.json` (suppresses onboarding, trusts the workspace).
+   - Writes `<home>/.claude/settings.json` with `apiKeyHelper` pointing to the
+     dummy placeholder and `skipDangerousModePermissionPrompt: true`.
+   - Removes `<home>/.claude/.credentials.json` so the guest never tries file auth.
+   The dummy placeholder (`sk-ant-api03-lid-guest-placeholder`) never leaves
+   the guest; the hook strips `X-Api-Key` before requests egress.
+
+The guest's `HOME` and `CLAUDE_CONFIG_DIR` env vars are set by `Translate` to
+point to the configured (or default `/root`) home directory.
+`console.anthropic.com` is intentionally NOT in the guest allowlist — all
+token refreshes happen on the host.
+
 ## Future / stretch
 
 - Image building (bake `claude` + toolchains into an OCI image; `lid bake`).
