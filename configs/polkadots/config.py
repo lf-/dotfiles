@@ -94,6 +94,7 @@ actions = [
     MkdirAction('~/.gemini'),
     SymlinkAction('agents/skills', '~/.gemini/skills'),
     SymlinkAction('agents/skills', '~/.claude/skills'),
+    SymlinkAction('agents/AGENTS.md', '~/.claude/CLAUDE.md'),
 
     # n.b. nix.conf here is a directory
     SymlinkAction('nix.conf', '~/.config/nix'),
