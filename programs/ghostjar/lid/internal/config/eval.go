@@ -127,6 +127,21 @@ func (s *seedValue) Freeze()               {}
 func (s *seedValue) Truth() starlark.Bool  { return starlark.True }
 func (s *seedValue) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable type: lid.seed") }
 
+// credentialValue is the opaque result of lid.from_keychain: a credential
+// source (a symbolic locator, never a value) usable only as the private_key of
+// lid.github_app. Immutable after construction.
+type credentialValue struct {
+	source Source // Kind == SourceKeychain
+}
+
+func (c *credentialValue) String() string       { return "<lid.credential " + c.source.Service + ">" }
+func (c *credentialValue) Type() string         { return "lid.credential" }
+func (c *credentialValue) Freeze()              {}
+func (c *credentialValue) Truth() starlark.Bool { return starlark.True }
+func (c *credentialValue) Hash() (uint32, error) {
+	return 0, fmt.Errorf("unhashable type: lid.credential")
+}
+
 // ---------------------------------------------------------------------------
 // Host, size, timeout, cpu validation.
 // ---------------------------------------------------------------------------
@@ -289,7 +304,9 @@ func (ld *loader) module() *starlarkstruct.Module {
 			"network":             starlark.NewBuiltin("lid.network", networkBuiltin),
 			"secret":              starlark.NewBuiltin("lid.secret", secretBuiltin),
 			"github":              starlark.NewBuiltin("lid.github", githubBuiltin),
+			"github_app":          starlark.NewBuiltin("lid.github_app", githubAppBuiltin),
 			"claude_subscription": starlark.NewBuiltin("lid.claude_subscription", claudeSubscriptionBuiltin),
+			"from_keychain":       starlark.NewBuiltin("lid.from_keychain", fromKeychainBuiltin),
 			"mount":               starlark.NewBuiltin("lid.mount", mountBuiltin),
 			"seed":                starlark.NewBuiltin("lid.seed", seedBuiltin),
 			"hosts":               hostsStruct,
@@ -535,6 +552,186 @@ func githubBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple,
 		Source:        Source{Kind: SourceGitHub},
 		Hosts:         hosts,
 		GitCredential: true,
+	}}, nil
+}
+
+// fromKeychainBuiltin implements lid.from_keychain (SPEC §lid.from_keychain): a
+// deferred, opaque credential source usable only as lid.github_app(private_key=…).
+// It carries only symbolic locators (service/account), never a value.
+func fromKeychainBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	var (
+		serviceV starlark.Value
+		accountV starlark.Value
+	)
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"service", &serviceV,
+		"account?", &accountV,
+	); err != nil {
+		return nil, err
+	}
+
+	service, ok := starlark.AsString(serviceV)
+	if !ok || serviceV == starlark.None {
+		return nil, errf(ErrKeychainSource, "service: got %s, want string", serviceV.Type())
+	}
+	service = strings.TrimSpace(service)
+	if service == "" {
+		return nil, errf(ErrKeychainSource, "service must be nonempty")
+	}
+
+	var account string
+	if accountV != nil && accountV != starlark.None {
+		a, ok := starlark.AsString(accountV)
+		if !ok {
+			return nil, errf(ErrKeychainSource, "account: got %s, want string", accountV.Type())
+		}
+		account = strings.TrimSpace(a)
+		if account == "" {
+			return nil, errf(ErrKeychainSource, "account, when given, must be nonempty")
+		}
+	}
+
+	return &credentialValue{source: Source{Kind: SourceKeychain, Service: service, Account: account}}, nil
+}
+
+// githubAppBuiltin implements lid.github_app (SPEC §lid.github_app): sugar for
+// GitHub App installation-token auth. Returns an opaque *secretValue so it flows
+// through sandbox()'s secrets=[...] collection unchanged.
+func githubAppBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	var (
+		appIDV          starlark.Value
+		privateKeyV     starlark.Value
+		installationIDV starlark.Value
+		reposL          *starlark.List
+		permsD          *starlark.Dict
+		hostsV          starlark.Value
+	)
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"app_id?", &appIDV,
+		"private_key?", &privateKeyV,
+		"installation_id?", &installationIDV,
+		"repositories?", &reposL,
+		"permissions?", &permsD,
+		"hosts?", &hostsV,
+	); err != nil {
+		return nil, err
+	}
+
+	// app_id: required positive integer.
+	if appIDV == nil {
+		return nil, errf(ErrGitHubApp, "app_id is required")
+	}
+	appIDInt, ok := appIDV.(starlark.Int)
+	if !ok {
+		return nil, errf(ErrGitHubApp, "app_id: got %s, want a positive integer", appIDV.Type())
+	}
+	appID, ok := appIDInt.Int64()
+	if !ok || appID <= 0 {
+		return nil, errf(ErrGitHubApp, "app_id must be a positive integer")
+	}
+
+	// private_key: required credential source (from lid.from_keychain).
+	if privateKeyV == nil {
+		return nil, errf(ErrGitHubApp, "private_key is required")
+	}
+	cred, ok := privateKeyV.(*credentialValue)
+	if !ok {
+		return nil, errf(ErrGitHubApp, "private_key: got %s, want a credential source from lid.from_keychain(...)", privateKeyV.Type())
+	}
+
+	// installation_id: None/absent ⇒ 0 (auto-discover); explicit int must be > 0.
+	installationGiven := false
+	var installationID int64
+	if installationIDV != nil && installationIDV != starlark.None {
+		idInt, ok := installationIDV.(starlark.Int)
+		if !ok {
+			return nil, errf(ErrGitHubApp, "installation_id: got %s, want a positive integer or None", installationIDV.Type())
+		}
+		id, ok := idInt.Int64()
+		if !ok || id <= 0 {
+			return nil, errf(ErrGitHubApp, "installation_id must be a positive integer when given")
+		}
+		installationGiven = true
+		installationID = id
+	}
+
+	// repositories: None ⇒ nil; else list of "owner/repo" slugs.
+	var repos []string
+	if reposL != nil {
+		repos = make([]string, 0, reposL.Len())
+		for i := 0; i < reposL.Len(); i++ {
+			s, ok := starlark.AsString(reposL.Index(i))
+			if !ok {
+				return nil, errf(ErrGitHubApp, "repositories[%d]: got %s, want string", i, reposL.Index(i).Type())
+			}
+			parts := strings.Split(s, "/")
+			if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+				return nil, errf(ErrGitHubApp, "repositories[%d]: %q is not of the form owner/repo", i, s)
+			}
+			repos = append(repos, s)
+		}
+	}
+
+	// Cross-field: need either an installation_id or at least one repository.
+	if !installationGiven && len(repos) == 0 {
+		return nil, errf(ErrGitHubApp, "supply either installation_id or a non-empty repositories list")
+	}
+
+	// permissions: None ⇒ nil; else dict of nonempty string keys/values.
+	var perms map[string]string
+	if permsD != nil {
+		perms = make(map[string]string, permsD.Len())
+		for _, item := range permsD.Items() {
+			k, ok := starlark.AsString(item[0])
+			if !ok {
+				return nil, errf(ErrGitHubApp, "permissions: key %s is not a string", item[0].Type())
+			}
+			if k == "" {
+				return nil, errf(ErrGitHubApp, "permissions: key must be nonempty")
+			}
+			v, ok := starlark.AsString(item[1])
+			if !ok {
+				return nil, errf(ErrGitHubApp, "permissions[%q]: value %s is not a string", k, item[1].Type())
+			}
+			if v == "" {
+				return nil, errf(ErrGitHubApp, "permissions[%q]: value must be nonempty", k)
+			}
+			perms[k] = v
+		}
+	}
+
+	// hosts: None ⇒ lid.github()'s defaults; else non-empty normalized list.
+	var hosts []string
+	switch hv := hostsV.(type) {
+	case nil, starlark.NoneType:
+		hosts = append([]string(nil), githubDefaultHosts...)
+	case *starlark.List:
+		var err error
+		hosts, err = normalizeHostList(hv, "hosts")
+		if err != nil {
+			return nil, err
+		}
+		if len(hosts) == 0 {
+			return nil, errf(ErrSecretHosts, "lid.github_app hosts list is empty")
+		}
+	default:
+		return nil, fmt.Errorf("%s: hosts: got %s, want list or None", b.Name(), hostsV.Type())
+	}
+
+	return &secretValue{spec: SecretSpec{
+		Name:          "GITHUB_TOKEN",
+		GitCredential: true,
+		Hosts:         hosts,
+		Source: Source{
+			Kind: SourceGitHubApp,
+			GitHubApp: &GitHubAppSource{
+				AppID:          appID,
+				InstallationID: installationID,
+				PrivateKey:     cred.source,
+				Repositories:   repos,
+				Permissions:    perms,
+			},
+		},
 	}}, nil
 }
 
@@ -809,8 +1006,57 @@ func loadFile(filename string, src []byte) (f *File, err error) {
 	opts := &syntax.FileOptions{
 		TopLevelControl: true, // allow if/for at top level; while/recursion stay off
 	}
-	if _, err := starlark.ExecFileOptions(opts, thread, filename, src, starlark.StringDict{"lid": ld.module()}); err != nil {
+	predeclared := starlark.StringDict{"lid": ld.module()}
+	// Parse+compile first so we can reject bare top-level uses of the opaque
+	// credential/github_app builtins: their results are meaningful only when
+	// consumed (lid.github_app in secrets=[...], lid.from_keychain as a
+	// private_key). A lone expression statement calling one discards the value
+	// and is therefore a misuse (SPEC §lid.from_keychain, §lid.github_app).
+	astFile, prog, err := starlark.SourceProgramOptions(opts, filename, src, predeclared.Has)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrEval, err)
+	}
+	if err := rejectBareOpaqueStmts(astFile.Stmts); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrEval, err)
+	}
+	if _, err := prog.Init(thread, predeclared); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrEval, err)
 	}
 	return ld.file, nil
+}
+
+// bareOpaqueBuiltins are lid builtins whose return values must be consumed;
+// using one as a lone top-level expression statement discards the value.
+var bareOpaqueBuiltins = map[string]bool{
+	"from_keychain": true,
+	"github_app":    true,
+}
+
+// rejectBareOpaqueStmts reports an error if any top-level expression statement
+// (recursing into if/for bodies) is a direct call to a bare-opaque lid builtin.
+func rejectBareOpaqueStmts(stmts []syntax.Stmt) error {
+	for _, st := range stmts {
+		switch s := st.(type) {
+		case *syntax.ExprStmt:
+			if call, ok := s.X.(*syntax.CallExpr); ok {
+				if dot, ok := call.Fn.(*syntax.DotExpr); ok {
+					if x, ok := dot.X.(*syntax.Ident); ok && x.Name == "lid" && bareOpaqueBuiltins[dot.Name.Name] {
+						return fmt.Errorf("lid.%s result is unused; it is usable only where a credential source or secret is expected", dot.Name.Name)
+					}
+				}
+			}
+		case *syntax.IfStmt:
+			if err := rejectBareOpaqueStmts(s.True); err != nil {
+				return err
+			}
+			if err := rejectBareOpaqueStmts(s.False); err != nil {
+				return err
+			}
+		case *syntax.ForStmt:
+			if err := rejectBareOpaqueStmts(s.Body); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

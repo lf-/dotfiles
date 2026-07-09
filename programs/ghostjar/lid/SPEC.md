@@ -32,7 +32,8 @@ by a builtin, `fail()`) is reported wrapped as `ErrEval`.
 ## The `lid` module
 
 Predeclared as `lid`, with members: `sandbox`, `network`, `secret`, `github`,
-`claude_subscription`, `hosts`. All builtin calls validate eagerly: a bad
+`github_app`, `claude_subscription`, `from_keychain`, `hosts`. All builtin calls
+validate eagerly: a bad
 argument raises an error at the call site (surfacing from `LoadFile` wrapped in
 `ErrEval`, with the underlying sentinel — see §Errors — matchable via
 `errors.Is`).
@@ -52,7 +53,7 @@ Keyword-only arguments (positional args are an error):
 | `workspace` | `str` absolute path           | `"/workspace"` | must start with `/`; else `ErrInvalidWorkspace` |
 | `mount_cwd` | `"rw"`, `"ro"`, `"off"`       | `"rw"`         | else `ErrInvalidMount` |
 | `network`   | `lid.network(...)` or `None`  | `None`         | `None` ⇒ no NIC |
-| `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github`/`lid.claude_subscription` |
+| `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github`/`lid.github_app`/`lid.claude_subscription` |
 | `env`       | `dict[str, str]`              | `{}`           | |
 | `command`   | `list[str]`, nonempty         | `["claude"]`   | argv run by `lid run`; else `ErrBadCommand` |
 | `mounts`    | `list` of `lid.mount(...)`    | `[]`           | live VFS mounts; each `guest` must be under `workspace`; else `ErrInvalidMount` |
@@ -118,6 +119,23 @@ without network, omit `network` entirely (or pass `None`).
 
 Returns an opaque secret value usable only inside `secrets=[...]`.
 
+### `lid.from_keychain(service, account=None)` — a deferred credential source
+
+Returns an opaque **credential source**: a symbolic reference to an item in the
+host platform credential store, *not* its value. A credential source describes
+*where* a credential lives; it carries no secret material through config
+evaluation and is resolved lazily by the runner at first use (see DESIGN.md). A
+credential source is usable only where one is expected — currently
+`lid.github_app(private_key=...)`.
+
+- `service`: required nonempty `str` — the store item/service name.
+- `account`: optional `str`, nonempty if given — disambiguates a service with
+  multiple accounts; `None`/absent ⇒ unspecified.
+
+Bad arguments ⇒ `ErrKeychainSource`.
+
+Produces `Source{Kind: "keychain", Service, Account}`.
+
 ### `lid.github(hosts=None)`
 
 Sugar for GitHub credential injection. Equivalent to a secret with:
@@ -133,6 +151,45 @@ Sugar for GitHub credential injection. Equivalent to a secret with:
   `*.githubusercontent.com`, `ghcr.io`.
 - explicit `hosts` (non-empty list) replaces the default list; empty list ⇒
   `ErrSecretHosts`.
+
+### `lid.github_app(app_id, private_key, installation_id=None, repositories=None, permissions=None, hosts=None)`
+
+Sugar for GitHub App authentication. Like `lid.github` it injects a GitHub
+credential, but instead of a personal token the runner mints a short-lived,
+downscoped **installation access token** on the host (see DESIGN.md for the
+JWT/mint/refresh flow). Belongs in `secrets=[...]`. The App private key never
+enters config state or the VM; only a symbolic `private_key` credential source
+is carried.
+
+| kwarg             | type                       | default | notes |
+|-------------------|----------------------------|---------|-------|
+| `app_id`          | `int` > 0                  | —       | required; GitHub App ID; else `ErrGitHubApp` |
+| `private_key`     | credential source          | —       | required; e.g. `lid.from_keychain(...)`; the App's PEM key; else `ErrGitHubApp` |
+| `installation_id` | `int` > 0 or `None`        | `None`  | `None` ⇒ runner auto-discovers from `repositories`; else `ErrGitHubApp` |
+| `repositories`    | `list[str]` or `None`      | `None`  | `owner/repo` slugs; downscopes the minted token; `None` ⇒ installation default |
+| `permissions`     | `dict[str, str]` or `None` | `None`  | e.g. `{"contents": "write", "pull_requests": "write"}`; downscopes the token; `None` ⇒ installation default |
+| `hosts`           | `list[str]` or `None`      | `None`  | host globs; `None` ⇒ same defaults as `lid.github()`; empty list ⇒ `ErrSecretHosts` |
+
+Equivalent to a secret with:
+
+- `Name = "GITHUB_TOKEN"` (mirrored into `GH_TOKEN`, like `lid.github`),
+- `GitCredential = true`,
+- source kind `github_app`, carrying the App config and the `private_key`
+  credential source,
+- default hosts identical to `lid.github()`'s.
+
+Validation:
+
+- Supplying neither an `installation_id` nor any `repositories` ⇒ `ErrGitHubApp`:
+  there would be nothing to authenticate against and nothing to discover from.
+- `repositories` entries are nonempty `str` of the form `owner/repo` (exactly one
+  `/`, both halves nonempty); else `ErrGitHubApp`.
+- `permissions` keys and values are nonempty `str`, passed through to GitHub
+  verbatim (lid does not enumerate the permission vocabulary); else `ErrGitHubApp`.
+- `private_key` must be a credential-source value (from `lid.from_keychain`);
+  any other type ⇒ `ErrGitHubApp`.
+
+Returns an opaque secret value usable only inside `secrets=[...]`.
 
 ### `lid.claude_subscription(credentials_file=None, hosts=None)`
 
@@ -241,14 +298,28 @@ package config
 
 type MountMode string // "rw" | "ro" | "off"
 
-type SourceKind string // "env" | "cmd" | "literal" | "github" | "anthropic_oauth"
+type SourceKind string // "env" | "cmd" | "literal" | "github" | "anthropic_oauth" | "keychain" | "github_app"
 
 type Source struct {
-    Kind    SourceKind
-    EnvName string   // Kind == "env"
-    Cmd     []string // Kind == "cmd"
-    Literal string   // Kind == "literal"
-    Path    string   // Kind == "anthropic_oauth"; credentials file path, "" = auto-detect
+    Kind      SourceKind
+    EnvName   string           // Kind == "env"
+    Cmd       []string         // Kind == "cmd"
+    Literal   string           // Kind == "literal"
+    Path      string           // Kind == "anthropic_oauth"; credentials file path, "" = auto-detect
+    Service   string           // Kind == "keychain"; store item/service name
+    Account   string           // Kind == "keychain"; optional account, "" = unspecified
+    GitHubApp *GitHubAppSource // Kind == "github_app"
+}
+
+// GitHubAppSource carries the config for a github_app secret. PrivateKey is a
+// nested credential source (typically Kind == "keychain") naming where the App's
+// PEM key lives; it is resolved lazily by the runner, never at config time.
+type GitHubAppSource struct {
+    AppID          int64
+    InstallationID int64             // 0 ⇒ auto-discover from Repositories
+    PrivateKey     Source            // credential source for the PEM
+    Repositories   []string          // "owner/repo"; nil ⇒ installation default
+    Permissions    map[string]string // nil ⇒ installation default
 }
 
 type SecretSpec struct {
@@ -324,7 +395,8 @@ results: `ErrEval`, `ErrDuplicateProfile`, `ErrUnknownProfile`,
 `ErrAmbiguousProfile`, `ErrInvalidHost`, `ErrInvalidSize`, `ErrInvalidCPU`,
 `ErrInvalidTimeout`, `ErrInvalidWorkspace`, `ErrInvalidMount`,
 `ErrSecretName`, `ErrSecretSource`, `ErrSecretHosts`, `ErrEmptyAllow`,
-`ErrAllowAllConflict`, `ErrNoNetworkSecrets`, `ErrBadCommand`.
+`ErrAllowAllConflict`, `ErrNoNetworkSecrets`, `ErrBadCommand`,
+`ErrKeychainSource`, `ErrGitHubApp`.
 
 Builtin-argument failures surface from `LoadFile` such that **both**
 `errors.Is(err, ErrEval)` and `errors.Is(err, ErrTheSpecificOne)` hold.
@@ -343,6 +415,10 @@ implementation must still follow them):
   `ErrSecretHosts`.
 - `add_hosts` keys are host-normalized (trimmed, lowercased) like all hosts.
 - Whether default/empty `Env` is nil or an empty map is unspecified.
+- A credential source (`lid.from_keychain`) and a `github_app` secret carry only
+  symbolic locators (service/account names, app id, repo slugs, permission
+  strings). No credential value appears anywhere in the resulting structs —
+  invariant 5 (secret containment) holds trivially for them.
 
 ## Invariants (property-test targets)
 

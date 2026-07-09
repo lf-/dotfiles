@@ -53,6 +53,9 @@ matchlock `rpc` subprocess (JSON-RPC over stdio) → microVM
 - **Secret sources resolve at launch, not at config time.** Config carries
   *where* a secret comes from (`from_env`, `from_cmd`, github helper), so
   config evaluation stays pure and secret values can't leak into config state.
+  Credential sources (`from_keychain`) and `github_app` go one step further:
+  resolved *lazily at first use* with caching, so a VM that never touches the
+  credential never reads it (see "GitHub App auth").
 - **Secret hosts are unioned into the allowlist.** A secret you configured is
   a statement of intent that its hosts be reachable.
 - **GitHub credential injection** uses matchlock's MITM basic-auth-aware
@@ -133,6 +136,77 @@ and Claude derives its config dir from `$HOME/.claude` — the same home the run
 seeds the state files into. `Translate` therefore does not bake in
 `HOME`/`CLAUDE_CONFIG_DIR`. `console.anthropic.com` is intentionally NOT in the
 guest allowlist — all token refreshes happen on the host.
+
+## GitHub App auth (`lid.github_app`) & lazy credential providers
+
+`lid.github_app` authenticates as a GitHub App installation instead of as you.
+Actions are attributed to the App (`<app>[bot]`), the minted token is scoped by
+GitHub to declared repos/permissions, and it expires in ~1h — so the blast
+radius of a confused agent is bounded by GitHub's own authorization, not by lid
+parsing API paths. (A path-filtering MITM was considered and rejected: the
+request hook exposes method + path + query but *not* the body, so GraphQL — all
+`POST /graphql` — and git-over-HTTPS push are opaque to it. Scoping the *token*
+is the real control; path filtering would be a leaky reimplementation of
+GitHub's authz that those two channels walk straight through.)
+
+**Credential sources are opaque and lazily resolved.** `lid.from_keychain(...)`
+and the `private_key` it feeds into `github_app` are symbolic in config — they
+name *where* a credential lives, never its value. The runner models every
+credential source as a lazy, caching provider:
+
+- **Cheap validation at launch, expensive resolution deferred.** At launch the
+  runner checks only what is cheap and side-effect-free: the keychain item
+  exists, `app_id` is set, the PEM parses as an RSA key. The costly work —
+  reading the secret, minting a token, anything that may prompt Keychain or hit
+  the network — is deferred to first use. This preserves fail-fast on config
+  typos without paying for credentials the run never touches.
+- **Caching and refresh are one mechanism.** A provider resolves on first use
+  and caches. For plain sources (env/cmd/keychain) the cache is permanent for the
+  VM lifetime. For the github_app token the cache carries the ~1h expiry;
+  "refresh" is just re-minting when the cached token is within ~5 min of expiry.
+  There is no separate launch-resolve-then-refresh path — deferral and refresh
+  fall out of the same lazy provider.
+
+**Keychain resolution** (`from_keychain`), host-side, per platform:
+
+- darwin: `security find-generic-password -w -s <service> [-a <account>]`
+- linux: `secret-tool lookup service <service> [account <account>]` (libsecret)
+
+**Minting an installation token** (`GitHubAppProvider`, host-side, on demand):
+
+1. Read the PEM via the `private_key` credential source, and cache it in host
+   memory for the VM lifetime so re-mints don't re-prompt Keychain.
+2. Build a short App JWT (RS256, `iss=<app_id>`, `exp` ≤ 10 min).
+3. If `installation_id` is unset, discover it via
+   `GET /repos/{owner}/{repo}/installation` for the first configured repository.
+4. `POST /app/installations/{id}/access_tokens` with `repositories` and
+   `permissions` (when set) → a ≤1h installation token, already downscoped by
+   GitHub.
+
+**Injection** reuses the GitHub credential path but per-request, because the
+token rotates. A `sdk.NetworkHookRule` (`Phase="before"`) over the github hosts
+calls `GitHubAppProvider.Token(ctx)` and rewrites auth on the way out, in two
+shapes:
+
+- git over HTTPS (`git-*-pack`):
+  `Authorization: Basic base64("x-access-token:" + token)`.
+- REST/GraphQL: `Authorization: token <token>`.
+
+The guest still gets a placeholder `GH_TOKEN` and the git credential helper so
+its tooling constructs a request; the host overwrites the real `Authorization`
+header. The private key and the live token never enter the VM.
+
+**Attribution needs the guest git identity too.** The token authenticates the
+*push* as the App, but commit *authorship* comes from the guest's
+`git config user.{name,email}`. When a `github_app` secret is present the runner
+seeds the bot identity (`<app>[bot]` /
+`<installation-id>+<app>[bot]@users.noreply.github.com`) so commits — not just
+pushes — are attributed to the App rather than to you.
+
+**Deferred: nothing to persist.** Unlike `ClaudeOAuthProvider`, re-minting needs
+no write-back — each installation token is derived fresh from the App key, so
+there is no host credential state to keep in sync. Long runs (> 1h) are handled
+entirely by the re-mint-on-expiry path.
 
 ## Privilege drop
 

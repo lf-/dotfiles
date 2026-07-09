@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -56,17 +57,23 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		opts.CloseTimeout = 2 * time.Second
 	}
 
-	// Partition secrets: separate the at-most-one OAuth spec from normal secrets.
+	// Partition secrets: separate the at-most-one OAuth spec and any github_app
+	// specs (both resolved lazily by providers, not via ResolveAll) from normal
+	// secrets.
 	var oauthSpec *config.SecretSpec
+	var githubAppSpecs []config.SecretSpec
 	var normalSpecs []config.SecretSpec
 	for i := range opts.Profile.Secrets {
 		s := &opts.Profile.Secrets[i]
-		if s.Source.Kind == config.SourceAnthropicOAuth {
+		switch s.Source.Kind {
+		case config.SourceAnthropicOAuth:
 			if oauthSpec != nil {
 				return 1, fmt.Errorf("profile %q has more than one claude_subscription secret; at most one is allowed", opts.Profile.Name)
 			}
 			oauthSpec = s
-		} else {
+		case config.SourceGitHubApp:
+			githubAppSpecs = append(githubAppSpecs, *s)
+		default:
 			normalSpecs = append(normalSpecs, *s)
 		}
 	}
@@ -87,6 +94,28 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		oauthHosts = oauthSpec.Hosts
 	}
 
+	// Construct a GitHub App provider per github_app secret. Providers do no I/O
+	// at construction; credential resolution and token minting are deferred to
+	// first use by the network hook. Each carries a lid-generated placeholder
+	// that the guest's git tooling uses (the hook overwrites it with the real
+	// rotating token in flight).
+	var githubApps []GitHubAppInjection
+	for i := range githubAppSpecs {
+		s := &githubAppSpecs[i]
+		if s.Source.GitHubApp == nil {
+			return 1, fmt.Errorf("profile %q: github_app secret %q missing app config", opts.Profile.Name, s.Name)
+		}
+		placeholder, err := newPlaceholder(s.Name)
+		if err != nil {
+			return 1, err
+		}
+		githubApps = append(githubApps, GitHubAppInjection{
+			Provider:    NewGitHubAppProvider(*s.Source.GitHubApp),
+			Hosts:       s.Hosts,
+			Placeholder: placeholder,
+		})
+	}
+
 	// If the profile bakes an image (setup=[...]), use the baked tag when it
 	// exists; otherwise fall back to the base image with a hint. A shallow copy
 	// keeps the resolved image local to this run.
@@ -102,7 +131,7 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		return 1, fmt.Errorf("resolve home dir: %w", err)
 	}
 
-	builder := Translate(prof, opts.Cwd, home, secrets, oauthProvider, oauthHosts, guestUID, guestGID)
+	builder := Translate(prof, opts.Cwd, home, secrets, oauthProvider, oauthHosts, githubApps, guestUID, guestGID)
 
 	client, err := sdk.NewClient(sdk.DefaultConfig())
 	if err != nil {
@@ -138,8 +167,21 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		return 1, err
 	}
 
-	if err := bootstrapGitCredential(ctx, client, secrets, id, opts.Stderr); err != nil {
+	// Install a git credential helper answering with a MITM placeholder. Prefer
+	// a normal GitCredential secret's placeholder; otherwise use a github_app
+	// placeholder (whose real token the network hook injects per-request).
+	gitCredPlaceholder := firstGitCredentialPlaceholder(secrets)
+	if gitCredPlaceholder == "" && len(githubApps) > 0 {
+		gitCredPlaceholder = githubApps[0].Placeholder
+	}
+	if err := bootstrapGitCredential(ctx, client, gitCredPlaceholder, id, opts.Stderr); err != nil {
 		return 1, err
+	}
+
+	// Seed the App bot identity so commit authorship (not just push auth) is
+	// attributed to the App. Best-effort and non-fatal.
+	if len(githubApps) > 0 {
+		seedGitHubAppIdentity(ctx, client, githubApps[0].Provider, id, opts.Stderr)
 	}
 
 	if oauthSpec != nil {
@@ -201,20 +243,23 @@ func runInteractive(ctx context.Context, client *sdk.Client, command, workdir, u
 	return res.ExitCode, nil
 }
 
-// bootstrapGitCredential installs a guest git credential helper for the first
-// GitCredential secret. The helper answers with the MITM placeholder (never the
-// real token); matchlock swaps it for the real value in outbound HTTPS.
-func bootstrapGitCredential(ctx context.Context, client *sdk.Client, secrets []Resolved, id guestIdentity, logw io.Writer) error {
-	var placeholder string
-	found := false
+// firstGitCredentialPlaceholder returns the placeholder of the first
+// GitCredential secret, or "" if none.
+func firstGitCredentialPlaceholder(secrets []Resolved) string {
 	for _, s := range secrets {
 		if s.GitCredential {
-			placeholder = s.Placeholder
-			found = true
-			break
+			return s.Placeholder
 		}
 	}
-	if !found {
+	return ""
+}
+
+// bootstrapGitCredential installs a guest git credential helper answering with
+// the given MITM placeholder (never the real token); matchlock — or, for
+// github_app, the network hook — swaps it for the real value in outbound HTTPS.
+// A "" placeholder is a no-op.
+func bootstrapGitCredential(ctx context.Context, client *sdk.Client, placeholder string, id guestIdentity, logw io.Writer) error {
+	if placeholder == "" {
 		return nil
 	}
 
@@ -249,6 +294,44 @@ func gitCredentialScript(placeholder string) string {
 		"  echo username=x-access-token\n" +
 		"  echo password=" + placeholder + "\n" +
 		"fi\n"
+}
+
+// seedGitHubAppIdentity sets the guest git author identity to the App bot so
+// commit authorship (not just push auth) is attributed to the App. Best-effort:
+// any failure (network, missing git) is logged and swallowed — never fatal.
+func seedGitHubAppIdentity(ctx context.Context, client *sdk.Client, provider *GitHubAppProvider, id guestIdentity, logw io.Writer) {
+	slug, err := provider.appSlug(ctx)
+	if err != nil {
+		fmt.Fprintf(logw, "lid: warning: could not resolve github_app bot identity: %v\n", err)
+		return
+	}
+	name := slug + "[bot]"
+	// Prefer the canonical <id>+<slug>[bot]@users.noreply.github.com email; fall
+	// back to a reasonable no-reply form if the bot user id is unavailable.
+	email := name + "@users.noreply.github.com"
+	if uid, err := provider.botUserID(ctx, slug); err == nil && uid != 0 {
+		email = fmt.Sprintf("%d+%s@users.noreply.github.com", uid, name)
+	}
+
+	cmd := fmt.Sprintf(
+		"HOME=%[1]s git config --global user.name %[2]s && "+
+			"HOME=%[1]s git config --global user.email %[3]s && "+
+			"chown %[4]d:%[5]d %[1]s/.gitconfig",
+		id.Home, shellQuote(name), shellQuote(email), id.UID, id.GID)
+	res, err := client.Exec(ctx, cmd)
+	if err != nil {
+		fmt.Fprintf(logw, "lid: warning: could not seed github_app git identity: %v\n", err)
+		return
+	}
+	if res.ExitCode != 0 {
+		fmt.Fprintf(logw, "lid: warning: seeding github_app git identity exited %d\n", res.ExitCode)
+	}
+}
+
+// shellQuote wraps s in single quotes, escaping embedded single quotes, for safe
+// interpolation into a /bin/sh command string.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 // guestAPIKeyPlaceholder is the dummy API key embedded in guest Claude config.

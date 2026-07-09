@@ -22,4 +22,6 @@ var (
 	ErrAllowAllConflict = errors.New("config: allow_all conflicts with non-empty allow")
 	ErrNoNetworkSecrets = errors.New("config: secrets require a network block")
 	ErrBadCommand       = errors.New("config: command must be a non-empty list of strings")
+	ErrKeychainSource   = errors.New("config: invalid keychain credential source")
+	ErrGitHubApp        = errors.New("config: invalid github_app configuration")
 )

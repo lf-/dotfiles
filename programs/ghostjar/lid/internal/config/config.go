@@ -23,15 +23,31 @@ const (
 	SourceLiteral        SourceKind = "literal"
 	SourceGitHub         SourceKind = "github"
 	SourceAnthropicOAuth SourceKind = "anthropic_oauth"
+	SourceKeychain       SourceKind = "keychain"
+	SourceGitHubApp      SourceKind = "github_app"
 )
 
 // Source describes how the runner obtains a secret value on the host.
 type Source struct {
-	Kind    SourceKind
-	EnvName string   // Kind == SourceEnv
-	Cmd     []string // Kind == SourceCmd
-	Literal string   // Kind == SourceLiteral
-	Path    string   // Kind == SourceAnthropicOAuth; credentials file path, "" = auto-detect
+	Kind      SourceKind
+	EnvName   string           // Kind == SourceEnv
+	Cmd       []string         // Kind == SourceCmd
+	Literal   string           // Kind == SourceLiteral
+	Path      string           // Kind == SourceAnthropicOAuth; credentials file path, "" = auto-detect
+	Service   string           // Kind == SourceKeychain; store item/service name
+	Account   string           // Kind == SourceKeychain; optional account, "" = unspecified
+	GitHubApp *GitHubAppSource // Kind == SourceGitHubApp
+}
+
+// GitHubAppSource carries the config for a github_app secret. PrivateKey is a
+// nested credential source (typically Kind == SourceKeychain) naming where the
+// App's PEM key lives; it is resolved lazily by the runner, never at config time.
+type GitHubAppSource struct {
+	AppID          int64
+	InstallationID int64             // 0 ⇒ auto-discover from Repositories
+	PrivateKey     Source            // credential source for the PEM
+	Repositories   []string          // "owner/repo"; nil ⇒ installation default
+	Permissions    map[string]string // nil ⇒ installation default
 }
 
 // SecretSpec is a secret to inject via matchlock MITM replacement.
