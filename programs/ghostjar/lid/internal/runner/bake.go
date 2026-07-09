@@ -40,10 +40,17 @@ func dockerfile(p *config.Profile) string {
 	return b.String()
 }
 
+// BakeOptions configures a Bake call.
+type BakeOptions struct {
+	// CacheSizeMB is passed to matchlock build --build-cache-size. Zero uses
+	// matchlock's default (10 GiB).
+	CacheSizeMB int
+}
+
 // Bake builds the profile's baked image (base image + setup steps) into the
 // local matchlock image store under BakedTag(p), via `matchlock build`. Returns
 // the tag. Requires a non-empty Setup.
-func Bake(ctx context.Context, p *config.Profile, logw io.Writer) (string, error) {
+func Bake(ctx context.Context, p *config.Profile, logw io.Writer, opts BakeOptions) (string, error) {
 	if len(p.Setup) == 0 {
 		return "", fmt.Errorf("profile %q has no setup steps to bake", p.Name)
 	}
@@ -60,7 +67,13 @@ func Bake(ctx context.Context, p *config.Profile, logw io.Writer) (string, error
 		return "", fmt.Errorf("bake: write Dockerfile: %w", err)
 	}
 
-	cmd := exec.CommandContext(ctx, matchlockBin(), "build", "-t", tag, "-f", dfPath, ctxDir)
+	argv := []string{"build", "-t", tag, "-f", dfPath}
+	if opts.CacheSizeMB > 0 {
+		argv = append(argv, "--build-cache-size", fmt.Sprintf("%d", opts.CacheSizeMB))
+	}
+	argv = append(argv, ctxDir)
+
+	cmd := exec.CommandContext(ctx, matchlockBin(), argv...)
 	cmd.Stdout = logw
 	cmd.Stderr = logw
 	if err := cmd.Run(); err != nil {

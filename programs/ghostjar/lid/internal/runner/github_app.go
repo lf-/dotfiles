@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -57,7 +58,36 @@ func keychainCredential(ctx context.Context, run CommandRunner, src config.Sourc
 	if v == "" {
 		return "", fmt.Errorf("keychain lookup for service %q produced no value", src.Service)
 	}
+	// macOS `security find-generic-password -w` emits the secret as a bare hex
+	// dump (no 0x prefix) whenever the stored data isn't printable ASCII — which
+	// includes any multi-line value such as a PEM private key. Decode that shape
+	// back to the original bytes. A real PEM/text secret always contains a
+	// non-hex character (e.g. the '-' in "-----BEGIN"), so this never misfires.
+	if decoded, ok := decodeSecurityHexDump(v); ok {
+		return decoded, nil
+	}
 	return v, nil
+}
+
+// decodeSecurityHexDump decodes the bare hex dump macOS `security -w` produces
+// for non-printable keychain data. It reports ok=false for anything that isn't a
+// non-empty, even-length, all-hex string, leaving printable secrets untouched.
+func decodeSecurityHexDump(s string) (string, bool) {
+	if len(s) == 0 || len(s)%2 != 0 {
+		return "", false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		isHex := (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+		if !isHex {
+			return "", false
+		}
+	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return "", false
+	}
+	return string(b), true
 }
 
 // keychainArgv builds the per-GOOS credential-store lookup argv. Returns nil on

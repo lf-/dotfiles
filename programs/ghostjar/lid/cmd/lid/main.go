@@ -114,7 +114,18 @@ func cmdShell(g globalOpts, args []string) int {
 }
 
 func cmdBake(g globalOpts, args []string) int {
-	profileName, _ := parseProfileAndExtra(args)
+	fs := flag.NewFlagSet("lid bake", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	var cacheSizeMB int
+	fs.IntVar(&cacheSizeMB, "cache-size", 0, "BuildKit cache disk size in MiB (default: matchlock's default of 10240)")
+	if err := fs.Parse(args); err != nil {
+		if err == flag.ErrHelp {
+			return 0
+		}
+		return 2
+	}
+
+	profileName, _ := parseProfileAndExtra(fs.Args())
 	disc, err := discover(g)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
@@ -129,7 +140,7 @@ func cmdBake(g globalOpts, args []string) int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	tag, err := runner.Bake(ctx, prof, os.Stderr)
+	tag, err := runner.Bake(ctx, prof, os.Stderr, runner.BakeOptions{CacheSizeMB: cacheSizeMB})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
 		return 1

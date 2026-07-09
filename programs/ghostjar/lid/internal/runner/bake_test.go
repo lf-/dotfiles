@@ -44,7 +44,7 @@ func TestDockerfileRendering(t *testing.T) {
 }
 
 func TestBakeRequiresSetup(t *testing.T) {
-	if _, err := Bake(t.Context(), &config.Profile{Name: "p", Image: "node:22"}, nil); err == nil {
+	if _, err := Bake(t.Context(), &config.Profile{Name: "p", Image: "node:22"}, nil, BakeOptions{}); err == nil {
 		t.Errorf("Bake should error when Setup is empty")
 	}
 }

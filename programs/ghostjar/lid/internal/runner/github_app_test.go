@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -78,6 +79,49 @@ func TestKeychainCredentialTrimsAndErrors(t *testing.T) {
 	empty := func(_ context.Context, _ []string) (string, error) { return "\n", nil }
 	if _, err := keychainCredential(context.Background(), empty, config.Source{Kind: config.SourceKeychain, Service: "svc"}); err == nil {
 		t.Error("expected error for empty keychain value")
+	}
+}
+
+// TestKeychainCredentialHexDump covers the macOS `security -w` quirk: multi-line
+// data (e.g. a PEM private key) comes back as a bare hex dump, which must be
+// decoded back to the original bytes rather than fed to pem.Decode verbatim.
+func TestKeychainCredentialHexDump(t *testing.T) {
+	pemStr, _ := testRSAKeyPEM(t) // multi-line, so `security` would hex-dump it
+	hexDump := hex.EncodeToString([]byte(pemStr))
+	run := func(_ context.Context, _ []string) (string, error) {
+		return hexDump + "\n", nil
+	}
+	got, err := keychainCredential(context.Background(), run, config.Source{Kind: config.SourceKeychain, Service: "svc"})
+	if err != nil {
+		t.Fatalf("keychainCredential: %v", err)
+	}
+	if got != pemStr {
+		t.Errorf("hex dump not decoded:\n got %q\nwant %q", got, pemStr)
+	}
+	// And the decoded value must parse as a key (the original failure mode).
+	if _, err := parseRSAPrivateKey([]byte(got)); err != nil {
+		t.Errorf("decoded PEM did not parse: %v", err)
+	}
+}
+
+func TestDecodeSecurityHexDump(t *testing.T) {
+	cases := []struct {
+		in      string
+		wantOut string
+		wantOK  bool
+	}{
+		{"48656c6c6f", "Hello", true},                  // even-length all-hex
+		{"48656C6C6F", "Hello", true},                  // uppercase hex
+		{"", "", false},                                // empty
+		{"abc", "", false},                             // odd length
+		{"-----BEGIN RSA PRIVATE KEY-----", "", false}, // real PEM header (has '-')
+		{"nothex!!", "", false},                        // non-hex chars
+	}
+	for _, c := range cases {
+		gotOut, gotOK := decodeSecurityHexDump(c.in)
+		if gotOK != c.wantOK || (gotOK && gotOut != c.wantOut) {
+			t.Errorf("decodeSecurityHexDump(%q) = (%q,%v), want (%q,%v)", c.in, gotOut, gotOK, c.wantOut, c.wantOK)
+		}
 	}
 }
 
