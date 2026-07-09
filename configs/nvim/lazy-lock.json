@@ -23,6 +23,7 @@
   "undoquit.vim": { "branch": "main", "commit": "96935cae0c04ab9c7384afe1d2537ce883672e8c" },
   "vim-airline": { "branch": "master", "commit": "f02ddb633868d0b1e83f2612b5b25ef1ecd210db" },
   "vim-airline-themes": { "branch": "master", "commit": "77aab8c6cf7179ddb8a05741da7e358a86b2c3ab" },
+  "vim-alloy": { "branch": "main", "commit": "0273f88f7199189f9a0f32213a34ab778e226f86" },
   "vim-bookmarks": { "branch": "master", "commit": "9cc5fa7ecc23b052bd524d07c85356c64b92aeef" },
   "vim-dispatch": { "branch": "master", "commit": "a2ff28abdb2d89725192db5b8562977d392a4d3f" },
   "vim-eunuch": { "branch": "master", "commit": "e86bb794a1c10a2edac130feb0ea590a00d03f1e" },

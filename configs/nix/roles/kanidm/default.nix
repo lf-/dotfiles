@@ -84,7 +84,9 @@ in
         # remember to zfs set recordsize=64k on the dataset
         db_fs_type = "zfs";
         # kanidm is behind a proxy
-        trust_x_forward_for = true;
+        http_client_address_info = {
+          x-forward-for = ["127.0.0.1"];
+        };
 
         online_backup = {
           path = "/var/lib/kanidm/backups";

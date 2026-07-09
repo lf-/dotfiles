@@ -80,4 +80,5 @@ return {
     'tikhomirov/vim-glsl',
     'bfrg/vim-jq',
     'vmchale/dhall-vim',
+    'grafana/vim-alloy',
 }

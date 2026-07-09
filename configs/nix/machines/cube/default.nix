@@ -12,6 +12,7 @@ in
     ../../roles/debug
     ../../roles/avahi
     ../../roles/kanidm
+    ../../roles/alloy
     ../../roles/oauth2-proxy
     ../../modules/caddy-wildcard.nix
     ../../modules/immich
@@ -93,6 +94,13 @@ in
     # Also it is fragile garbage that probably will break if clean installing
     # the system.
     "/etc/ssh/initrd-host-key" = config.age.secrets.initrd-ssh-host-ed25519.path;
+  };
+
+  age.secrets.grafana-alloy-env-file.file = ./grafana-alloy-env-file.age;
+  jade.alloy = {
+    enable = true;
+    configFile = ./config.alloy;
+    environmentFile = config.age.secrets.grafana-alloy-env-file.path;
   };
 
   time.timeZone = "UTC";
