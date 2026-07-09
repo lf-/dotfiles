@@ -20,20 +20,44 @@ import (
 //
 // oauthProvider is non-nil when the profile contains a claude_subscription
 // secret. oauthHosts lists the hosts the network hook should intercept.
-func Translate(p *config.Profile, cwd string, secrets []Resolved, oauthProvider *ClaudeOAuthProvider, oauthHosts []string) *sdk.SandboxBuilder {
+//
+// uid/gid are the guest identity the agent command runs as (see guestuser.go).
+// The cwd mount reports this ownership so the non-root agent can write to the
+// workspace. home is the host home dir, used to resolve "~"-prefixed mount host
+// paths (passed in to keep Translate pure — no I/O).
+func Translate(p *config.Profile, cwd, home string, secrets []Resolved, oauthProvider *ClaudeOAuthProvider, oauthHosts []string, uid, gid uint32) *sdk.SandboxBuilder {
 	b := sdk.New(p.Image).
 		WithCPUs(p.CPUs).
 		WithMemory(p.MemoryMB).
 		WithDiskSize(p.DiskMB).
 		WithTimeout(p.TimeoutSeconds)
 
-	// Working directory mount.
-	if p.MountCwd != config.MountOff {
+	// Working directory mount. The fixed owner uid/gid is a guest-visible
+	// remapping only: it lets the non-root agent read/write the mount; writes
+	// still land on the host as the real host user. For "ro" the agent sees the
+	// mount owned by uid but writes fail (intended).
+	//
+	// matchlock requires a workspace whenever any VFS mount exists, so also set
+	// it when extra mounts are present even if the cwd itself isn't mounted.
+	if p.MountCwd != config.MountOff || len(p.Mounts) > 0 {
 		b.WithWorkspace(p.Workspace)
+	}
+	if p.MountCwd != config.MountOff {
 		if p.MountCwd == config.MountRO {
-			b.MountHostDirReadonly(p.Workspace, cwd)
+			b.MountHostDirReadonlyAs(p.Workspace, cwd, uid, gid)
 		} else {
-			b.MountHostDir(p.Workspace, cwd)
+			b.MountHostDirAs(p.Workspace, cwd, uid, gid)
+		}
+	}
+
+	// Extra live mounts (VFS, guest under workspace — validated at config time).
+	// Same owner remap so the non-root agent can access them.
+	for _, m := range p.Mounts {
+		host := resolveHostPath(m.HostPath, cwd, home)
+		if m.Mode == config.MountRO {
+			b.MountHostDirReadonlyAs(m.GuestPath, host, uid, gid)
+		} else {
+			b.MountHostDirAs(m.GuestPath, host, uid, gid)
 		}
 	}
 
@@ -149,15 +173,12 @@ func Translate(p *config.Profile, cwd string, secrets []Resolved, oauthProvider 
 			},
 		})
 
-		// Set CLAUDE_CONFIG_DIR and HOME so Claude finds its config in the guest.
-		home := "/root"
-		if h, ok := p.Env["HOME"]; ok && h != "" {
-			home = h
-		}
-		b.WithEnv("HOME", home)
-		if _, ok := p.Env["CLAUDE_CONFIG_DIR"]; !ok {
-			b.WithEnv("CLAUDE_CONFIG_DIR", home+"/.claude")
-		}
+		// HOME/CLAUDE_CONFIG_DIR are intentionally NOT set here. The agent runs
+		// as the non-root guest user (see guestuser.go), and matchlock's guest
+		// exports HOME from that user's /etc/passwd entry at exec time. Since the
+		// resolved home isn't known until bootstrap (it may be a reused user like
+		// node's /home/node), lid writes the Claude config into that same home
+		// (bootstrapClaudeOAuth) and lets Claude derive its config dir from HOME.
 	}
 
 	return b

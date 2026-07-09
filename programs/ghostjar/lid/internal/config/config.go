@@ -42,6 +42,24 @@ type SecretSpec struct {
 	GitCredential bool
 }
 
+// MountSpec is a live host-directory mount into the guest (VFS, workspace-
+// confined). HostPath is kept verbatim from config (may be "~"-prefixed or
+// relative); the runner resolves it at launch.
+type MountSpec struct {
+	GuestPath string
+	HostPath  string
+	Mode      MountMode // "rw" | "ro"
+}
+
+// SeedSpec copies a host file/dir into an arbitrary guest path at boot. Used
+// for config the agent reads from $HOME (outside the workspace, so a live VFS
+// mount cannot reach it). Snapshot semantics — in-guest edits are not written
+// back to the host. HostPath is kept verbatim; the runner resolves it at launch.
+type SeedSpec struct {
+	GuestPath string
+	HostPath  string
+}
+
 // HostIP is a static hosts-file entry for the guest.
 type HostIP struct{ Host, IP string }
 
@@ -69,6 +87,9 @@ type Profile struct {
 	Env            map[string]string
 	Net            Network
 	Secrets        []SecretSpec
+	Mounts         []MountSpec // live VFS mounts (guest under Workspace)
+	Seeds          []SeedSpec  // host files copied into the guest at boot
+	Setup          []string    // build-time shell commands for `lid bake`
 }
 
 // File is the result of evaluating one starlark config file.

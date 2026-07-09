@@ -127,17 +127,76 @@ The subscription auth flow is fundamentally different from placeholder MITM:
    The dummy placeholder (`sk-ant-api03-lid-guest-placeholder`) never leaves
    the guest; the hook strips `X-Api-Key` before requests egress.
 
-The guest's `HOME` and `CLAUDE_CONFIG_DIR` env vars are set by `Translate` to
-point to the configured (or default `/root`) home directory.
-`console.anthropic.com` is intentionally NOT in the guest allowlist — all
-token refreshes happen on the host.
+The agent runs as a non-root user (see "Privilege drop" below), so `HOME` is
+exported by matchlock's guest from that user's `/etc/passwd` entry at exec time,
+and Claude derives its config dir from `$HOME/.claude` — the same home the runner
+seeds the state files into. `Translate` therefore does not bake in
+`HOME`/`CLAUDE_CONFIG_DIR`. `console.anthropic.com` is intentionally NOT in the
+guest allowlist — all token refreshes happen on the host.
+
+## Privilege drop
+
+Claude Code's `--dangerously-skip-permissions` refuses to run as root, so lid
+runs the agent as a non-root user (uid:gid `1000:1000`). Right after launch,
+`ensureGuestUser` (runner) runs a root bootstrap script that **reuses** an
+existing uid-1000 user if the image ships one (e.g. node's `node`, home
+`/home/node`) or else **creates** one (`useradd`/`adduser`, falling back to a raw
+`/etc/passwd`+`/etc/group` append) with home `/home/lid`; it also grants that user
+best-effort passwordless sudo (`/etc/sudoers.d`, only when `sudo` is present in
+the image, keyed by `#1000` so it works regardless of the resolved name). A real
+passwd entry is required because Node's `os.userInfo()` throws for a uid with no
+entry. The script prints the resolved home so the runner can seed Claude/git
+config there and `chown` it to `1000:1000`. Both exec paths (interactive TTY and
+pipe) run the command as `1000:1000`, and the cwd mount reports that owner
+(`MountHostDirAs`) so the agent can write the workspace — a guest-visible remap
+only; host writes still land as the real host user.
+
+## Mounts & seeds
+
+Two ways to bring host files into the guest, split because matchlock's VFS is
+**confined to the workspace subtree**: the guest FUSE daemon mounts the entire
+VFS as one tree at the workspace mountpoint, and matchlock rejects any mount
+whose guest path is not under the workspace.
+
+- **`lid.mount(host, guest, mode)` — live VFS mounts** (`mounts=[...]`). `guest`
+  must be under `workspace`. Wired in `Translate` via `MountHostDirAs`/
+  `MountHostDirReadonlyAs` with the agent uid/gid remap (like the cwd mount).
+  Live passthrough; `rw` writes land on the host. If a profile has extra mounts
+  but `mount_cwd="off"`, the workspace is still set (matchlock requires one when
+  any mount exists).
+- **`lid.seed(host, guest)` — boot-time copies** (`seed=[...]`). `guest` may be
+  anywhere — notably the HOME dir, which is *outside* the workspace and so
+  unreachable by a VFS mount, yet is where agents read config (`~/.claude`,
+  `~/.claude.json`). `seedGuestFiles` copies the host file/dir in at launch and
+  chowns it to the agent. Snapshot semantics (no write-back). Applied before the
+  Claude bootstrap so lid's managed auth-state files stay authoritative.
+
+Why seed can't just be a bind mount: every guest exec runs in its own mount
+namespace (`CLONE_NEWPID | CLONE_NEWNS`), so a `mount --bind` in a bootstrap exec
+never reaches the agent's namespace; file writes persist (shared rootfs) but
+mount ops don't. A real live bind into HOME would need a matchlock guest-init
+feature (do the bind in the agent namespace before the workload clone) — a future
+enhancement. Seeding uses the unsandboxed bootstrap primitives (`WriteFileMode` +
+`client.Exec` for `mkdir`/`chown`), since the workload exec path drops
+`CAP_DAC_OVERRIDE`/`CAP_CHOWN`.
+
+## Image baking
+
+`npx @anthropic-ai/claude-code` re-downloads Claude every boot. A profile can
+instead declare `setup=[...]` build commands; `lid bake` renders `FROM <image>`
++ one `RUN` per setup step into a Dockerfile and calls `matchlock build -t <tag>`
+(BuildKit-in-VM) to produce a local image tagged deterministically
+(`lid/<sha256(image+setup)[:12]>:latest`, `BakedTag`). `lid run` uses the baked
+tag when `matchlock image ls` shows it, else falls back to the base image with a
+"run lid bake" hint (`effectiveImage`). The rpc launch path resolves local-store
+tags first, so a baked tag is directly usable. The command then becomes just
+`["claude", ...]` instead of the npx bootstrap.
 
 ## Future / stretch
 
-- Image building (bake `claude` + toolchains into an OCI image; `lid bake`).
-  For now: any image with node/npm works, e.g. `docker.io/library/node:22`,
-  with `npm install -g @anthropic-ai/claude-code` in setup, or a prebuilt
-  image ref in config.
+- Host-controlled live bind mounts into arbitrary guest paths (matchlock
+  guest-init feature) — would let `~/.claude` be a live rw mount instead of a
+  boot-time copy.
 - Overlay (snapshot) mounts for cwd once matchlock's overlay VFS type is the
   right fit.
 - Per-run allowlist mutation (`lid allow <host>` against a running VM).

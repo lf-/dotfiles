@@ -87,7 +87,22 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		oauthHosts = oauthSpec.Hosts
 	}
 
-	builder := Translate(opts.Profile, opts.Cwd, secrets, oauthProvider, oauthHosts)
+	// If the profile bakes an image (setup=[...]), use the baked tag when it
+	// exists; otherwise fall back to the base image with a hint. A shallow copy
+	// keeps the resolved image local to this run.
+	prof := opts.Profile
+	if len(prof.Setup) > 0 {
+		effProfile := *prof
+		effProfile.Image = effectiveImage(ctx, prof, opts.Stderr)
+		prof = &effProfile
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return 1, fmt.Errorf("resolve home dir: %w", err)
+	}
+
+	builder := Translate(prof, opts.Cwd, home, secrets, oauthProvider, oauthHosts, guestUID, guestGID)
 
 	client, err := sdk.NewClient(sdk.DefaultConfig())
 	if err != nil {
@@ -106,36 +121,54 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		return 1, fmt.Errorf("launch sandbox: %w", err)
 	}
 
-	if err := bootstrapGitCredential(ctx, client, secrets, opts.Stderr); err != nil {
+	// Drop privileges: ensure a non-root user exists (claude's
+	// --dangerously-skip-permissions refuses to run as root) and run the agent
+	// command as it. This runs before the bootstraps so they can chown into the
+	// resolved home.
+	id, err := ensureGuestUser(ctx, client, opts.Stderr)
+	if err != nil {
+		return 1, err
+	}
+
+	// Seed host files into the guest (e.g. agent config in $HOME) before the
+	// Claude bootstrap, so lid's auth stubs for the specific files it manages
+	// (.claude.json, .claude/settings.json) stay authoritative while everything
+	// else the user seeds survives.
+	if err := seedGuestFiles(ctx, client, prof, id, opts.Cwd, home, opts.Stderr); err != nil {
+		return 1, err
+	}
+
+	if err := bootstrapGitCredential(ctx, client, secrets, id, opts.Stderr); err != nil {
 		return 1, err
 	}
 
 	if oauthSpec != nil {
-		if err := bootstrapClaudeOAuth(ctx, client, opts.Profile, opts.Stderr); err != nil {
+		if err := bootstrapClaudeOAuth(ctx, client, prof, id, opts.Stderr); err != nil {
 			return 1, err
 		}
 	}
 
 	workdir := ""
-	if opts.Profile.MountCwd != config.MountOff {
-		workdir = opts.Profile.Workspace
+	if prof.MountCwd != config.MountOff {
+		workdir = prof.Workspace
 	}
 	command := QuoteArgs(opts.Command)
 
 	stdinFd := int(opts.Stdin.Fd())
 	if term.IsTerminal(stdinFd) {
-		return runInteractive(ctx, client, command, workdir, opts.Stdin, opts.Stdout, stdinFd)
+		return runInteractive(ctx, client, command, workdir, id.User, opts.Stdin, opts.Stdout, stdinFd)
 	}
 
-	// Non-interactive stdin (pipe): use pipe mode, no PTY.
-	res, err := client.ExecPipe(ctx, command, opts.Stdin, opts.Stdout, opts.Stderr)
+	// Non-interactive stdin (pipe): use pipe mode, no PTY. Run as the non-root
+	// guest user, in the workspace dir (the pipe path historically ignored it).
+	res, err := client.ExecPipeWithDirUser(ctx, command, workdir, id.User, opts.Stdin, opts.Stdout, opts.Stderr)
 	if err != nil {
 		return 1, fmt.Errorf("exec: %w", err)
 	}
 	return res.ExitCode, nil
 }
 
-func runInteractive(ctx context.Context, client *sdk.Client, command, workdir string, stdin, stdout *os.File, fd int) (int, error) {
+func runInteractive(ctx context.Context, client *sdk.Client, command, workdir, user string, stdin, stdout *os.File, fd int) (int, error) {
 	cols, rows, err := term.GetSize(fd) // x/term returns (width, height)
 	if err != nil {
 		rows, cols = 24, 80
@@ -154,6 +187,7 @@ func runInteractive(ctx context.Context, client *sdk.Client, command, workdir st
 
 	res, err := client.ExecInteractive(ctx, command, &sdk.ExecInteractiveOptions{
 		WorkingDir: workdir,
+		User:       user,
 		Rows:       uint16(rows),
 		Cols:       uint16(cols),
 		Stdin:      stdin,
@@ -170,7 +204,7 @@ func runInteractive(ctx context.Context, client *sdk.Client, command, workdir st
 // bootstrapGitCredential installs a guest git credential helper for the first
 // GitCredential secret. The helper answers with the MITM placeholder (never the
 // real token); matchlock swaps it for the real value in outbound HTTPS.
-func bootstrapGitCredential(ctx context.Context, client *sdk.Client, secrets []Resolved, logw io.Writer) error {
+func bootstrapGitCredential(ctx context.Context, client *sdk.Client, secrets []Resolved, id guestIdentity, logw io.Writer) error {
 	var placeholder string
 	found := false
 	for _, s := range secrets {
@@ -189,9 +223,13 @@ func bootstrapGitCredential(ctx context.Context, client *sdk.Client, secrets []R
 		return fmt.Errorf("install git credential helper: %w", err)
 	}
 
-	// --system first (works when git is present and we can write there), else
-	// fall back to --global. Missing git => nonzero exit; warn and continue.
-	res, err := client.Exec(ctx, "git config --system credential.helper lid || git config --global credential.helper lid")
+	// --system first (world-readable, so the non-root agent picks it up). If that
+	// fails, fall back to a --global config in the guest user's own home (not
+	// root's) and chown it. Missing git => nonzero exit; warn and continue.
+	cmd := fmt.Sprintf("git config --system credential.helper lid || "+
+		"{ HOME=%[1]s git config --global credential.helper lid && chown %[2]d:%[3]d %[1]s/.gitconfig; }",
+		id.Home, id.UID, id.GID)
+	res, err := client.Exec(ctx, cmd)
 	if err != nil {
 		fmt.Fprintf(logw, "lid: warning: could not configure git credential helper: %v\n", err)
 		return nil
@@ -220,11 +258,8 @@ const guestAPIKeyPlaceholder = "sk-ant-api03-lid-guest-placeholder"
 // bootstrapClaudeOAuth seeds the guest with Claude state files analogous to
 // what the claude-danger Python reference does in prepare_guest_claude_home.
 // Errors writing core state files are returned; non-critical ops only warn.
-func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Profile, logw io.Writer) error {
-	home := "/root"
-	if h, ok := p.Env["HOME"]; ok && h != "" {
-		home = h
-	}
+func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Profile, id guestIdentity, logw io.Writer) error {
+	home := id.Home
 	configDir := home + "/.claude"
 
 	// Create .claude directory.
@@ -258,6 +293,16 @@ func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Pro
 		fmt.Fprintf(logw, "lid: warning: could not remove guest .credentials.json: %v\n", err)
 	} else if res.ExitCode != 0 {
 		fmt.Fprintf(logw, "lid: warning: rm .credentials.json exited %d\n", res.ExitCode)
+	}
+
+	// The state files were written by the root RPC; hand ownership to the
+	// non-root agent so Claude (running as that user) can read and update them.
+	chown := fmt.Sprintf("chown -R %d:%d %s %s/.claude.json", id.UID, id.GID, configDir, home)
+	res, err = client.Exec(ctx, chown)
+	if err != nil {
+		fmt.Fprintf(logw, "lid: warning: could not chown guest Claude config: %v\n", err)
+	} else if res.ExitCode != 0 {
+		fmt.Fprintf(logw, "lid: warning: chown Claude config exited %d\n", res.ExitCode)
 	}
 
 	return nil

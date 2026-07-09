@@ -60,6 +60,8 @@ func run(args []string) int {
 		return cmdRun(g, subArgs)
 	case "shell":
 		return cmdShell(g, subArgs)
+	case "bake":
+		return cmdBake(g, subArgs)
 	case "ls":
 		return cmdLs(g)
 	case "check":
@@ -84,6 +86,7 @@ Usage:
 Commands:
   run [profile] [-- extra args]   boot a VM and run the profile command
   shell [profile]                 boot a VM and open /bin/sh
+  bake [profile]                  build the profile's setup= image (once)
   ls                              list profiles from the merged config
   check                           evaluate configs; nonzero exit on error
 
@@ -108,6 +111,31 @@ func cmdRun(g globalOpts, args []string) int {
 func cmdShell(g globalOpts, args []string) int {
 	profile, _ := parseProfileAndExtra(args)
 	return launch(g, profile, []string{"/bin/sh"}, nil)
+}
+
+func cmdBake(g globalOpts, args []string) int {
+	profileName, _ := parseProfileAndExtra(args)
+	disc, err := discover(g)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
+		return 1
+	}
+	prof, err := disc.Merged.Lookup(profileName)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
+		return 1
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	tag, err := runner.Bake(ctx, prof, os.Stderr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
+		return 1
+	}
+	fmt.Printf("baked %s\n", tag)
+	return 0
 }
 
 // parseProfileAndExtra splits "[profile] [-- extra...]": the first token before

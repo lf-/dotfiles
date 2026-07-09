@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/netip"
+	"path"
 	"regexp"
 	"sort"
 	"strconv"
@@ -103,6 +104,28 @@ func (n *networkValue) Type() string          { return "lid.network" }
 func (n *networkValue) Freeze()               {}
 func (n *networkValue) Truth() starlark.Bool  { return starlark.True }
 func (n *networkValue) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable type: lid.network") }
+
+// mountValue is the opaque result of lid.mount (a live VFS mount).
+type mountValue struct {
+	spec MountSpec
+}
+
+func (m *mountValue) String() string        { return "<lid.mount " + m.spec.GuestPath + ">" }
+func (m *mountValue) Type() string          { return "lid.mount" }
+func (m *mountValue) Freeze()               {}
+func (m *mountValue) Truth() starlark.Bool  { return starlark.True }
+func (m *mountValue) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable type: lid.mount") }
+
+// seedValue is the opaque result of lid.seed (a boot-time copy-inject).
+type seedValue struct {
+	spec SeedSpec
+}
+
+func (s *seedValue) String() string        { return "<lid.seed " + s.spec.GuestPath + ">" }
+func (s *seedValue) Type() string          { return "lid.seed" }
+func (s *seedValue) Freeze()               {}
+func (s *seedValue) Truth() starlark.Bool  { return starlark.True }
+func (s *seedValue) Hash() (uint32, error) { return 0, fmt.Errorf("unhashable type: lid.seed") }
 
 // ---------------------------------------------------------------------------
 // Host, size, timeout, cpu validation.
@@ -267,6 +290,8 @@ func (ld *loader) module() *starlarkstruct.Module {
 			"secret":              starlark.NewBuiltin("lid.secret", secretBuiltin),
 			"github":              starlark.NewBuiltin("lid.github", githubBuiltin),
 			"claude_subscription": starlark.NewBuiltin("lid.claude_subscription", claudeSubscriptionBuiltin),
+			"mount":               starlark.NewBuiltin("lid.mount", mountBuiltin),
+			"seed":                starlark.NewBuiltin("lid.seed", seedBuiltin),
 			"hosts":               hostsStruct,
 		},
 	}
@@ -419,6 +444,71 @@ func secretBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple,
 	return &secretValue{spec: SecretSpec{Name: name, Source: src, Hosts: hosts}}, nil
 }
 
+// withinWorkspace reports whether an absolute guest path lies within workspace,
+// mirroring matchlock's pkg/api mount validation (a "/" workspace admits any
+// absolute path). Both arguments are cleaned first.
+func withinWorkspace(guest, workspace string) bool {
+	guest = path.Clean(guest)
+	workspace = path.Clean(workspace)
+	if workspace == "/" {
+		return strings.HasPrefix(guest, "/")
+	}
+	return guest == workspace || strings.HasPrefix(guest, workspace+"/")
+}
+
+// mountBuiltin implements lid.mount: a live host-directory VFS mount. The guest
+// path must be absolute; the sandbox() caller additionally checks it lies under
+// the profile workspace. The host path is kept verbatim (resolved at launch).
+func mountBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("%s: positional arguments are not allowed; use keyword arguments", b.Name())
+	}
+	var host, guest string
+	mode := "rw"
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"host", &host,
+		"guest", &guest,
+		"mode?", &mode,
+	); err != nil {
+		return nil, err
+	}
+	if host == "" {
+		return nil, errf(ErrInvalidMount, "mount host must be nonempty")
+	}
+	if !strings.HasPrefix(guest, "/") {
+		return nil, errf(ErrInvalidMount, "mount guest %q is not an absolute path", guest)
+	}
+	switch MountMode(mode) {
+	case MountRW, MountRO:
+	default:
+		return nil, errf(ErrInvalidMount, "mount mode %q is not one of \"rw\", \"ro\"", mode)
+	}
+	return &mountValue{spec: MountSpec{GuestPath: guest, HostPath: host, Mode: MountMode(mode)}}, nil
+}
+
+// seedBuiltin implements lid.seed: a boot-time copy of a host file/dir into an
+// arbitrary (absolute) guest path. The host path is kept verbatim (resolved at
+// launch).
+func seedBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("%s: positional arguments are not allowed; use keyword arguments", b.Name())
+	}
+	var host, guest string
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"host", &host,
+		"guest", &guest,
+	); err != nil {
+		return nil, err
+	}
+	if host == "" {
+		return nil, errf(ErrInvalidMount, "seed host must be nonempty")
+	}
+	if !strings.HasPrefix(guest, "/") {
+		return nil, errf(ErrInvalidMount, "seed guest %q is not an absolute path", guest)
+	}
+	return &seedValue{spec: SeedSpec{GuestPath: guest, HostPath: host}}, nil
+}
+
 func githubBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
 	var hostsV starlark.Value
 	if err := starlark.UnpackArgs(b.Name(), args, kwargs, "hosts?", &hostsV); err != nil {
@@ -507,6 +597,7 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 		cpusV, memV, diskV, tmoV starlark.Value
 		networkV                 starlark.Value
 		secretsL, commandL       *starlark.List
+		mountsL, seedL, setupL   *starlark.List
 		envD                     *starlark.Dict
 	)
 	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
@@ -522,6 +613,9 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 		"secrets?", &secretsL,
 		"env?", &envD,
 		"command?", &commandL,
+		"mounts?", &mountsL,
+		"seed?", &seedL,
+		"setup?", &setupL,
 	); err != nil {
 		return nil, err
 	}
@@ -614,6 +708,43 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 			spec.Source.Cmd = append([]string(nil), spec.Source.Cmd...)
 			p.Secrets = append(p.Secrets, spec)
 		}
+	}
+
+	// Live VFS mounts. The guest path must lie under the workspace (matchlock
+	// serves the whole VFS as one tree rooted there).
+	if mountsL != nil {
+		for i := 0; i < mountsL.Len(); i++ {
+			mv, ok := mountsL.Index(i).(*mountValue)
+			if !ok {
+				return nil, fmt.Errorf("%s: mounts[%d]: got %s, want a value from lid.mount(...)",
+					b.Name(), i, mountsL.Index(i).Type())
+			}
+			if !withinWorkspace(mv.spec.GuestPath, p.Workspace) {
+				return nil, errf(ErrInvalidMount, "mount guest %q is not under workspace %q", mv.spec.GuestPath, p.Workspace)
+			}
+			p.Mounts = append(p.Mounts, mv.spec)
+		}
+	}
+
+	// Boot-time copies (into any guest path).
+	if seedL != nil {
+		for i := 0; i < seedL.Len(); i++ {
+			sv, ok := seedL.Index(i).(*seedValue)
+			if !ok {
+				return nil, fmt.Errorf("%s: seed[%d]: got %s, want a value from lid.seed(...)",
+					b.Name(), i, seedL.Index(i).Type())
+			}
+			p.Seeds = append(p.Seeds, sv.spec)
+		}
+	}
+
+	// Build-time commands for `lid bake`.
+	if setupL != nil {
+		setup, err := stringList(setupL, "setup", ErrBadCommand)
+		if err != nil {
+			return nil, err
+		}
+		p.Setup = setup
 	}
 
 	var nv *networkValue

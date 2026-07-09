@@ -55,9 +55,41 @@ Keyword-only arguments (positional args are an error):
 | `secrets`   | `list` of secret values       | `[]`           | values must come from `lid.secret`/`lid.github`/`lid.claude_subscription` |
 | `env`       | `dict[str, str]`              | `{}`           | |
 | `command`   | `list[str]`, nonempty         | `["claude"]`   | argv run by `lid run`; else `ErrBadCommand` |
+| `mounts`    | `list` of `lid.mount(...)`    | `[]`           | live VFS mounts; each `guest` must be under `workspace`; else `ErrInvalidMount` |
+| `seed`      | `list` of `lid.seed(...)`     | `[]`           | host files copied into any guest path at boot |
+| `setup`     | `list[str]`                   | `[]`           | build-time shell commands for `lid bake`; else `ErrBadCommand` |
 
 Unknown kwargs ⇒ error (`ErrEval` wrapping a message naming the kwarg).
 Returns `None`. Registers the profile in file order.
+
+### `lid.mount(host, guest, mode="rw")` — a live host-directory mount
+
+Keyword-only. Returns an opaque value usable only inside `mounts=[...]`.
+
+- `host`: required nonempty `str`. Kept verbatim; the runner resolves it at
+  launch (a leading `~`/`~/` expands to the host home; relative paths resolve
+  against the invocation cwd).
+- `guest`: required `str`, absolute (`/`-prefixed). Must lie under the profile
+  `workspace` — matchlock serves the whole guest VFS as one tree rooted at the
+  workspace, so mounts outside it are impossible. Violations ⇒ `ErrInvalidMount`.
+- `mode`: `"rw"` (default) or `"ro"`; else `ErrInvalidMount`.
+
+The mount reports the guest agent's uid/gid so the non-root agent can access it;
+it is a live passthrough (writes to `rw` mounts land on the host).
+
+### `lid.seed(host, guest)` — copy a host file/dir into the guest at boot
+
+Keyword-only. Returns an opaque value usable only inside `seed=[...]`.
+
+- `host`: required nonempty `str`; resolved like `lid.mount`'s `host`.
+- `guest`: required absolute `str`; may be **anywhere** (typically the HOME dir,
+  e.g. `/home/node/.claude`), since agents read config from `$HOME` which is
+  outside the workspace and thus unreachable by a VFS mount.
+
+Seeding copies the host file/dir into the guest path at launch and chowns it to
+the agent. Snapshot semantics: in-guest edits are not written back to the host.
+Seeds are applied before the Claude bootstrap, so lid's managed auth-state files
+(`.claude.json`, `.claude/settings.json`) remain authoritative.
 
 ### `lid.network(...)`
 
@@ -140,8 +172,9 @@ consistency; not used for placeholder swap) and
 The runner also seeds the guest with Claude state files (`.claude.json`,
 `.claude/.config.json`, `.claude/settings.json`) to suppress onboarding
 prompts, and removes any `.credentials.json` from the guest to prevent
-accidental use of stale file-based credentials. Guest `HOME` defaults to
-`/root`; override via `env={"HOME": "..."}` for non-root images.
+accidental use of stale file-based credentials. These are written into the
+non-root agent user's home (see DESIGN.md "Privilege drop") and chowned to it;
+`HOME` is exported by the guest from that user's passwd entry.
 
 Because it is a secret, existing semantics apply automatically: its hosts are
 unioned into `AllowedHosts`, and a profile with it but no `network` ⇒
@@ -236,6 +269,17 @@ type Network struct {
     DNS             []string
 }
 
+type MountSpec struct {
+    GuestPath string
+    HostPath  string    // verbatim from config; runner resolves ~ / relative
+    Mode      MountMode // "rw" | "ro"
+}
+
+type SeedSpec struct {
+    GuestPath string
+    HostPath  string // verbatim from config; runner resolves ~ / relative
+}
+
 type Profile struct {
     Name           string
     Image          string
@@ -249,6 +293,9 @@ type Profile struct {
     Env            map[string]string
     Net            Network
     Secrets        []SecretSpec
+    Mounts         []MountSpec // live VFS mounts (guest under Workspace)
+    Seeds          []SeedSpec  // host files copied into the guest at boot
+    Setup          []string    // build-time commands for `lid bake`
 }
 
 type File struct {

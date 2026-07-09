@@ -29,7 +29,22 @@ lid.sandbox(
         # `gh auth token` on the host, installs a guest git credential helper
         lid.github(),
     ],
-    command = ["npx", "-y", "@anthropic-ai/claude-code", "--dangerously-skip-permissions"],
+    # Bake Claude into a local image once (`lid bake`) so `lid run` launches
+    # instantly instead of re-downloading it every boot. `lid run` falls back to
+    # the base image (and hints to bake) if you haven't baked yet.
+    setup = ["npm install -g @anthropic-ai/claude-code"],
+    command = ["claude", "--dangerously-skip-permissions"],
+    # Bring your agent config into the VM. `seed` copies a host dir into an
+    # arbitrary guest path at boot (HOME is outside the workspace, so a live
+    # mount can't reach it); edits inside the VM are not written back.
+    seed = [
+        lid.seed(host = "~/.claude", guest = "/home/node/.claude"),
+    ],
+    # `mounts` are live VFS mounts and must live under the workspace
+    # (default /workspace). Example: a shared read-only reference dir.
+    mounts = [
+        lid.mount(host = "./shared", guest = "/workspace/shared", mode = "ro"),
+    ],
 )
 
 # API-key alternative: `lid run api-key`. Use this if you authenticate with an
