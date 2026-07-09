@@ -19,7 +19,7 @@ let
   };
 
   decompressor = {
-    zst = "unzstd";
+    zst = "do_zstd";
   };
 
   manifests = map (
@@ -31,11 +31,19 @@ let
     ]
   ) srcs;
 
+  fabricateStringContext =
+    p:
+    builtins.appendContext p {
+      ${p} = {
+        path = true;
+      };
+    };
+
   manifestsOwnPlatform = map (
     manifest: manifest.platforms.${systemMapping.${stdenv.hostPlatform.system}}
   ) manifests;
 
-  decompressors = map (x: decompressor.${x.format}) manifestsOwnPlatform;
+  decompressors = map (x: decompressor.${x.format or ""} or "cp") manifestsOwnPlatform;
   names = map (x: x.name) manifests;
 
   mkDownloader =
@@ -49,6 +57,8 @@ let
             outputHash = platform.digest;
             url = prov.url;
           }
+        else if prov ? store_path then
+          "${fabricateStringContext prov.store_path}/${platform.path}"
         else
           null
       ) platform.providers
@@ -76,12 +86,16 @@ stdenv.mkDerivation (
       runHook preUnpack
       mkdir -p $out/bin
 
+      do_zstd() {
+        unzstd -o "$2" "$1"
+      }
+
       for idx in "''${!srcs[@]}"; do
         src="''${srcs[idx]}"
         srcName="''${names[idx]}"
         decompressor="''${decompressors[idx]}"
 
-        $decompressor -o "$out/bin/$srcName" "$src"
+        $decompressor "$src" "$out/bin/$srcName"
         chmod +x "$out/bin/$srcName"
       done
       runHook postUnpack

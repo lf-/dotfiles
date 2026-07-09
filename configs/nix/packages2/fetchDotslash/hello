@@ -1,0 +1,19 @@
+#!/usr/bin/env dotslash
+
+{
+"name": "hello",
+    "platforms": {
+        "macos-aarch64": {
+            "size": 0,
+            "hash": "blake3",
+            "digest": "lies",
+            "path": "bin/hello",
+            "providers": [
+                {
+                    "type": "nix-substituter",
+                    "store_path": "/nix/store/b63hz9pz2rgmjvcwrmgxr3a8nqva4xmg-hello-2.12.3"
+                }
+            ]
+        }
+    }
+}
