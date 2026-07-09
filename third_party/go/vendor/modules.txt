@@ -1,0 +1,32 @@
+## workspace
+# github.com/google/uuid v1.6.0
+## explicit
+github.com/google/uuid
+# github.com/jingkaihe/matchlock v0.2.16 => ./third_party/go/matchlock
+## explicit; go 1.25.5
+github.com/jingkaihe/matchlock/internal/errx
+github.com/jingkaihe/matchlock/pkg/api
+github.com/jingkaihe/matchlock/pkg/sdk
+# github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
+## explicit
+github.com/kballard/go-shellquote
+# go.starlark.net v0.0.0-20260630144053-529d8e869a14
+## explicit; go 1.25.0
+go.starlark.net/internal/compile
+go.starlark.net/internal/spell
+go.starlark.net/resolve
+go.starlark.net/starlark
+go.starlark.net/starlarkstruct
+go.starlark.net/syntax
+# golang.org/x/sys v0.46.0
+## explicit; go 1.25.0
+golang.org/x/sys/plan9
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/term v0.44.0
+## explicit; go 1.25.0
+golang.org/x/term
+# pgregory.net/rapid v1.3.0
+## explicit; go 1.23
+pgregory.net/rapid
+# github.com/jingkaihe/matchlock => ./third_party/go/matchlock
