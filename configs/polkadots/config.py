@@ -52,6 +52,8 @@ actions = [
     SymlinkAction('../bin', '~/bin'),
     SymlinkAction('fonts', '~/.fonts'),
 
+    SymlinkAction('bun/bunfig.toml', '~/.config/.bunfig.toml'),
+
     MkdirAction('~/.config/fontconfig/conf.d'),
     SymlinkAction('fontconfig/conf.d', '~/.config/fontconfig/conf.d', dir_mode=True),
 
