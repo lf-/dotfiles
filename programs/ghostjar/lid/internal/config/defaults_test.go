@@ -39,6 +39,7 @@ var hostPresets = map[string][]string{
 	"ubuntu":    {"archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"},
 	"alpine":    {"dl-cdn.alpinelinux.org"},
 	"nix":       {"cache.nixos.org", "channels.nixos.org", "nixos.org"},
+	"fedora":    {"dl.fedoraproject.org", "mirrors.fedoraproject.org"},
 }
 
 // SPEC §lid.sandbox defaults table: cpus 2, memory 2048 MiB, disk 10240 MiB,
@@ -309,6 +310,21 @@ func TestCommandPassthrough(t *testing.T) {
 	want := []string{"bash", "-lc", "echo hi"}
 	if !reflect.DeepEqual(p.Command, want) {
 		t.Fatalf("Command = %q, want %q", p.Command, want)
+	}
+}
+
+func TestInitPassthrough(t *testing.T) {
+	p := loadOne(t, sb(`init = ["sysctl -w fs.inotify.max_user_watches=524288", "echo ready"]`))
+	want := []string{"sysctl -w fs.inotify.max_user_watches=524288", "echo ready"}
+	if !reflect.DeepEqual(p.Init, want) {
+		t.Fatalf("Init = %q, want %q", p.Init, want)
+	}
+}
+
+func TestInitDefault(t *testing.T) {
+	p := loadOne(t, sb())
+	if p.Init != nil {
+		t.Fatalf("Init = %q, want nil", p.Init)
 	}
 }
 

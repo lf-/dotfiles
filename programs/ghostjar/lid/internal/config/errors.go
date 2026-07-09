@@ -24,4 +24,5 @@ var (
 	ErrBadCommand       = errors.New("config: command must be a non-empty list of strings")
 	ErrKeychainSource   = errors.New("config: invalid keychain credential source")
 	ErrGitHubApp        = errors.New("config: invalid github_app configuration")
+	ErrInvalidBakeCache = errors.New("config: invalid bake_caches entry")
 )

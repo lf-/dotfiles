@@ -43,6 +43,35 @@ func TestDockerfileRendering(t *testing.T) {
 	}
 }
 
+func TestDockerfileRenderingWithCaches(t *testing.T) {
+	p := &config.Profile{
+		Image:      "fedora:41",
+		Setup:      []string{"dnf install -y git ripgrep"},
+		BakeCaches: []string{"/var/cache/dnf"},
+	}
+	got := dockerfile(p)
+	want := "FROM fedora:41\n" +
+		"RUN --mount=type=cache,target=/var/cache/dnf dnf install -y git ripgrep\n"
+	if got != want {
+		t.Errorf("dockerfile =\n%q\nwant\n%q", got, want)
+	}
+}
+
+func TestDockerfileRenderingWithMultipleCaches(t *testing.T) {
+	p := &config.Profile{
+		Image:      "ubuntu:24.04",
+		Setup:      []string{"apt-get update", "apt-get install -y git"},
+		BakeCaches: []string{"/var/cache/apt", "/var/lib/apt"},
+	}
+	got := dockerfile(p)
+	want := "FROM ubuntu:24.04\n" +
+		"RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt apt-get update\n" +
+		"RUN --mount=type=cache,target=/var/cache/apt --mount=type=cache,target=/var/lib/apt apt-get install -y git\n"
+	if got != want {
+		t.Errorf("dockerfile =\n%q\nwant\n%q", got, want)
+	}
+}
+
 func TestBakeRequiresSetup(t *testing.T) {
 	if _, err := Bake(t.Context(), &config.Profile{Name: "p", Image: "node:22"}, nil, BakeOptions{}); err == nil {
 		t.Errorf("Bake should error when Setup is empty")

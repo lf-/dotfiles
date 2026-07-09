@@ -43,7 +43,7 @@ func TestTranslateGitHubAppWiring(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"github.com", "api.github.com"}, BlockPrivateIPs: true}
 
 	ga := buildGitHubAppInjection(t, "ghs_live", "lid-ph-github_token-abc", []string{"github.com", "api.github.com"})
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, []GitHubAppInjection{ga}, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, []GitHubAppInjection{ga}, guestUID, guestGID).Options()
 
 	// Placeholder mirrored into guest env.
 	if opts.Env["GH_TOKEN"] != ga.Placeholder {

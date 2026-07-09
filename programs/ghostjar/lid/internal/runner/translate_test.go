@@ -6,6 +6,10 @@ import (
 	"jade.fyi/ghostjar/lid/internal/config"
 )
 
+// cwdGuest returns the expected guest cwd mount path for a profile — always
+// <workspace>/project (the unconditional cwd relocation).
+func cwdGuest(p *config.Profile) string { return p.Workspace + "/project" }
+
 func baseProfile() *config.Profile {
 	return &config.Profile{
 		Name:           "p",
@@ -22,7 +26,7 @@ func baseProfile() *config.Profile {
 
 func TestTranslateResources(t *testing.T) {
 	p := baseProfile()
-	opts := Translate(p, "/home/me/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/home/me/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if opts.Image != p.Image {
 		t.Errorf("image = %q", opts.Image)
 	}
@@ -34,7 +38,7 @@ func TestTranslateResources(t *testing.T) {
 func TestTranslateNoNetwork(t *testing.T) {
 	p := baseProfile()
 	p.Net = config.Network{NoNetwork: true, BlockPrivateIPs: true}
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if !opts.NoNetwork {
 		t.Errorf("expected NoNetwork=true")
 	}
@@ -54,7 +58,7 @@ func TestTranslateBlockPrivateAlwaysExplicit(t *testing.T) {
 	// Default (block private).
 	p := baseProfile()
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if !opts.BlockPrivateIPsSet || !opts.BlockPrivateIPs {
 		t.Errorf("expected block-private explicitly true, got set=%v val=%v", opts.BlockPrivateIPsSet, opts.BlockPrivateIPs)
 	}
@@ -62,7 +66,7 @@ func TestTranslateBlockPrivateAlwaysExplicit(t *testing.T) {
 	// allow_private.
 	p2 := baseProfile()
 	p2.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: false}
-	opts2 := Translate(p2, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts2 := Translate(p2, "/cwd", "/home/me", cwdGuest(p2), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if !opts2.BlockPrivateIPsSet || opts2.BlockPrivateIPs {
 		t.Errorf("expected block-private explicitly false, got set=%v val=%v", opts2.BlockPrivateIPsSet, opts2.BlockPrivateIPs)
 	}
@@ -74,7 +78,7 @@ func TestTranslateAllowedHosts(t *testing.T) {
 		AllowedHosts:    []string{"api.anthropic.com", "registry.npmjs.org"},
 		BlockPrivateIPs: true,
 	}
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if len(opts.AllowedHosts) != 2 || opts.AllowedHosts[0] != "api.anthropic.com" {
 		t.Errorf("allowed hosts = %v", opts.AllowedHosts)
 	}
@@ -90,7 +94,7 @@ func TestTranslateAllowAllOmitsAllowHost(t *testing.T) {
 		BlockPrivateIPs: true,
 	}
 	secrets := []Resolved{{Name: "GITHUB_TOKEN", Value: "real", Placeholder: "lid-ph-x", Hosts: []string{"api.github.com"}}}
-	opts := Translate(p, "/cwd", "/home/me", secrets, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), secrets, nil, nil, nil, guestUID, guestGID).Options()
 	if len(opts.AllowedHosts) != 0 {
 		t.Errorf("allow-all must add no explicit hosts, got %v", opts.AllowedHosts)
 	}
@@ -109,7 +113,7 @@ func TestTranslateSecretsAndGitCredential(t *testing.T) {
 		Hosts:         []string{"api.github.com"},
 		GitCredential: true,
 	}}
-	opts := Translate(p, "/cwd", "/home/me", secrets, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), secrets, nil, nil, nil, guestUID, guestGID).Options()
 	if len(opts.Secrets) != 1 {
 		t.Fatalf("expected 1 secret, got %d", len(opts.Secrets))
 	}
@@ -135,19 +139,23 @@ func TestTranslateSecretsAndGitCredential(t *testing.T) {
 }
 
 func TestTranslateMountModes(t *testing.T) {
-	// rw
+	// rw — cwd mounts at <workspace>/project, not the workspace root.
 	p := baseProfile()
 	p.MountCwd = config.MountRW
-	opts := Translate(p, "/host/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
-	m, ok := opts.Mounts["/workspace"]
+	opts := Translate(p, "/host/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
+	m, ok := opts.Mounts["/workspace/project"]
 	if !ok {
-		t.Fatalf("expected mount at /workspace")
+		t.Fatalf("expected mount at /workspace/project, got mounts: %v", opts.Mounts)
 	}
 	if m.Type != "host_fs" || m.HostPath != "/host/proj" || m.Readonly {
 		t.Errorf("rw mount wrong: %+v", m)
 	}
 	if opts.Workspace != "/workspace" {
 		t.Errorf("workspace = %q", opts.Workspace)
+	}
+	// The cwd must NOT be mounted at the workspace root itself.
+	if _, ok := opts.Mounts["/workspace"]; ok {
+		t.Errorf("cwd must not mount at /workspace root; got mount there")
 	}
 	// The mount reports the non-root guest identity so the agent can write.
 	if m.OwnerUID == nil || *m.OwnerUID != guestUID || m.OwnerGID == nil || *m.OwnerGID != guestGID {
@@ -156,17 +164,17 @@ func TestTranslateMountModes(t *testing.T) {
 
 	// ro
 	p.MountCwd = config.MountRO
-	opts = Translate(p, "/host/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
-	if m := opts.Mounts["/workspace"]; !m.Readonly {
+	opts = Translate(p, "/host/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
+	if m := opts.Mounts["/workspace/project"]; !m.Readonly {
 		t.Errorf("ro mount should be readonly: %+v", m)
 	}
-	if m := opts.Mounts["/workspace"]; m.OwnerUID == nil || *m.OwnerUID != guestUID || m.OwnerGID == nil || *m.OwnerGID != guestGID {
+	if m := opts.Mounts["/workspace/project"]; m.OwnerUID == nil || *m.OwnerUID != guestUID || m.OwnerGID == nil || *m.OwnerGID != guestGID {
 		t.Errorf("ro mount owner = (%v,%v), want (%d,%d)", m.OwnerUID, m.OwnerGID, guestUID, guestGID)
 	}
 
 	// off
 	p.MountCwd = config.MountOff
-	opts = Translate(p, "/host/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts = Translate(p, "/host/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if len(opts.Mounts) != 0 {
 		t.Errorf("mount off should produce no mounts, got %v", opts.Mounts)
 	}
@@ -182,7 +190,7 @@ func TestTranslateExtraMounts(t *testing.T) {
 		{GuestPath: "/workspace/shared", HostPath: "./shared", Mode: config.MountRW},
 		{GuestPath: "/workspace/cfg", HostPath: "~/cfg", Mode: config.MountRO},
 	}
-	opts := Translate(p, "/host/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/host/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 
 	rw, ok := opts.Mounts["/workspace/shared"]
 	if !ok {
@@ -208,14 +216,17 @@ func TestTranslateWorkspaceSetWhenMountsButCwdOff(t *testing.T) {
 	p := baseProfile()
 	p.MountCwd = config.MountOff
 	p.Mounts = []config.MountSpec{{GuestPath: "/workspace/x", HostPath: "./x", Mode: config.MountRW}}
-	opts := Translate(p, "/host/proj", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/host/proj", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 
 	if opts.Workspace != "/workspace" {
 		t.Errorf("workspace should be set when mounts exist even with mount_cwd=off, got %q", opts.Workspace)
 	}
-	// No cwd mount, but the extra mount is present.
+	// No cwd mount (mount_cwd=off), so neither /workspace nor /workspace/project should appear.
 	if _, ok := opts.Mounts["/workspace"]; ok {
 		t.Errorf("mount_cwd=off should not mount the cwd at /workspace")
+	}
+	if _, ok := opts.Mounts["/workspace/project"]; ok {
+		t.Errorf("mount_cwd=off should not mount the cwd at /workspace/project")
 	}
 	if _, ok := opts.Mounts["/workspace/x"]; !ok {
 		t.Errorf("extra mount missing")
@@ -247,7 +258,7 @@ func TestTranslateAddHostsDNSEnv(t *testing.T) {
 		AddHosts:        []config.HostIP{{Host: "internal.svc", IP: "10.0.0.5"}},
 		DNS:             []string{"1.1.1.1"},
 	}
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 	if len(opts.AddHosts) != 1 || opts.AddHosts[0].Host != "internal.svc" || opts.AddHosts[0].IP != "10.0.0.5" {
 		t.Errorf("add hosts = %+v", opts.AddHosts)
 	}

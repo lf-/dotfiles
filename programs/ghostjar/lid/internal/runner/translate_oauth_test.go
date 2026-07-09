@@ -46,7 +46,7 @@ func TestTranslateWithOAuthAddsNetworkInterception(t *testing.T) {
 	provider := buildOAuthProvider(t, "test-access-token")
 	oauthHosts := []string{"api.anthropic.com", "platform.claude.com"}
 
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, oauthHosts, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, oauthHosts, nil, guestUID, guestGID).Options()
 
 	if opts.NetworkInterception == nil {
 		t.Fatalf("expected NetworkInterception to be set when OAuth provider is present")
@@ -75,7 +75,7 @@ func TestTranslateWithOAuthDoesNotSetHomeOrConfigDir(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
 	provider := buildOAuthProvider(t, "tok")
 
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
 
 	if h, ok := opts.Env["HOME"]; ok {
 		t.Errorf("HOME should not be set by Translate, got %q", h)
@@ -93,7 +93,7 @@ func TestTranslateWithOAuthPassesProfileEnvThrough(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
 	provider := buildOAuthProvider(t, "tok")
 
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
 
 	if opts.Env["HOME"] != "/home/agent" {
 		t.Errorf("HOME = %q, want /home/agent (passed through)", opts.Env["HOME"])
@@ -109,7 +109,7 @@ func TestTranslateWithOAuthDoesNotSetClaudeConfigDirIfUserSet(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
 	provider := buildOAuthProvider(t, "tok")
 
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
 
 	// The user-provided CLAUDE_CONFIG_DIR should not be overwritten by Translate.
 	if opts.Env["CLAUDE_CONFIG_DIR"] != "/my/custom/config" {
@@ -122,7 +122,7 @@ func TestTranslateWithOAuthHookRewritesHeaders(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
 	provider := buildOAuthProvider(t, "my-access-token")
 
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
 
 	if opts.NetworkInterception == nil || len(opts.NetworkInterception.Rules) == 0 {
 		t.Fatal("expected network interception rule")
@@ -201,7 +201,7 @@ func TestTranslateWithOAuthNoPlaceholderSecret(t *testing.T) {
 	provider := buildOAuthProvider(t, "tok")
 
 	// Pass no normal secrets (nil), only the oauth provider.
-	opts := Translate(p, "/cwd", "/home/me", nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options()
 
 	// Secrets in the builder should be empty — the OAuth spec is handled via hook.
 	if len(opts.Secrets) != 0 {
@@ -214,7 +214,7 @@ func TestTranslateWithoutOAuthNoInterception(t *testing.T) {
 	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
 
 	// No OAuth provider.
-	opts := Translate(p, "/cwd", "/home/me", nil, nil, nil, nil, guestUID, guestGID).Options()
+	opts := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, nil, nil, nil, guestUID, guestGID).Options()
 
 	if opts.NetworkInterception != nil {
 		t.Errorf("expected no NetworkInterception when no OAuth provider")

@@ -160,6 +160,9 @@ func TestErrorSentinels(t *testing.T) {
 		// --- command ---
 		{"command_empty", sb(`command = []`), both(config.ErrBadCommand)},
 		{"command_non_string", sb(`command = ["ok", 3]`), both(config.ErrBadCommand)},
+
+		// --- init ---
+		{"init_non_string", sb(`init = [1]`), both(config.ErrBadCommand)},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

@@ -106,6 +106,10 @@ type Profile struct {
 	Mounts         []MountSpec // live VFS mounts (guest under Workspace)
 	Seeds          []SeedSpec  // host files copied into the guest at boot
 	Setup          []string    // build-time shell commands for `lid bake`
+	BakeCaches     []string    // absolute paths mounted as BuildKit caches during `lid bake`
+	Init           []string    // root shell commands run at VM boot before the guest user is set up
+	Privileged     bool        // skip in-guest security restrictions (seccomp, cap drop, no_new_privs)
+	PersistClaude  bool        // persist Claude conversation state across runs via a per-project host store
 }
 
 // File is the result of evaluating one starlark config file.

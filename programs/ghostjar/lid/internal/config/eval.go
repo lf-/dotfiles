@@ -792,10 +792,11 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 		name, image              string
 		workspace                = "/workspace"
 		mountCwd                 = "rw"
+		privileged, persistClaude bool
 		cpusV, memV, diskV, tmoV starlark.Value
 		networkV                 starlark.Value
 		secretsL, commandL       *starlark.List
-		mountsL, seedL, setupL   *starlark.List
+		mountsL, seedL, setupL, initL, bakeCachesL *starlark.List
 		envD                     *starlark.Dict
 	)
 	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
@@ -814,6 +815,10 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 		"mounts?", &mountsL,
 		"seed?", &seedL,
 		"setup?", &setupL,
+		"bake_caches?", &bakeCachesL,
+		"init?", &initL,
+		"privileged?", &privileged,
+		"persist_claude?", &persistClaude,
 	); err != nil {
 		return nil, err
 	}
@@ -944,6 +949,32 @@ func (ld *loader) sandbox(_ *starlark.Thread, b *starlark.Builtin, args starlark
 		}
 		p.Setup = setup
 	}
+
+	// Cache directories mounted into BuildKit during `lid bake`.
+	if bakeCachesL != nil {
+		caches, err := stringList(bakeCachesL, "bake_caches", ErrInvalidBakeCache)
+		if err != nil {
+			return nil, err
+		}
+		for i, c := range caches {
+			if !strings.HasPrefix(c, "/") {
+				return nil, errf(ErrInvalidBakeCache, "bake_caches[%d]: %q is not an absolute path", i, c)
+			}
+		}
+		p.BakeCaches = caches
+	}
+
+	// Root shell commands run at VM boot before the guest user is set up.
+	if initL != nil {
+		init, err := stringList(initL, "init", ErrBadCommand)
+		if err != nil {
+			return nil, err
+		}
+		p.Init = init
+	}
+
+	p.Privileged = privileged
+	p.PersistClaude = persistClaude
 
 	var nv *networkValue
 	switch v := networkV.(type) {

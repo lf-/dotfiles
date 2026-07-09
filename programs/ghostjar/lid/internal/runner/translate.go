@@ -18,6 +18,12 @@ import (
 // It is pure (no I/O): the caller resolves secrets beforehand and passes them
 // in with their placeholders.
 //
+// cwdGuestPath is the guest path where the host cwd is mounted. It is always
+// a subdir of the workspace (e.g. "/workspace/project") so that lid-managed
+// siblings (persist store, future additions) can live beside it without
+// appearing inside the project tree. The workspace VFS root (p.Workspace) is
+// the container; cwdGuestPath is the project mount within it.
+//
 // oauthProvider is non-nil when the profile contains a claude_subscription
 // secret. oauthHosts lists the hosts the network hook should intercept.
 //
@@ -29,17 +35,26 @@ import (
 // The cwd mount reports this ownership so the non-root agent can write to the
 // workspace. home is the host home dir, used to resolve "~"-prefixed mount host
 // paths (passed in to keep Translate pure — no I/O).
-func Translate(p *config.Profile, cwd, home string, secrets []Resolved, oauthProvider *ClaudeOAuthProvider, oauthHosts []string, githubApps []GitHubAppInjection, uid, gid uint32) *sdk.SandboxBuilder {
+func Translate(p *config.Profile, cwd, home, cwdGuestPath string, secrets []Resolved, oauthProvider *ClaudeOAuthProvider, oauthHosts []string, githubApps []GitHubAppInjection, uid, gid uint32) *sdk.SandboxBuilder {
 	b := sdk.New(p.Image).
 		WithCPUs(p.CPUs).
 		WithMemory(p.MemoryMB).
 		WithDiskSize(p.DiskMB).
 		WithTimeout(p.TimeoutSeconds)
 
+	if p.Privileged {
+		b.WithPrivileged()
+	}
+
 	// Working directory mount. The fixed owner uid/gid is a guest-visible
 	// remapping only: it lets the non-root agent read/write the mount; writes
 	// still land on the host as the real host user. For "ro" the agent sees the
 	// mount owned by uid but writes fail (intended).
+	//
+	// The cwd mounts at cwdGuestPath (a subdir of the workspace, e.g.
+	// "/workspace/project") rather than at the workspace root. This keeps the
+	// workspace root as a lid-owned container so sibling mounts (.lid/claude,
+	// etc.) never appear inside the project tree.
 	//
 	// matchlock requires a workspace whenever any VFS mount exists, so also set
 	// it when extra mounts are present even if the cwd itself isn't mounted.
@@ -48,9 +63,9 @@ func Translate(p *config.Profile, cwd, home string, secrets []Resolved, oauthPro
 	}
 	if p.MountCwd != config.MountOff {
 		if p.MountCwd == config.MountRO {
-			b.MountHostDirReadonlyAs(p.Workspace, cwd, uid, gid)
+			b.MountHostDirReadonlyAs(cwdGuestPath, cwd, uid, gid)
 		} else {
-			b.MountHostDirAs(p.Workspace, cwd, uid, gid)
+			b.MountHostDirAs(cwdGuestPath, cwd, uid, gid)
 		}
 	}
 

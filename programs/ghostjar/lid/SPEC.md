@@ -58,7 +58,11 @@ Keyword-only arguments (positional args are an error):
 | `command`   | `list[str]`, nonempty         | `["claude"]`   | argv run by `lid run`; else `ErrBadCommand` |
 | `mounts`    | `list` of `lid.mount(...)`    | `[]`           | live VFS mounts; each `guest` must be under `workspace`; else `ErrInvalidMount` |
 | `seed`      | `list` of `lid.seed(...)`     | `[]`           | host files copied into any guest path at boot |
-| `setup`     | `list[str]`                   | `[]`           | build-time shell commands for `lid bake`; else `ErrBadCommand` |
+| `setup`          | `list[str]`                   | `[]`           | build-time shell commands for `lid bake`; else `ErrBadCommand` |
+| `bake_caches`    | `list[str]` of absolute paths | `[]`           | directories mounted as BuildKit caches in each `setup` `RUN` step; each entry must start with `/`; else `ErrInvalidBakeCache` |
+| `init`           | `list[str]`                   | `[]`           | root shell commands run at VM boot before the guest user is set up; else `ErrBadCommand` |
+| `privileged`     | `bool`                        | `False`        | skip in-guest security restrictions (seccomp, cap drop, `no_new_privs`); use when the agent needs to install packages or build root filesystems inside the VM |
+| `persist_claude` | `bool`                        | `False`        | persist Claude conversation state across runs via a per-project host store (see §Claude state persistence) |
 
 Unknown kwargs ⇒ error (`ErrEval` wrapping a message naming the kwarg).
 Returns `None`. Registers the profile in file order.
@@ -290,6 +294,51 @@ A size is an `int` (MiB) or a `str` matching `^[0-9]+(MiB|GiB|MB|GB)$`
   is that `value=` literals never appear in `Env` or any non-secret field).
 - **Command, workspace, mount mode, resources:** validated & defaulted per
   the tables above; `MemoryMB`/`DiskMB` in MiB; `TimeoutSeconds` in seconds.
+- **`persist_claude`:** compiled to `PersistClaude bool`; default `false`.
+
+## Workspace layout
+
+The runner always treats the workspace VFS root as a **lid-owned container**.
+The host cwd is mounted at **`<workspace>/project`** (e.g. `/workspace/project`),
+not at the workspace root. This keeps any lid-managed sibling mounts (e.g. the
+persist store) outside the project tree. The command `workdir` is set to
+`<workspace>/project` when `mount_cwd` is `"rw"` or `"ro"`.
+
+User `lid.mount`s are still validated against `<workspace>` and may sit anywhere
+under it (including anywhere under `<workspace>/project`).
+
+## Claude state persistence
+
+When `persist_claude = True`, the runner:
+
+1. Computes a **per-project host store** path:
+   `$XDG_DATA_HOME/lid/persist/<key>/claude` (fallback: `~/.local/share/...`),
+   where `<key>` is derived deterministically from the host cwd by replacing
+   path separators with `-` and stripping the leading `-`.
+
+2. **Mounts** the host store at `<workspace>/.lid/claude` (rw, owned as the
+   guest agent uid/gid) — a sibling of `<workspace>/project`, invisible from
+   inside the project tree.
+
+3. After the Claude OAuth bootstrap (which creates a real `~/.claude` directory
+   with lid's managed config files), **symlinks** each of Claude's data paths
+   into the mount:
+
+   | Persisted path | Type |
+   |---|---|
+   | `~/.claude/projects` | dir |
+   | `~/.claude/todos` | dir |
+   | `~/.claude/shell-snapshots` | dir |
+   | `~/.claude/statsig` | dir |
+   | `~/.claude/history.jsonl` | file |
+
+   `~/.claude` itself remains a **real directory** so that lid's managed files
+   (`settings.json`, `.config.json`, `.credentials.json`) stay in the guest
+   rootfs and are never written to the host store.
+
+Managed files (`~/.claude.json`, `~/.claude/settings.json`,
+`~/.claude/.config.json`) are regenerated each run. `~/.claude/.credentials.json`
+is removed each boot. Neither ever reaches the host store.
 
 ## Go API (pinned)
 
@@ -367,6 +416,10 @@ type Profile struct {
     Mounts         []MountSpec // live VFS mounts (guest under Workspace)
     Seeds          []SeedSpec  // host files copied into the guest at boot
     Setup          []string    // build-time commands for `lid bake`
+    BakeCaches     []string    // absolute paths mounted as BuildKit caches during `lid bake`
+    Init           []string    // root shell commands run at VM boot before the guest user is set up
+    Privileged     bool        // skip in-guest security restrictions (seccomp, cap drop, no_new_privs)
+    PersistClaude  bool        // persist Claude conversation state across runs via a per-project host store
 }
 
 type File struct {
@@ -396,7 +449,7 @@ results: `ErrEval`, `ErrDuplicateProfile`, `ErrUnknownProfile`,
 `ErrInvalidTimeout`, `ErrInvalidWorkspace`, `ErrInvalidMount`,
 `ErrSecretName`, `ErrSecretSource`, `ErrSecretHosts`, `ErrEmptyAllow`,
 `ErrAllowAllConflict`, `ErrNoNetworkSecrets`, `ErrBadCommand`,
-`ErrKeychainSource`, `ErrGitHubApp`.
+`ErrKeychainSource`, `ErrGitHubApp`, `ErrInvalidBakeCache`.
 
 Builtin-argument failures surface from `LoadFile` such that **both**
 `errors.Is(err, ErrEval)` and `errors.Is(err, ErrTheSpecificOne)` hold.

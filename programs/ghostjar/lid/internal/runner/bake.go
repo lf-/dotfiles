@@ -34,8 +34,12 @@ func BakedTag(p *config.Profile) string {
 func dockerfile(p *config.Profile) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "FROM %s\n", p.Image)
+	mounts := ""
+	for _, dir := range p.BakeCaches {
+		mounts += fmt.Sprintf(" --mount=type=cache,target=%s", dir)
+	}
 	for _, cmd := range p.Setup {
-		fmt.Fprintf(&b, "RUN %s\n", cmd)
+		fmt.Fprintf(&b, "RUN%s %s\n", mounts, cmd)
 	}
 	return b.String()
 }

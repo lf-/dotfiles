@@ -2,6 +2,10 @@
 #
 # Copy to your project root as lid.star (or ~/.config/lid/lid.star for a
 # global default) and run `lid`.
+#
+# Layout: lid mounts your project at /workspace/project (not the workspace
+# root /workspace) so that lid-managed state (e.g. the persist store) can sit
+# as siblings without appearing inside your project tree.
 
 lid.sandbox(
     name = "default",
@@ -10,7 +14,7 @@ lid.sandbox(
     memory = "4GiB",
     disk = "20GiB",
     timeout = "12h",
-    # cwd is mounted read-write at /workspace by default (mount_cwd = "rw").
+    # cwd is mounted read-write at /workspace/project (mount_cwd = "rw").
     network = lid.network(
         # deny-by-default: only these hosts are reachable, private IPs blocked
         allow = lid.hosts.github + lid.hosts.npm,
@@ -29,6 +33,11 @@ lid.sandbox(
         # `gh auth token` on the host, installs a guest git credential helper
         lid.github(),
     ],
+    # Persist Claude conversation history across runs. lid maintains a per-project
+    # store keyed by your host cwd; each repo gets its own history. Managed files
+    # (settings.json, .credentials.json) are regenerated each run and never reach
+    # the host store.
+    persist_claude = True,
     # Bake Claude into a local image once (`lid bake`) so `lid run` launches
     # instantly instead of re-downloading it every boot. `lid run` falls back to
     # the base image (and hints to bake) if you haven't baked yet.

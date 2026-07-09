@@ -131,7 +131,42 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 		return 1, fmt.Errorf("resolve home dir: %w", err)
 	}
 
-	builder := Translate(prof, opts.Cwd, home, secrets, oauthProvider, oauthHosts, githubApps, guestUID, guestGID)
+	// The cwd always mounts at <workspace>/project so that lid-managed sibling
+	// mounts (e.g. the persist store) never appear inside the project tree.
+	cwdGuest := prof.Workspace + "/project"
+
+	// When persist_claude is set, synthesize a live mount of the per-project
+	// host store at <workspace>/.lid/claude, then wire it into ~/.claude after
+	// the OAuth bootstrap (see wireClaudePersist below).
+	var guestPersistPath string
+	if prof.PersistClaude {
+		hostStore, err := claudePersistHostStore(opts.Cwd, home)
+		if err != nil {
+			return 1, fmt.Errorf("claude persist store: %w", err)
+		}
+		if err := os.MkdirAll(hostStore, 0o700); err != nil {
+			return 1, fmt.Errorf("create claude persist store %s: %w", hostStore, err)
+		}
+		guestPersistPath = prof.Workspace + "/.lid/claude"
+		// Shallow-copy to avoid mutating the caller's profile.
+		if prof == opts.Profile {
+			effProfile := *prof
+			prof = &effProfile
+		}
+		prof.Mounts = append(append([]config.MountSpec(nil), prof.Mounts...),
+			config.MountSpec{GuestPath: guestPersistPath, HostPath: hostStore, Mode: config.MountRW})
+	}
+
+	// Ensure host directories for all mounts exist; matchlock fails at launch if
+	// a mount host path is absent, and a missing-dir error is opaque.
+	for _, m := range prof.Mounts {
+		hostPath := resolveHostPath(m.HostPath, opts.Cwd, home)
+		if err := os.MkdirAll(hostPath, 0o755); err != nil {
+			fmt.Fprintf(opts.Stderr, "lid: warning: could not create mount host dir %s: %v\n", hostPath, err)
+		}
+	}
+
+	builder := Translate(prof, opts.Cwd, home, cwdGuest, secrets, oauthProvider, oauthHosts, githubApps, guestUID, guestGID)
 
 	client, err := sdk.NewClient(sdk.DefaultConfig())
 	if err != nil {
@@ -148,6 +183,10 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 
 	if _, err := client.Launch(builder); err != nil {
 		return 1, fmt.Errorf("launch sandbox: %w", err)
+	}
+
+	if err := runInitCmds(ctx, client, prof.Init, opts.Stderr); err != nil {
+		return 1, err
 	}
 
 	// Drop privileges: ensure a non-root user exists (claude's
@@ -185,14 +224,22 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 	}
 
 	if oauthSpec != nil {
-		if err := bootstrapClaudeOAuth(ctx, client, prof, id, opts.Stderr); err != nil {
+		if err := bootstrapClaudeOAuth(ctx, client, cwdGuest, id, opts.Stderr); err != nil {
+			return 1, err
+		}
+	}
+
+	// Wire persisted Claude state dirs into ~/.claude after the OAuth bootstrap
+	// has created the real ~/.claude directory.
+	if prof.PersistClaude {
+		if err := wireClaudePersist(ctx, client, guestPersistPath, id, opts.Stderr); err != nil {
 			return 1, err
 		}
 	}
 
 	workdir := ""
 	if prof.MountCwd != config.MountOff {
-		workdir = prof.Workspace
+		workdir = cwdGuest
 	}
 	command := QuoteArgs(opts.Command)
 
@@ -252,6 +299,29 @@ func firstGitCredentialPlaceholder(secrets []Resolved) string {
 		}
 	}
 	return ""
+}
+
+// runInitCmds runs each init shell command as root inside the live VM. Any
+// non-zero exit or transport error is fatal — the sandbox starts in an unknown
+// state if a user-specified root command fails.
+func runInitCmds(ctx context.Context, client *sdk.Client, cmds []string, logw io.Writer) error {
+	for _, cmd := range cmds {
+		fmt.Fprintf(logw, "lid: init: %s\n", cmd)
+		res, err := client.Exec(ctx, cmd)
+		if err != nil {
+			return fmt.Errorf("init command %q: %w", cmd, err)
+		}
+		if res.Stdout != "" {
+			fmt.Fprint(logw, res.Stdout)
+		}
+		if res.Stderr != "" {
+			fmt.Fprint(logw, res.Stderr)
+		}
+		if res.ExitCode != 0 {
+			return fmt.Errorf("init command %q: exited %d", cmd, res.ExitCode)
+		}
+	}
+	return nil
 }
 
 // bootstrapGitCredential installs a guest git credential helper answering with
@@ -340,8 +410,10 @@ const guestAPIKeyPlaceholder = "sk-ant-api03-lid-guest-placeholder"
 
 // bootstrapClaudeOAuth seeds the guest with Claude state files analogous to
 // what the claude-danger Python reference does in prepare_guest_claude_home.
+// cwdGuest is the guest path where the project is mounted; it is used to key
+// the Claude project-trust entry so Claude trusts the real project dir.
 // Errors writing core state files are returned; non-critical ops only warn.
-func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Profile, id guestIdentity, logw io.Writer) error {
+func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, cwdGuest string, id guestIdentity, logw io.Writer) error {
 	home := id.Home
 	configDir := home + "/.claude"
 
@@ -355,7 +427,9 @@ func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, p *config.Pro
 	}
 
 	// Build state JSON (written to both .claude.json and .claude/.config.json).
-	stateJSON := buildGuestClaudeStateJSON(p.Workspace)
+	// Key the project trust entry by cwdGuest (the actual project mount path)
+	// rather than the workspace root, so Claude trusts the real project dir.
+	stateJSON := buildGuestClaudeStateJSON(cwdGuest)
 
 	if err := client.WriteFileMode(ctx, home+"/.claude.json", []byte(stateJSON), 0o644); err != nil {
 		return fmt.Errorf("write .claude.json: %w", err)
