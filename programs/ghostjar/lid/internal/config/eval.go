@@ -50,6 +50,7 @@ var hostPresets = map[string][]string{
 	"ubuntu":    {"archive.ubuntu.com", "security.ubuntu.com", "ports.ubuntu.com"},
 	"alpine":    {"dl-cdn.alpinelinux.org"},
 	"nix":       {"cache.nixos.org", "channels.nixos.org", "nixos.org"},
+	"fedora":    {"dl.fedoraproject.org", "mirrors.fedoraproject.org"},
 }
 
 // hostsStruct is the frozen lid.hosts struct of frozen list[str] members.
