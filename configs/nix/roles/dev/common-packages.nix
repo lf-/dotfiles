@@ -112,6 +112,8 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # dependencies for lid
   e2fsprogs
   erofs-utils
+  passt
+  firecracker
   # hmm.
   go
 

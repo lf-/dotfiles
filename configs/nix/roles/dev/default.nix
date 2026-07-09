@@ -9,7 +9,7 @@ let
   inherit (lib) mkOption;
 in
 {
-  imports = [ ../debug ];
+  imports = [ ../debug ../nix-ld ];
   options = {
     jade.dev.withHsutils = mkOption {
       default = true;
