@@ -67,7 +67,7 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
 
   # idk if this is a good idea due to work having a different build, but it
   # will make completions work. yolo!
-  buck2
+  buck2-austin
   bazel-buildtools
   pyrefly
 
@@ -108,6 +108,12 @@ with pkgs; builtins.filter (lib.meta.availableOn pkgs.stdenv.hostPlatform) [
   # vibe coding nonsense
   opencode
   claude-code
+
+  # dependencies for lid
+  e2fsprogs
+  erofs-utils
+  # hmm.
+  go
 
   # FIXME: this probably should not be in here since it doesn't do much good
   # for VMs. but bleh effort.

@@ -1,0 +1,55 @@
+#!/usr/bin/env dotslash
+
+{
+  "name": "rust-project",
+  "platforms": {
+    "macos-aarch64": {
+      "size": 974243,
+      "hash": "sha256",
+      "digest": "513a4b4c78562dccf95fdb4a2f6a2d9db661be0e9fd8fd21c0b55d8a4e9e3948",
+      "format": "zst",
+      "path": "rust-project-aarch64-apple-darwin",
+      "providers": [
+        {
+          "url": "https://github.com/thoughtpolice/buck2/releases/download/snapshot-20260711-045201/rust-project-aarch64-apple-darwin.zst"
+        }
+      ]
+    },
+    "linux-aarch64": {
+      "size": 1128787,
+      "hash": "sha256",
+      "digest": "986abd2bf76f9b17b88e90395d56ae6c7d68f7ce25bb6b78af1a549adcb053d2",
+      "format": "zst",
+      "path": "rust-project-aarch64-unknown-linux-musl",
+      "providers": [
+        {
+          "url": "https://github.com/thoughtpolice/buck2/releases/download/snapshot-20260711-045201/rust-project-aarch64-unknown-linux-musl.zst"
+        }
+      ]
+    },
+    "windows-x86_64": {
+      "size": 892549,
+      "hash": "sha256",
+      "digest": "dfd9129c47978d1b32dc811549baee391234e8121738e8d2f3c152a86e56c160",
+      "format": "zst",
+      "path": "rust-project-x86_64-pc-windows-msvc.exe",
+      "providers": [
+        {
+          "url": "https://github.com/thoughtpolice/buck2/releases/download/snapshot-20260711-045201/rust-project-x86_64-pc-windows-msvc.exe.zst"
+        }
+      ]
+    },
+    "linux-x86_64": {
+      "size": 1192852,
+      "hash": "sha256",
+      "digest": "2ad15290d009fa22d22f72e5f090b0acf335ad16cac716c152f4a62b99b039ad",
+      "format": "zst",
+      "path": "rust-project-x86_64-unknown-linux-musl",
+      "providers": [
+        {
+          "url": "https://github.com/thoughtpolice/buck2/releases/download/snapshot-20260711-045201/rust-project-x86_64-unknown-linux-musl.zst"
+        }
+      ]
+    }
+  }
+}
