@@ -1,0 +1,45 @@
+load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
+load("@prelude//toolchains:python.bzl", "remote_python_toolchain")
+load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
+load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
+
+system_cxx_toolchain(
+    name = "cxx",
+    visibility = ["PUBLIC"],
+)
+
+hermetic_rust_toolchain(
+    name = "rust",
+    default_edition = "2021",
+    sha256s = {
+        "aarch64-apple-darwin": "f04a974f3579d3524f6b9bc6490a27c9fb358050e7cd8a641945f30bf24c1dce",
+        "x86_64-unknown-linux-gnu": "c295047583a56238ea06b43f849f4b877fa12bfd4c7103f8d9a74c94c9c4e108",
+    },
+    version = "1.96.0",
+)
+
+hermetic_go_toolchain(
+    name = "go",
+    sha256 = {
+        "darwin-arm64": "efb87ff28af9a188d0536ef5d42e63dd52ba8263cd7344a993cc48dd11dedb6a",
+        "linux-amd64": "5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053",
+    },
+    version = "1.26.5",
+    visibility = ["PUBLIC"],
+)
+
+toolchain_alias(
+    name = "go_bootstrap",
+    actual = ":go",
+)
+
+remote_python_toolchain(
+    name = "python",
+    visibility = ["PUBLIC"],
+)
+
+python_bootstrap_binary(
+    name = "update_hermetic_toolchain",
+    main = "update_hermetic_toolchain.py",
+    visibility = ["PUBLIC"],
+)
