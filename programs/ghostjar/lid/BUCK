@@ -1,0 +1,4 @@
+alias(
+    name = "lid",
+    actual = "//programs/ghostjar/lid/cmd/lid"
+)

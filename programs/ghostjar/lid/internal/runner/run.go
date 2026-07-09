@@ -250,7 +250,7 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 
 	// Non-interactive stdin (pipe): use pipe mode, no PTY. Run as the non-root
 	// guest user, in the workspace dir (the pipe path historically ignored it).
-	res, err := client.ExecPipeWithDirUser(ctx, command, workdir, id.User, opts.Stdin, opts.Stdout, opts.Stderr)
+	res, err := client.ExecPipe(ctx, command, sdk.ExecPipeOptions{WorkingDir: workdir, User: id.User, Stdin: opts.Stdin, Stdout: opts.Stdout, Stderr: opts.Stderr})
 	if err != nil {
 		return 1, fmt.Errorf("exec: %w", err)
 	}
@@ -274,7 +274,7 @@ func runInteractive(ctx context.Context, client *sdk.Client, command, workdir, u
 	resizeCh, stopResize := watchResize(fd)
 	defer stopResize()
 
-	res, err := client.ExecInteractive(ctx, command, &sdk.ExecInteractiveOptions{
+	res, err := client.ExecInteractive(ctx, command, sdk.ExecInteractiveOptions{
 		WorkingDir: workdir,
 		User:       user,
 		Rows:       uint16(rows),

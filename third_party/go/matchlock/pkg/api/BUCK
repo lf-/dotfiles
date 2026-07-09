@@ -1,0 +1,11 @@
+go_library(
+    name = "api",
+    package_name = "github.com/jingkaihe/matchlock/pkg/api",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//third_party/go/matchlock/internal/errx:errx",
+        "//third_party/go/vendor/github.com/google/uuid:uuid",
+        "//third_party/go/vendor/github.com/kballard/go-shellquote:go-shellquote",
+    ],
+    visibility = ["PUBLIC"],
+)

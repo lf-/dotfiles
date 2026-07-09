@@ -1,0 +1,11 @@
+go_library(
+    name = "runner",
+    package_name = "jade.fyi/ghostjar/lid/internal/runner",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    deps = [
+        "//programs/ghostjar/lid/internal/config:config",
+        "//third_party/go/matchlock/pkg/sdk:sdk",
+        "//third_party/go/vendor/golang.org/x/term:term",
+    ],
+    visibility = ["PUBLIC"],
+)

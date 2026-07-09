@@ -1,0 +1,6 @@
+go_library(
+    name = "errx",
+    package_name = "github.com/jingkaihe/matchlock/internal/errx",
+    srcs = glob(["*.go"]),
+    visibility = ["PUBLIC"],
+)

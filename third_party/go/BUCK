@@ -1,0 +1,18 @@
+sh_binary(
+    name = "_gobuckify",
+    main = "gobuckify.sh",
+)
+
+command_alias(
+    name = "gobuckify",
+    exe = ":_gobuckify",
+    env = {
+        "GOBUCKIFY": "$(exe prelude//go/tools/gobuckify:gobuckify)",
+        "GOWORK": "off",
+    },
+)
+
+sh_binary(
+    name = "vendor",
+    main = "vendor.sh",
+)

@@ -1,5 +1,6 @@
 load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
 load("@prelude//toolchains:python.bzl", "remote_python_toolchain")
+load("@prelude//toolchains/go:system_go_bootstrap_toolchain.bzl", "system_go_bootstrap_toolchain")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
 
@@ -28,9 +29,9 @@ hermetic_go_toolchain(
     visibility = ["PUBLIC"],
 )
 
-toolchain_alias(
+system_go_bootstrap_toolchain(
     name = "go_bootstrap",
-    actual = ":go",
+    visibility = ["PUBLIC"],
 )
 
 remote_python_toolchain(

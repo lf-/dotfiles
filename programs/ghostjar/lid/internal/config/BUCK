@@ -1,0 +1,11 @@
+go_library(
+    name = "config",
+    package_name = "jade.fyi/ghostjar/lid/internal/config",
+    srcs = glob(["*.go"], exclude = ["*_test.go"]),
+    deps = [
+        "//third_party/go/vendor/go.starlark.net/starlark:starlark",
+        "//third_party/go/vendor/go.starlark.net/starlarkstruct:starlarkstruct",
+        "//third_party/go/vendor/go.starlark.net/syntax:syntax",
+    ],
+    visibility = ["PUBLIC"],
+)
