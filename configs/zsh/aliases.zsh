@@ -54,5 +54,30 @@ function removepath() {
     path=(${path:|excl})
 }
 
+function cd() {
+    local args=() top do_print
+    do_print=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            //*)
+                if ! top=$(git rev-parse --show-toplevel 2>/dev/null); then
+                    print -u2 "cd wrapper: not inside a git repository"
+                    return 1
+                fi
+                do_print=1
+                args+=("$top/${1#//}")
+                ;;
+            *)
+                args+=("$1")
+                ;;
+        esac
+        shift
+    done
+    if [[ $do_print == 1 ]]; then
+        echo "cd ${args[@]}"
+    fi
+    builtin cd "${args[@]}"
+}
+
 alias haiku='claude --model haiku'
 alias skep='node ~/co/skepsis/cli.ts'
