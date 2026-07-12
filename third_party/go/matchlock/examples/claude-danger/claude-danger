@@ -1,0 +1,517 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12"
+# dependencies = ["click", "httpx", "matchlock"]
+# ///
+"""Launch Claude Code with host-side Claude subscription."""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import shlex
+import sys
+import threading
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import IO, Any, cast
+
+import click
+import httpx
+from matchlock import (
+    Client,
+    Config,
+    ImageConfig,
+    NetworkHookRequest,
+    NetworkHookRequestMutation,
+    NetworkHookResult,
+    NetworkHookRule,
+    NetworkInterceptionConfig,
+    Sandbox,
+)
+
+try:
+    import termios as _termios_runtime
+    import tty as _tty_runtime
+except ImportError:  # pragma: no cover
+    raise RuntimeError("POSIX termios/tty support required") from None
+
+termios = _termios_runtime
+tty = _tty_runtime
+
+
+logging.basicConfig(format="%(levelname)s %(message)s", level=logging.INFO)
+log = logging.getLogger(__name__)
+
+ANTHROPIC_CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
+ANTHROPIC_TOKEN_ENDPOINT = "https://console.anthropic.com/v1/oauth/token"
+TOKEN_REFRESH_THRESHOLD_MS = 10 * 60 * 1000
+GUEST_API_KEY_PLACEHOLDER = "sk-ant-api03-guest-placeholder"
+GUEST_HOME = "/home/agent"
+GUEST_WORKDIR = "/home/agent"
+GUEST_CLAUDE_CONFIG_DIR = f"{GUEST_HOME}/.claude"
+GUEST_CLAUDE_CONFIG_FILE = f"{GUEST_CLAUDE_CONFIG_DIR}/.config.json"
+DEFAULT_CLAUDE_MODEL = "claude-opus-4-6"
+DEFAULT_CLAUDE_EFFORT = "high"
+DEFAULT_GUEST_CLAUDE_STATE: dict[str, object] = {
+    "numStartups": 1,
+    "theme": "dark",
+    "hasCompletedOnboarding": True,
+    "lastOnboardingVersion": "2.1.96",
+}
+DEFAULT_GUEST_CLAUDE_SETTINGS = {
+    "apiKeyHelper": f"printf %s {GUEST_API_KEY_PLACEHOLDER}",
+    "skipDangerousModePermissionPrompt": True,
+}
+DEFAULT_GUEST_PROJECT_STATE: dict[str, object] = {
+    "allowedTools": [],
+    "mcpContextUris": [],
+    "mcpServers": {},
+    "enabledMcpjsonServers": [],
+    "disabledMcpjsonServers": [],
+    "exampleFiles": [],
+    "hasTrustDialogAccepted": True,
+    "hasCompletedProjectOnboarding": True,
+    "projectOnboardingSeenCount": 1,
+    "hasClaudeMdExternalIncludesApproved": False,
+    "hasClaudeMdExternalIncludesWarningShown": False,
+}
+
+
+class _FDReader(IO[bytes]):
+    def __init__(self, fd: int):
+        self._fd = fd
+
+    def read(self, size: int = 4096) -> bytes:
+        chunk_size = size if size > 0 else 4096
+        try:
+            return os.read(self._fd, chunk_size)
+        except OSError:
+            return b""
+
+    def readable(self) -> bool:
+        return True
+
+    def writable(self) -> bool:
+        return False
+
+    def seekable(self) -> bool:
+        return False
+
+    def close(self) -> None:
+        return None
+
+    @property
+    def closed(self) -> bool:
+        return False
+
+
+@dataclass
+class ClaudeOAuthCredentials:
+    access_token: str
+    refresh_token: str
+    expires_at_ms: int
+    scopes: list[str]
+    subscription_type: str | None = None
+    rate_limit_tier: str | None = None
+
+
+class ClaudeOAuthProvider:
+    def __init__(self, credentials_path: Path):
+        self._credentials_path = credentials_path.expanduser()
+        self._lock = threading.Lock()
+        self._credentials = self._read_credentials()
+
+    @property
+    def credentials_path(self) -> Path:
+        return self._credentials_path
+
+    @property
+    def subscription_type(self) -> str:
+        return self._credentials.subscription_type or "max"
+
+    @property
+    def rate_limit_tier(self) -> str | None:
+        return self._credentials.rate_limit_tier
+
+    @property
+    def scopes(self) -> list[str]:
+        return list(self._credentials.scopes)
+
+    def access_token(self) -> str:
+        with self._lock:
+            now_ms = int(time.time() * 1000)
+            if self._credentials.expires_at_ms <= now_ms + TOKEN_REFRESH_THRESHOLD_MS:
+                self._credentials = self._refresh_credentials(self._credentials)
+                self._write_credentials(self._credentials)
+            return self._credentials.access_token
+
+    def _read_credentials(self) -> ClaudeOAuthCredentials:
+        try:
+            payload = json.loads(self._credentials_path.read_text())
+        except FileNotFoundError as exc:
+            raise RuntimeError(
+                f"Claude credentials not found: {self._credentials_path}"
+            ) from exc
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"Claude credentials file is not valid JSON: {self._credentials_path}"
+            ) from exc
+
+        oauth = payload.get("claudeAiOauth")
+        if not isinstance(oauth, dict):
+            raise RuntimeError(
+                f"Claude credentials file is missing claudeAiOauth: {self._credentials_path}"
+            )
+
+        access_token = oauth.get("accessToken")
+        refresh_token = oauth.get("refreshToken")
+        expires_at_ms = oauth.get("expiresAt")
+        scopes = oauth.get("scopes") or []
+        if not isinstance(access_token, str) or not access_token:
+            raise RuntimeError("Claude credentials file is missing accessToken")
+        if not isinstance(refresh_token, str) or not refresh_token:
+            raise RuntimeError("Claude credentials file is missing refreshToken")
+        if not isinstance(expires_at_ms, int):
+            raise RuntimeError("Claude credentials file is missing integer expiresAt")
+        if not isinstance(scopes, list) or not all(
+            isinstance(scope, str) for scope in scopes
+        ):
+            raise RuntimeError("Claude credentials file has invalid scopes")
+
+        return ClaudeOAuthCredentials(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at_ms=expires_at_ms,
+            scopes=scopes,
+            subscription_type=_optional_str(oauth.get("subscriptionType")),
+            rate_limit_tier=_optional_str(oauth.get("rateLimitTier")),
+        )
+
+    def _refresh_credentials(
+        self, creds: ClaudeOAuthCredentials
+    ) -> ClaudeOAuthCredentials:
+        log.info("refreshing Claude OAuth token from %s", ANTHROPIC_TOKEN_ENDPOINT)
+        try:
+            with httpx.Client(timeout=30) as client:
+                resp = client.post(
+                    ANTHROPIC_TOKEN_ENDPOINT,
+                    json={
+                        "grant_type": "refresh_token",
+                        "client_id": ANTHROPIC_CLIENT_ID,
+                        "refresh_token": creds.refresh_token,
+                    },
+                )
+                resp.raise_for_status()
+                token_payload = resp.json()
+        except httpx.HTTPStatusError as exc:
+            raise RuntimeError(
+                f"Claude OAuth refresh failed with HTTP {exc.response.status_code}: {exc.response.text}"
+            ) from exc
+        except (httpx.HTTPError, ValueError) as exc:
+            raise RuntimeError(f"Claude OAuth refresh failed: {exc}") from exc
+
+        access_token = token_payload.get("access_token")
+        expires_in = token_payload.get("expires_in")
+        if not isinstance(access_token, str) or not access_token:
+            raise RuntimeError("Claude OAuth refresh response is missing access_token")
+        if not isinstance(expires_in, int):
+            raise RuntimeError("Claude OAuth refresh response is missing expires_in")
+
+        refresh_token = token_payload.get("refresh_token")
+        if not isinstance(refresh_token, str) or not refresh_token:
+            refresh_token = creds.refresh_token
+
+        return ClaudeOAuthCredentials(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at_ms=int(time.time() * 1000) + (expires_in * 1000),
+            scopes=creds.scopes,
+            subscription_type=creds.subscription_type,
+            rate_limit_tier=creds.rate_limit_tier,
+        )
+
+    def _write_credentials(self, creds: ClaudeOAuthCredentials) -> None:
+        payload: dict[str, Any] = {
+            "claudeAiOauth": {
+                "accessToken": creds.access_token,
+                "refreshToken": creds.refresh_token,
+                "expiresAt": creds.expires_at_ms,
+                "scopes": creds.scopes,
+            }
+        }
+        if creds.subscription_type:
+            payload["claudeAiOauth"]["subscriptionType"] = creds.subscription_type
+        if creds.rate_limit_tier:
+            payload["claudeAiOauth"]["rateLimitTier"] = creds.rate_limit_tier
+
+        self._credentials_path.parent.mkdir(parents=True, exist_ok=True)
+        temp_path = self._credentials_path.with_suffix(
+            self._credentials_path.suffix + ".tmp"
+        )
+        temp_path.write_text(json.dumps(payload, indent=2) + "\n")
+        os.chmod(temp_path, 0o600)
+        temp_path.replace(self._credentials_path)
+        log.info("updated Claude OAuth credentials at %s", self._credentials_path)
+
+
+def _optional_str(value: Any) -> str | None:
+    return value if isinstance(value, str) and value else None
+
+
+def _pop_header(headers: dict[str, list[str]], name: str) -> list[str]:
+    values: list[str] = []
+    for key in list(headers):
+        if key.lower() == name.lower():
+            values.extend(headers.pop(key))
+    return values
+
+
+def _split_header_values(values: list[str]) -> list[str]:
+    parts: list[str] = []
+    for value in values:
+        for item in value.split(","):
+            stripped = item.strip()
+            if stripped:
+                parts.append(stripped)
+    return parts
+
+
+def guest_claude_state_json(working_dir: str) -> str:
+    payload = dict(DEFAULT_GUEST_CLAUDE_STATE)
+    payload["customApiKeyResponses"] = {
+        "approved": [GUEST_API_KEY_PLACEHOLDER[-20:]],
+    }
+    payload["projects"] = {
+        working_dir: dict(DEFAULT_GUEST_PROJECT_STATE),
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def guest_claude_settings_json() -> str:
+    return json.dumps(DEFAULT_GUEST_CLAUDE_SETTINGS, indent=2) + "\n"
+
+
+def build_sandbox(
+    image: str,
+    cpus: float,
+    memory_mb: int,
+    allowed_hosts: tuple[str, ...],
+    provider: ClaudeOAuthProvider,
+) -> Sandbox:
+    def before_hook(req: NetworkHookRequest) -> NetworkHookResult:
+        headers = {
+            key: list(values) for key, values in (req.request_headers or {}).items()
+        }
+        _pop_header(headers, "X-Api-Key")
+        headers["Authorization"] = [f"Bearer {provider.access_token()}"]
+
+        beta_values = _split_header_values(_pop_header(headers, "anthropic-beta"))
+        if "oauth-2025-04-20" not in beta_values:
+            beta_values.append("oauth-2025-04-20")
+        headers["anthropic-beta"] = beta_values
+
+        return NetworkHookResult(
+            action="mutate",
+            request=NetworkHookRequestMutation(headers=headers),
+        )
+
+    host_patterns = allowed_hosts if allowed_hosts else ("*",)
+
+    return (
+        Sandbox(image)
+        .with_cpus(cpus)
+        .with_memory(memory_mb)
+        .with_env("HOME", GUEST_HOME)
+        .with_env("CLAUDE_CONFIG_DIR", GUEST_CLAUDE_CONFIG_DIR)
+        .allow_host(*host_patterns)
+        .with_image_config(
+            ImageConfig(
+                user="agent",
+                working_dir=GUEST_WORKDIR,
+            )
+        )
+        .with_network_interception(
+            NetworkInterceptionConfig(
+                rules=[
+                    NetworkHookRule(
+                        name="inject-claude-subscription-headers",
+                        phase="before",
+                        hosts=["api.anthropic.com", "platform.claude.com"],
+                        hook=before_hook,
+                    )
+                ]
+            )
+        )
+    )
+
+
+def prepare_guest_claude_home(
+    client: Client,
+    guest_state_json: str,
+    guest_settings_json: str,
+) -> None:
+    client.exec(
+        f"mkdir -p {GUEST_CLAUDE_CONFIG_DIR} && chown agent:agent {GUEST_CLAUDE_CONFIG_DIR} && chmod 700 {GUEST_CLAUDE_CONFIG_DIR}"
+    )
+    client.write_file(
+        f"{GUEST_HOME}/.claude.json",
+        guest_state_json,
+        mode=0o644,
+    )
+    client.exec(
+        f"chmod 644 {GUEST_HOME}/.claude.json"
+    )
+    client.write_file(
+        GUEST_CLAUDE_CONFIG_FILE,
+        guest_state_json,
+        mode=0o644,
+    )
+    client.exec(
+        f"chmod 644 {GUEST_CLAUDE_CONFIG_FILE}"
+    )
+    client.write_file(
+        f"{GUEST_CLAUDE_CONFIG_DIR}/settings.json",
+        guest_settings_json,
+        mode=0o644,
+    )
+    client.exec(
+        f"chmod 644 {GUEST_CLAUDE_CONFIG_DIR}/settings.json"
+    )
+    client.exec(f"rm -f {GUEST_CLAUDE_CONFIG_DIR}/.credentials.json")
+
+
+def run_interactive_shell(client: Client, model: str, effort: str) -> None:
+    if (
+        not sys.stdin.isatty()
+        or not sys.stdout.isatty()
+        or termios is None
+        or tty is None
+    ):
+        raise RuntimeError("interactive terminal required (POSIX TTY)")
+
+    fd = sys.stdin.fileno()
+    size = os.get_terminal_size(fd)
+    rows = size.lines
+    cols = size.columns
+
+    old_state = termios.tcgetattr(fd)
+    tty.setraw(fd)
+    try:
+        stdin_reader = _FDReader(fd)
+        claude_command = shlex.join(
+            [
+                "claude",
+                "--dangerously-skip-permissions",
+                "--model",
+                model,
+                "--effort",
+                effort,
+            ]
+        )
+        result = client.exec_interactive(
+            (
+                f"sh -lc '"
+                f"if [ \"$(id -un)\" = agent ]; then "
+                f"cd {GUEST_WORKDIR} && exec env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} {claude_command}; "
+                f"else "
+                f"exec su agent -c \"cd {GUEST_WORKDIR} && env HOME={GUEST_HOME} CLAUDE_CONFIG_DIR={GUEST_CLAUDE_CONFIG_DIR} {claude_command}\"; "
+                f"fi'"
+            ),
+            stdin=cast(IO[bytes], stdin_reader),
+            stdout=sys.stdout,
+            working_dir=GUEST_WORKDIR,
+            rows=rows,
+            cols=cols,
+        )
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_state)
+
+    print(f"\nShell exited: code={result.exit_code} duration_ms={result.duration_ms}")
+
+
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+@click.option(
+    "--image",
+    default="claude-danger:latest",
+    show_default=True,
+    help="Sandbox image to run.",
+)
+@click.option(
+    "--credentials-file",
+    type=click.Path(path_type=Path, dir_okay=False, resolve_path=True),
+    default=Path.home() / ".claude" / ".credentials.json",
+    show_default=True,
+    help="Path to Claude credentials JSON on the host.",
+)
+@click.option(
+    "--cpus",
+    type=float,
+    default=2.0,
+    show_default=True,
+    help="vCPU count.",
+)
+@click.option(
+    "--memory",
+    "memory_mb",
+    type=int,
+    default=4096,
+    show_default=True,
+    help="Memory in MB.",
+)
+@click.option(
+    "--allowed-host",
+    "allowed_hosts",
+    multiple=True,
+    help="Host glob to allow. Repeatable. Defaults to '*' when unspecified.",
+)
+@click.option(
+    "--model",
+    default=DEFAULT_CLAUDE_MODEL,
+    show_default=True,
+    help="Claude model to launch.",
+)
+@click.option(
+    "--effort",
+    type=click.Choice(["low", "medium", "high", "max"], case_sensitive=False),
+    default=DEFAULT_CLAUDE_EFFORT,
+    show_default=True,
+    help="Claude reasoning effort.",
+)
+def main(
+    image: str,
+    credentials_file: Path,
+    cpus: float,
+    memory_mb: int,
+    allowed_hosts: tuple[str, ...],
+    model: str,
+    effort: str,
+) -> None:
+    """Launch Claude Code in a sandbox using host-side Claude subscription."""
+
+    provider = ClaudeOAuthProvider(credentials_file)
+    guest_state_json = guest_claude_state_json(GUEST_WORKDIR)
+    guest_settings_json = guest_claude_settings_json()
+
+    log.info("using Claude subscription credentials from %s", provider.credentials_path)
+    config = Config(binary_path=os.environ.get("MATCHLOCK_BIN", "matchlock"))
+    sandbox = build_sandbox(image, cpus, memory_mb, allowed_hosts, provider)
+
+    client = Client(config)
+    try:
+        with client:
+            vm_id = client.create(sandbox.options())
+            log.info("sandbox ready vm=%s image=%s", vm_id, image)
+            prepare_guest_claude_home(client, guest_state_json, guest_settings_json)
+            run_interactive_shell(client, model, effort.lower())
+    finally:
+        try:
+            client.remove()
+        except Exception as exc:  # noqa: BLE001
+            log.warning("remove failed (ignored): %s", exc)
+
+
+if __name__ == "__main__":
+    main()

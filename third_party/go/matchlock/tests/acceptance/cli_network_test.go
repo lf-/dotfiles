@@ -1,0 +1,180 @@
+//go:build acceptance
+
+package acceptance
+
+import (
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCLIRunHelpShowsDNSServersFlag(t *testing.T) {
+	stdout, _, exitCode := runCLI(t, "run", "--help")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "--dns-servers")
+}
+
+func TestCLIRunHelpShowsNetworkMTUFlag(t *testing.T) {
+	stdout, _, exitCode := runCLI(t, "run", "--help")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "--mtu")
+}
+
+func TestCLIRunHelpShowsNoNetworkFlag(t *testing.T) {
+	stdout, _, exitCode := runCLI(t, "run", "--help")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "--no-network")
+}
+
+func TestCLIDNSServersResolvConf(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--dns-servers", "1.1.1.1,1.0.0.1",
+		"cat", "/etc/resolv.conf",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "1.1.1.1")
+	assert.Contains(t, stdout, "1.0.0.1")
+}
+
+func TestCLIDNSServersDefaultResolvConf(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"cat", "/etc/resolv.conf",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "8.8.8.8")
+	assert.Contains(t, stdout, "8.8.4.4")
+}
+
+func TestCLIHostnameDefaultEtcHostname(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"cat", "/etc/hostname",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "vm-")
+}
+
+func TestCLIHostnameDefaultHostname(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"hostname",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "vm-")
+}
+
+func TestCLIHostnameOverrideEtcHostname(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest", "--hostname", "override.internal",
+		"cat", "/etc/hostname",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "override.internal")
+}
+
+func TestCLIHostnameOverrideHostname(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest", "--hostname", "override.internal",
+		"hostname",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "override.internal")
+}
+
+func TestCLIHostnameDefaultEtcHosts(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"cat", "/etc/hosts",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "localhost localhost.localdomain vm-")
+}
+
+func TestCLIHostnameOverrideEtcHosts(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest", "--hostname", "override.internal",
+		"cat", "/etc/hosts",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "localhost localhost.localdomain override.internal")
+}
+
+func TestCLIAddHostEtcHosts(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--add-host", "api.internal:10.0.0.10",
+		"--add-host", "db.internal:10.0.0.11",
+		"cat", "/etc/hosts",
+	)
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "10.0.0.10 api.internal")
+	assert.Contains(t, stdout, "10.0.0.11 db.internal")
+}
+
+func TestCLIAddHostRejectsInvalidSpec(t *testing.T) {
+	_, stderr, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--add-host", "invalid-spec",
+		"true",
+	)
+	require.NotEqual(t, 0, exitCode)
+	assert.Contains(t, stderr, "invalid add-host mapping")
+}
+
+func TestCLIAllowedHostHTTP(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--allow-host", "example.com",
+		"--", "sh", "-c", "wget -q -O - http://example.com/ 2>&1",
+	)
+	require.Equalf(t, 0, exitCode, "stdout: %s", stdout)
+	assert.Contains(t, stdout, "Example Domain")
+}
+
+func TestCLIBlockedHostHTTP(t *testing.T) {
+	stdout, stderr, _ := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--allow-host", "httpbin.org",
+		"--", "sh", "-c", "wget -q -T 5 -O - http://example.com/ 2>&1 || echo BLOCKED",
+	)
+	combined := stdout + stderr
+	assert.NotContains(t, combined, "Example Domain", "expected request to example.com to be blocked")
+}
+
+func TestCLIPassthroughAllowed(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--allow-host", "httpbin.org",
+		"--", "sh", "-c", "wget -q -O - https://httpbin.org/get 2>&1",
+	)
+	require.Equalf(t, 0, exitCode, "stdout: %s", stdout)
+	assert.Contains(t, stdout, `"url"`)
+}
+
+func TestCLIPassthroughBlocked(t *testing.T) {
+	stdout, stderr, _ := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--allow-host", "example.com",
+		"--", "sh", "-c", "wget -q -T 5 -O - https://httpbin.org/get 2>&1 || echo BLOCKED",
+	)
+	combined := stdout + stderr
+	assert.NotContains(t, combined, `"url"`, "expected request to httpbin.org to be blocked")
+}
+
+func TestCLINoNetworkDisablesEgressAndNIC(t *testing.T) {
+	stdout, stderr, exitCode := runCLIWithTimeout(t, 2*time.Minute,
+		"run", "--image", "alpine:latest",
+		"--no-network",
+		"--", "sh", "-c", "ls /sys/class/net; wget -q -T 5 -O - http://example.com/ >/dev/null 2>&1 || echo BLOCKED",
+	)
+	require.Equal(t, 0, exitCode, "stderr: %s", stderr)
+	combined := stdout + stderr
+	assert.Contains(t, combined, "lo")
+	assert.NotContains(t, combined, "eth0")
+	assert.Contains(t, combined, "BLOCKED")
+	assert.NotContains(t, combined, "Example Domain")
+}

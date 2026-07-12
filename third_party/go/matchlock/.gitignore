@@ -1,0 +1,54 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build artifacts
+*.o
+*.a
+*.test
+go.work
+go.work.sum
+
+# Test coverage
+*.out
+coverage.html
+coverage.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.img
+*.ext4
+vmlinux
+vmlinux-*
+dist/
+node_modules/
+sdk/typescript/node_modules/
+sdk/typescript/dist/
+
+# Firecracker runtime
+*.sock
+firecracker.log
+firecracker-*.log
+.goreleaser-firecracker/
+
+# Kernel build
+/tmp/kernel-build/
+
+# Rootfs build
+/tmp/rootfs-build/
+/REQ.md
+/matchlock

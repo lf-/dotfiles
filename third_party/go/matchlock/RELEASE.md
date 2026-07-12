@@ -1,0 +1,204 @@
+# Release Notes
+
+## 0.2.16
+
+* Fixed Linux arm64 sandbox startup by selecting arm64 guest kernels, pulling arm64 image rootfs layers, and enabling Firecracker's arm64 serial console support, contributed by [@rubiojr](https://github.com/rubiojr) in [#111](https://github.com/jingkaihe/matchlock/pull/111).
+
+## 0.2.15
+
+* Added Python SDK support for static guest host mappings via `Sandbox.add_host(host, ip)`.
+
+## 0.2.14
+
+* Fixed `host_fs` append writes by preserving guest `O_APPEND` semantics across VFS open/create requests, including Linux open-flag translation and append-mode writes for real and in-memory providers, contributed by [@vojtapolasek](https://github.com/vojtapolasek).
+
+## 0.2.13
+
+* Added root-only ownership initialization for raw/named disk mounts via `--disk ...:uid=UID,gid=GID`, useful for writable ext4 volumes mounted for database workloads.
+
+## 0.2.12
+
+* Fixed VFS directory fsync support for `host_fs` mounts, including fsync on the workspace root and child directory file descriptors, addressing atomic-write durability workflows (e.g. RDBMS), contributed by [@sosso](https://github.com/sosso) in [#103](https://github.com/jingkaihe/matchlock/pull/103).
+
+## 0.2.11
+
+* Added `host_fs` mount owner overrides so files can appear with a configured UID/GID inside the VM, including CLI `-v host:guest:host_fs,uid=1000,gid=1000` support plus Go, Python, and TypeScript SDK support, contributed by [@chriszwickerergon](https://github.com/chriszwickerergon) in [#101](https://github.com/jingkaihe/matchlock/pull/101).
+
+## 0.2.10
+
+* Improved macOS interception-mode DNS reliability by bounding upstream DNS exchanges with timeouts and logging failed upstream queries instead of letting blackholed DNS requests pin goroutines.
+* Added a global `--log-level` CLI flag, configurable through `MATCHLOCK_LOG_LEVEL`, to control process-wide structured logging at `debug`, `info`, `warn`, or `error` levels.
+
+## 0.2.9
+
+* Fixed Linux `--allow-host` DNS reachability for intercepted sandboxes by adding a host-side DNS forwarder and nftables redirection for guest DNS queries ([#94](https://github.com/jingkaihe/matchlock/issues/94), initial contribution by [@nemtsov](https://github.com/nemtsov)).
+* Improved Linux interception reliability by binding proxy services to the sandbox gateway IP, applying secret-related allowed hosts before firewall setup, and falling back across configured DNS resolvers when an upstream fails.
+
+## 0.2.8
+
+* Added custom secret placeholder support across `matchlock run` and the Go, Python, and TypeScript SDKs, including `--secret-placeholder`, `--secret-file`, and builder helpers for caller-defined in-VM placeholder values.
+* Fixed overlay rootfs preparation to avoid shadowing merged-`/usr` layouts when injecting the guest init binary.
+
+## 0.2.7
+
+Added Basic Auth secret placeholder replacement including unpadded credentials.
+
+## 0.2.6
+
+* Added guest kernel selection across the CLI and Go, Python, and TypeScript SDKs via kernel refs, including `file:///absolute/path` and OCI image references.
+* Added `matchlock kernel ls` and `matchlock kernel rm` for inspecting and cleaning cached guest kernels, backed by persistent kernel cache metadata.
+* Expanded kernel acceptance and SDK coverage, and bumped the default pinned guest kernel to `6.19.8`.
+
+## 0.2.5
+
+Use non-snapshot mode deb/rpm package for formal releases
+
+## 0.2.4
+
+* Added Linux package-based installation via upstream `.deb` and `.rpm` release artifacts, plus a cross-platform install script.
+* Fixed interactive PTY resize handling for `matchlock exec -it` by forwarding `SIGWINCH` to the guest and serializing relay writes to avoid stdin/resize races by [@sosso](https://github.com/sosso).
+* Added VM log read/follow support across the CLI, RPC, and Go/Python/TypeScript SDKs.
+
+## 0.2.1
+
+* Fixed TypeScript SDK npm release workflow to use Node 24 for trusted publishing compatibility in GitHub Actions.
+
+## 0.2.0 
+
+* Added `matchlock diagnose` for host preflight checks, with Linux and macOS-specific requirement validation.
+* Hardened `matchlock setup linux` to fail fast by default on required setup errors; use `--best-effort` to continue past failures.
+* Removed legacy macOS initramfs support from the Darwin VM path and from diagnose output.
+
+## 0.1.30 
+
+* Fixed `host_fs` FUSE rename cache handling so files/directories stay readable after atomic `tmp+rename` workflows (including `git checkout`/`git status` patterns) ([#80](https://github.com/jingkaihe/matchlock/pull/80) by [@sosso](https://github.com/sosso)).
+* Fixed intermittent macOS `VZErrorDomain Code=1` VM startup failures in interception mode by retaining Darwin console file handles for VM lifetime, and suppressed spurious `close host-net: file already closed` cleanup noise.
+
+## 0.1.29
+
+* Added fractional CPU support across CLI and SDK create flows (`cpus` now accepts values like `0.5`).
+* Hardened CPU validation before VM creation: CPU count must be finite, greater than zero, and not exceed host CPU capacity.
+* Added Python SDK port-forward parity with Go/TypeScript:
+  * `Sandbox.with_port_forward(...)` and `Sandbox.with_port_forward_addresses(...)`
+  * `Client.port_forward(...)` and `Client.port_forward_with_addresses(...)`
+  * create-time auto-application of configured port-forwards
+
+## 0.1.28
+
+* Added Docker-style `matchlock run -d/--detach` support for starting long-lived sandboxes in background mode with VM ID output.
+
+## 0.1.27
+
+* added entrypoint support for sdkk
+* added missing `with_privileged` for python sdk
+* added example of running both claude code and docker in the sandbox
+
+## 0.1.26 
+
+* `matchlock volume cp <src> <dest>`
+* Added Go SDK `exec_pipe` and `exec_tty` support (stdin piping + interactive PTY shell), plus a new interactive terminal example at `examples/go/exec_modes`.
+* Added Python and TypeScript SDK support for `exec_pipe` and interactive `exec_tty` execution modes.
+
+## 0.1.25
+
+* File operations over SDK rpc now no longer relies on vfs.
+* Also fixed all the examples that were broken due to previous breaking changes
+
+## 0.1.24
+
+* Added `--no-network` to disable sandbox network egress, with matching support in Go, Python, and TypeScript SDKs ([#62](https://github.com/jingkaihe/matchlock/issues/62)).
+* Added Go SDK callback-based network interception hooks.
+* Reduced `MemoryProvider` directory bookkeeping overhead by using a single `dirs` mode map, preventing `dirs`/`dirModes` desyncs in VFS ([#67](https://github.com/jingkaihe/matchlock/pull/67) by [@comunidadio](https://github.com/comunidadio)).
+* Made workspace/VFS opt-in for `run`: no workspace is mounted by default, and `guest-fused` starts only when a workspace is explicitly configured with VFS mounts.
+* Tightened VFS startup validation to fail fast on invalid configurations (for example, `vfs.workspace` without mounts, mounts without `vfs.workspace`, or mount paths outside workspace).
+* Changed CLI volume behavior to require explicit `--workspace` when using `--volume`/`-v`, with clear startup-time errors for invalid combinations.
+* Added raw ext4 disk mounts for `run` via `--disk host_path:guest_mount[:ro]`, including multiple `--disk` entries in one sandbox.
+* Added named volume support for raw disks:
+  * `matchlock volume create <name> [--size MB]`
+  * `matchlock volume ls`
+  * `matchlock run --disk @<name>:<guest_mount>[:ro]`
+* Hardened extra-disk reliability by treating in-guest disk mount failures as fatal at boot, propagating read-only mount mode, and issuing a best-effort guest `sync` before VM shutdown.
+* Fixed close-time context handling so zero graceful-shutdown no longer creates an immediately expired timeout during sandbox cleanup.
+
+## 0.1.23
+
+* Reworked image/runtime storage to an OCI layer-aware model: shared EROFS layer blobs in metadata DB plus overlay-root boot with a per-VM writable upper disk (replacing monolithic rootfs images).
+* Manual tidy-up (full local reset):
+  * `matchlock kill --all`
+  * `matchlock prune`
+  * `rm -rf ~/.matchlock`
+  * `rm -rf ~/.cache/matchlock`
+
+## 0.1.22
+
+* Fixed TypeScript SDK npm provenance metadata by setting `repository.url`/`repository.directory` in `sdk/typescript/package.json`.
+
+## 0.1.21
+
+* Added a TypeScript SDK with Go/Python feature parity, tests, release/test GitHub Actions, and examples.
+
+* Changed CLI `-v host:guest` default to isolated `overlay` snapshot mounts, with `:host_fs` as the explicit direct host mount mode on both Linux and macOS ([#41](https://github.com/jingkaihe/matchlock/issues/41)).
+
+## 0.1.20 
+
+* Added port forward support with `matchlock run -p LOCAL_PORT:REMOTE_PORT ...`
+* Updated default working directory semantics for `run`/`exec`: when `--workdir` is not set, Matchlock now uses the image `WORKDIR` first, then falls back to workspace path ([#40](https://github.com/jingkaihe/matchlock/issues/40)).
+* Fixed Alpine/musl `git` failures in `/workspace` (`unable to get current working directory`) by returning full stat metadata for FUSE `mkdir`/`create` entries and hardening workspace mount readiness checks (observed on macOS) ([#43](https://github.com/jingkaihe/matchlock/issues/43)).
+* Fixed nested guest volume mount paths (for example `-v host:.host/example`) so intermediate directories are synthesized and mounts resolve correctly ([#42](https://github.com/jingkaihe/matchlock/issues/42)).
+* Added configurable guest network MTU (CLI `--mtu` and SDK `NetworkMTU`) to mitigate path-MTU/TLS handshake issues on some VM networking paths.
+* Refactored guest runtime startup to a unified `guest-init` binary that dispatches init/agent/fused roles, replacing separate guest binaries and simplifying rootfs injection.
+* Stabilised FUSE inode propagation for workspace paths to eliminate intermittent Alpine/musl `getcwd` failures during `git init` in `/workspace` ([#43](https://github.com/jingkaihe/matchlock/issues/43)).
+* Added configurable guest hostname support (CLI `--hostname` and Go/Python SDKs), with safe defaults and deterministic `/etc/hostname` + `/etc/hosts` setup in guest init ([#48](https://github.com/jingkaihe/matchlock/pull/48) by [@comunidadio](https://github.com/comunidadio).
+* Added `--add-host host:ip` support (including Go SDK `AddHost`) to inject custom host-to-IP mappings into guest `/etc/hosts` ([#52](https://github.com/jingkaihe/matchlock/issues/52)).
+
+## 0.1.19
+
+* Added support for vfs interception [#7](https://github.com/jingkaihe/matchlock/issues/7) 
+* Added non-secret environment variable support across CLI and SDKs ([#34](https://github.com/jingkaihe/matchlock/issues/34)): `matchlock run -e/--env`, `--env-file`, persisted visibility via `get`/`inspect`, plus Go/Python SDK create-time `env` support.
+* Mount path validation and normalization fixes for [#32](https://github.com/jingkaihe/matchlock/issues/32) and [#33](https://github.com/jingkaihe/matchlock/issues/33) ([#35](https://github.com/jingkaihe/matchlock/pull/35)).
+* VM lifecycle revamp: append-only lifecycle records in SQLite, reconciliation flow, and new `gc`/`inspect` commands.
+* Metadata migration to SQLite for VM state, subnet allocations, and image metadata.
+* Fixed `matchlock list` hang when stale `running` VMs (dead PID) are encountered.
+* Breaking change: legacy filesystem-only VM metadata under `~/.matchlock/vms/<id>/` is not auto-backfilled into `state.db`; pre-migration VMs may not appear in `list/kill/rm/prune` until migrated or cleaned up.
+  * Quick cleanup after upgrade:
+    * `matchlock gc --force` (best-effort host resource cleanup)
+    * `matchlock prune` (remove stopped/crashed VMs known to DB)
+    * If legacy dirs still remain, remove them manually: `rm -rf ~/.matchlock/vms/<id>`
+
+## 0.1.12
+
+* Added end-to-end context cancellation support across the entire matchlock stack.
+* Added init=/init kernel arg for Linux backend and prevent /sbin/init overwrites for systemd compatibility
+* Intoroduced standalone `-i` pipe mode to allow stdio based communication with the Agent running inside the sandbox
+* Added examples of launching docker container inside the sandbox
+* Added examples of launching agent from local ACP client over ACP protocol
+
+## 0.1.11
+
+* Image extraction now uses pure Go instead of shelling out to `tar`**, preserving file ownership (uid/gid), permissions (including setuid/setgid/sticky bits) and symlinks when building ext4 rootfs images. This fixes symlink loop crashes (e.g. Playwright/Chromium images) by replacing symlink directories with real ones during extraction.
+* Added example of browser usage using [playwright](https://playwright.dev/) driven by agent running in [mcp code mode](https://blog.cloudflare.com/code-mode/) to cover the use cases of https://github.com/jingkaihe/matchlock/issues/6
+
+## 0.1.10
+
+- **User and entrypoint overrides** — Added `--user` (`-u`) flag to `run` and `exec` to run as a specific user (uid, uid:gid, or username), and `--entrypoint` flag to override the image's ENTRYPOINT. Commands are now composed from OCI image config (ENTRYPOINT + CMD) when no explicit command is given, matching Docker behavior.
+- **VFS chmod support** — Added `Chmod` operation across all VFS providers and the guest FUSE daemon, enabling proper file permission management inside sandboxes.
+- **Image config improvements** — OCI image config (USER, ENTRYPOINT, CMD, WORKDIR, ENV) is now properly extracted, cached, and merged through both the Go and Python SDKs, with in-guest user resolution via `/etc/passwd`.
+
+## 0.1.9
+
+### Bug Fixes
+
+- **Fix concurrent sandbox launches failing with port conflict** — The transparent proxy (Linux) no longer binds to hardcoded ports 18080/18443/18081. Proxy listeners now use OS-assigned ephemeral ports (port 0), with actual ports read back and passed to nftables rules. This allows multiple matchlock instances to run simultaneously without `bind: address already in use` errors.
+- Fixing `matchlock image rm` as per https://github.com/jingkaihe/matchlock/issues/19
+
+## 0.1.8
+
+### Breaking Changes
+
+- **Split `matchlock build` into `build` and `pull`** — `matchlock build` is now exclusively for Dockerfile builds (using BuildKit-in-VM). Image pulling has moved to the new `matchlock pull` command. The `-f` flag now defaults to `Dockerfile`, so `matchlock build -t myapp:latest .` works without specifying `-f`.
+
+### Bug Fixes
+
+- **`matchlock rm` now errors when VM ID is not found** ([#14](https://github.com/jingkaihe/matchlock/issues/14))
+- **Fix 2-3s exit delay and "file already closed" warning on macOS** — `Close(ctx)` now accepts a context so callers control the graceful shutdown budget (By default 0s for CLI and SDK); `SocketPair.Close()` is idempotent to prevent double-close errors ([#13](https://github.com/jingkaihe/matchlock/issues/13))
+- **`--rm` flag now properly removes VM state on exit** — previously `sb.Close()` only marked the VM as stopped without removing the state directory, causing stale entries in `matchlock list` ([#12](https://github.com/jingkaihe/matchlock/issues/12))

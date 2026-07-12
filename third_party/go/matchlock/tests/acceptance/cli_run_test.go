@@ -1,0 +1,398 @@
+//go:build acceptance
+
+package acceptance
+
+import (
+	"bytes"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/creack/pty"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestCLIRunEchoHello(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "echo", "hello")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "hello")
+}
+
+func TestCLIRunCatOsRelease(t *testing.T) {
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "cat", "/etc/os-release")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "Alpine")
+}
+
+func TestCLIRunMissingImage(t *testing.T) {
+	_, _, exitCode := runCLI(t, "run", "echo", "hello")
+	assert.NotEqual(t, 0, exitCode, "expected non-zero exit code when --image is missing")
+}
+
+func TestCLIRunNoCommand(t *testing.T) {
+	// Alpine has CMD ["/bin/sh"], so running without user-provided args uses
+	// the image default command and should succeed (exit 0).
+	_, _, exitCode := runCLI(t, "run", "--image", "alpine:latest")
+	assert.Equal(t, 0, exitCode, "image CMD /bin/sh should be used")
+}
+
+func TestCLIRunMultiWordCommand(t *testing.T) {
+	// "--" separates matchlock flags from the guest command so cobra
+	// doesn't interpret -c as a flag.
+	stdout, _, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "--", "sh", "-c", "echo foo bar")
+	require.Equal(t, 0, exitCode)
+	assert.Contains(t, stdout, "foo bar")
+}
+
+func TestCLIRunVolumeMountNestedGuestPath(t *testing.T) {
+	hostDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(hostDir, "probe.txt"), []byte("mounted-nested-path"), 0644), "write probe file")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"-v", hostDir+":/workspace/not_exist_folder",
+		"cat", "/workspace/not_exist_folder/probe.txt",
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "mounted-nested-path", strings.TrimSpace(stdout))
+}
+
+func TestCLIRunVolumeMountNestedGuestPathMultiLevelRelative(t *testing.T) {
+	hostDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(hostDir, "TEST.md"), []byte("mounted-multi-level-path"), 0644), "write probe file")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"-v", hostDir+":.host/example:ro",
+		"--", "sh", "-c", "cd /workspace/.host && cat example/TEST.md",
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "mounted-multi-level-path", strings.TrimSpace(stdout))
+}
+
+func TestCLIRunVolumeMountSingleFile(t *testing.T) {
+	hostDir := t.TempDir()
+	hostFile := filepath.Join(hostDir, "1file.txt")
+	require.NoError(t, os.WriteFile(hostFile, []byte("single-file-mounted"), 0644), "write host file")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"-v", hostFile+":/workspace/1file.txt",
+		"--", "sh", "-c", "ls /workspace && cat /workspace/1file.txt",
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Contains(t, stdout, "1file.txt")
+	assert.Contains(t, stdout, "single-file-mounted")
+}
+
+func TestCLIRunVolumeMountOwnerOverrideAllowsNonRootAccess(t *testing.T) {
+	hostDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(hostDir, "seed.txt"), []byte("seed"), 0600), "write seed file")
+	require.NoError(t, os.Chmod(hostDir, 0700), "lock down host dir")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"--user", "65534:65534",
+		"-v", hostDir+":/workspace/repo:host_fs,uid=65534,gid=65534",
+		"--",
+		"sh", "-c", strings.Join([]string{
+			"set -eu",
+			"cd /workspace/repo",
+			"stat -c '%u:%g:%a' .",
+			"stat -c '%u:%g:%a' seed.txt",
+			"test -w .",
+			"echo cli-non-root-write > created.txt",
+			"cat created.txt",
+		}, "; "),
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+
+	lines := strings.Split(strings.TrimSpace(stdout), "\n")
+	require.Len(t, lines, 3, "stdout: %q", stdout)
+	assert.Equal(t, "65534:65534:700", lines[0])
+	assert.Equal(t, "65534:65534:600", lines[1])
+	assert.Equal(t, "cli-non-root-write", lines[2])
+
+	body, err := os.ReadFile(filepath.Join(hostDir, "created.txt"))
+	require.NoError(t, err)
+	assert.Equal(t, "cli-non-root-write", strings.TrimSpace(string(body)))
+}
+
+func TestCLIRunInteractiveGitInitInWorkspaceKeepsPhysicalCWD(t *testing.T) {
+	hostWorkspace := t.TempDir()
+	args := withAcceptanceRunCPUs([]string{
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace",
+		"-v", hostWorkspace + ":/workspace",
+		"--rm",
+		"-it",
+		"sh",
+	})
+	cmd := exec.Command(matchlockBin(t), args...)
+	ptmx, err := pty.Start(cmd)
+	require.NoError(t, err, "failed to start interactive matchlock run")
+	defer ptmx.Close()
+
+	var output bytes.Buffer
+	copyDone := make(chan struct{})
+	go func() {
+		_, _ = io.Copy(&output, ptmx)
+		close(copyDone)
+	}()
+
+	commands := strings.Join([]string{
+		"apk add --no-cache git >/dev/null",
+		"cd workspace/",
+		"for i in 1 2 3 4 5 6 7 8; do",
+		"rm -rf repo",
+		"mkdir repo",
+		"cd repo",
+		"git init",
+		"echo GIT_INIT_EXIT:$?",
+		"pwd -P",
+		"echo PWD_PHYS_EXIT:$?",
+		"cd ..",
+		"done",
+		"exit",
+	}, "\n") + "\n"
+	_, err = ptmx.Write([]byte(commands))
+	require.NoError(t, err, "failed to send interactive commands")
+
+	waitDone := make(chan error, 1)
+	go func() { waitDone <- cmd.Wait() }()
+
+	select {
+	case waitErr := <-waitDone:
+		_ = ptmx.Close()
+		<-copyDone
+		out := output.String()
+		require.NoError(t, waitErr, "output:\n%s", out)
+		require.Contains(t, out, "Initialized empty Git repository", "output:\n%s", out)
+		require.Equal(t, 8, strings.Count(out, "GIT_INIT_EXIT:0"), "output:\n%s", out)
+		require.Equal(t, 8, strings.Count(out, "PWD_PHYS_EXIT:0"), "output:\n%s", out)
+		require.Contains(t, out, "/workspace/repo", "output:\n%s", out)
+		require.NotContains(t, out, "unable to get current working directory", "output:\n%s", out)
+	case <-time.After(4 * time.Minute):
+		_ = cmd.Process.Kill()
+		_ = ptmx.Close()
+		<-copyDone
+		require.FailNow(t, "interactive run timed out")
+	}
+}
+
+func TestCLIRunDetachRejectsInteractiveFlags(t *testing.T) {
+	_, stderr, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "-d", "-it", "sh")
+	require.NotEqual(t, 0, exitCode)
+	require.Contains(t, stderr, "--detach cannot be combined")
+
+	_, stderr, exitCode = runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "-dit", "sh")
+	require.NotEqual(t, 0, exitCode)
+	require.Contains(t, stderr, "--detach cannot be combined")
+
+	_, stderr, exitCode = runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "-d", "-i", "--", "sh", "-c", "echo hi")
+	require.NotEqual(t, 0, exitCode)
+	require.Contains(t, stderr, "--detach cannot be combined")
+}
+
+func TestCLIRunDetachPrintsVMIDAndReturns(t *testing.T) {
+	stdout, stderr, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "-d")
+	require.Equal(t, 0, exitCode, "stderr: %s", stderr)
+	vmID := strings.TrimSpace(stdout)
+	require.NotEmpty(t, vmID, "stdout: %q stderr: %q", stdout, stderr)
+	require.True(t, strings.HasPrefix(vmID, "vm-"), "stdout: %q stderr: %q", stdout, stderr)
+
+	t.Cleanup(func() {
+		_, _, _ = runCLI(t, "kill", vmID)
+		_, _, _ = runCLI(t, "rm", vmID)
+	})
+
+	deadline := time.Now().Add(30 * time.Second)
+	ready := false
+	for time.Now().Before(deadline) {
+		_, _, execExit := runCLIWithTimeout(t, 10*time.Second, "exec", vmID, "true")
+		if execExit == 0 {
+			ready = true
+			break
+		}
+		time.Sleep(300 * time.Millisecond)
+	}
+	require.True(t, ready, "timed out waiting for detached sandbox exec readiness")
+}
+
+func TestCLIRunDetachPrintsVMIDAndReturnsWithCommand(t *testing.T) {
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"-d",
+		"--",
+		"sh", "-c", "echo started > /tmp/detach-marker; sleep 300",
+	)
+	require.Equal(t, 0, exitCode, "stderr: %s", stderr)
+	vmID := strings.TrimSpace(stdout)
+	require.NotEmpty(t, vmID, "stdout: %q stderr: %q", stdout, stderr)
+
+	t.Cleanup(func() {
+		_, _, _ = runCLI(t, "kill", vmID)
+		_, _, _ = runCLI(t, "rm", vmID)
+	})
+
+	deadline := time.Now().Add(30 * time.Second)
+	started := false
+	for time.Now().Before(deadline) {
+		out, _, code := runCLIWithTimeout(t, 10*time.Second, "exec", vmID, "--", "sh", "-c", "test -f /tmp/detach-marker && echo ok")
+		if code == 0 && strings.Contains(out, "ok") {
+			started = true
+			break
+		}
+		time.Sleep(300 * time.Millisecond)
+	}
+	require.True(t, started, "timed out waiting for detached command marker")
+}
+
+func TestCLIRunVolumeMountRejectsGuestPathOutsideWorkspace(t *testing.T) {
+	hostDir := t.TempDir()
+
+	_, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--workspace", "/workspace/project",
+		"-v", hostDir+":/workspace",
+		"--", "true",
+	)
+	require.NotEqual(t, 0, exitCode)
+	require.Contains(t, stderr, "invalid volume mount")
+	require.Contains(t, stderr, "must be within workspace")
+}
+
+func TestCLIRunEnvInline(t *testing.T) {
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"-e", "FOO=bar",
+		"--", "sh", "-c", `printf "%s" "$FOO"`,
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "bar", strings.TrimSpace(stdout))
+}
+
+func TestCLIRunEnvFromHost(t *testing.T) {
+	t.Setenv("MATCHLOCK_HOST_ENV_TEST", "from-host")
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"-e", "MATCHLOCK_HOST_ENV_TEST",
+		"--", "sh", "-c", `printf "%s" "$MATCHLOCK_HOST_ENV_TEST"`,
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "from-host", strings.TrimSpace(stdout))
+}
+
+func TestCLIRunEnvFromHostMissingFails(t *testing.T) {
+	const key = "MATCHLOCK_ENV_MISSING_ABC123"
+	_ = os.Unsetenv(key)
+
+	_, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"-e", key,
+		"--", "true",
+	)
+	require.NotEqual(t, 0, exitCode)
+	require.Contains(t, stderr, "invalid environment variable")
+	require.Contains(t, stderr, key)
+}
+
+func TestCLIRunEnvFile(t *testing.T) {
+	t.Setenv("MATCHLOCK_ENV_FILE_HOST", "from-host")
+
+	dir := t.TempDir()
+	envFile := filepath.Join(dir, "app.env")
+	content := "# sample env file\nFILE_ONLY=from-file\nMATCHLOCK_ENV_FILE_HOST\n"
+	require.NoError(t, os.WriteFile(envFile, []byte(content), 0644))
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--env-file", envFile,
+		"--", "sh", "-c", `printf "%s|%s" "$FILE_ONLY" "$MATCHLOCK_ENV_FILE_HOST"`,
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "from-file|from-host", strings.TrimSpace(stdout))
+}
+
+func TestCLIRunEnvFlagOverridesEnvFile(t *testing.T) {
+	dir := t.TempDir()
+	envFile := filepath.Join(dir, "override.env")
+	require.NoError(t, os.WriteFile(envFile, []byte("SAME=file\n"), 0644))
+
+	stdout, stderr, exitCode := runCLIWithTimeout(
+		t,
+		2*time.Minute,
+		"run",
+		"--image", "alpine:latest",
+		"--env-file", envFile,
+		"-e", "SAME=flag",
+		"--", "sh", "-c", `printf "%s" "$SAME"`,
+	)
+	require.Equal(t, 0, exitCode, "stdout: %s\nstderr: %s", stdout, stderr)
+	assert.Equal(t, "flag", strings.TrimSpace(stdout))
+}
+
+func TestStartupLatencyReliabilityHarness(t *testing.T) {
+	if os.Getenv("MATCHLOCK_RUN_REGRESSION") != "1" {
+		t.Skip("set MATCHLOCK_RUN_REGRESSION=1 to run startup latency reliability harness")
+	}
+
+	const iterations = 3
+	var total time.Duration
+	for i := 0; i < iterations; i++ {
+		start := time.Now()
+		stdout, stderr, exitCode := runCLIWithTimeout(t, 2*time.Minute, "run", "--image", "alpine:latest", "--", "true")
+		require.Equalf(t, 0, exitCode, "run failed (iter=%d): stdout=%s stderr=%s", i, stdout, stderr)
+		total += time.Since(start)
+	}
+	avg := total / iterations
+	t.Logf("startup latency avg=%s over %d runs", avg, iterations)
+
+	if maxMsStr := strings.TrimSpace(os.Getenv("MATCHLOCK_MAX_STARTUP_MS")); maxMsStr != "" {
+		maxMs, err := strconv.Atoi(maxMsStr)
+		require.NoError(t, err, "invalid MATCHLOCK_MAX_STARTUP_MS")
+		assert.LessOrEqual(t, avg.Milliseconds(), int64(maxMs), "startup latency regression threshold exceeded")
+	}
+}

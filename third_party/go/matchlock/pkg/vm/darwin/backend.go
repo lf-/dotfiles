@@ -1,0 +1,489 @@
+//go:build darwin
+
+package darwin
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+
+	"github.com/Code-Hex/vz/v3"
+	"github.com/jingkaihe/matchlock/internal/errx"
+	"github.com/jingkaihe/matchlock/pkg/api"
+	"github.com/jingkaihe/matchlock/pkg/vm"
+)
+
+const (
+	VsockPortExec  = 5000
+	VsockPortVFS   = 5001
+	VsockPortReady = 5002
+)
+
+type DarwinBackend struct{}
+
+type consoleFiles struct {
+	stdinNull *os.File
+	logFile   *os.File
+}
+
+func NewDarwinBackend() *DarwinBackend {
+	return &DarwinBackend{}
+}
+
+func (b *DarwinBackend) Name() string {
+	return "virtualization.framework"
+}
+
+func (b *DarwinBackend) Create(ctx context.Context, config *vm.VMConfig) (vm.Machine, error) {
+	vcpus, ok := api.VCPUCount(config.CPUs)
+	if !ok {
+		return nil, errx.With(ErrInvalidCPUCount, ": cpus must be a finite number > 0")
+	}
+	hostCPUs := runtime.NumCPU()
+	if vcpus > hostCPUs {
+		return nil, errx.With(ErrInvalidCPUCount, ": cpus must be <= host cpus (%d)", hostCPUs)
+	}
+
+	// Verify files exist
+	if _, err := os.Stat(config.KernelPath); err != nil {
+		return nil, errx.With(ErrKernelNotFound, ": %s: %w", config.KernelPath, err)
+	}
+	if _, err := os.Stat(config.RootfsPath); err != nil {
+		return nil, errx.With(ErrRootfsNotFound, ": %s: %w", config.RootfsPath, err)
+	}
+
+	// Copy rootfs to temp file so each VM gets a clean image
+	// (VMs write to the rootfs and would corrupt the cached image)
+	// If PrebuiltRootfs is set, skip the copy (caller already prepared it)
+	tempRootfs := config.PrebuiltRootfs
+	if tempRootfs == "" {
+		var err error
+		tempRootfs, err = CopyRootfsToTemp(config.RootfsPath)
+		if err != nil {
+			return nil, errx.Wrap(ErrCopyRootfs, err)
+		}
+	}
+
+	var socketPair *SocketPair
+	if config.UseInterception && !config.NoNetwork {
+		sp, err := createSocketPair()
+		if err != nil {
+			os.Remove(tempRootfs)
+			return nil, errx.Wrap(ErrSocketPair, err)
+		}
+		socketPair = sp
+	}
+	closeSocketPair := func() {
+		if socketPair != nil {
+			socketPair.Close()
+		}
+	}
+
+	kernelArgs := b.buildKernelArgs(config)
+
+	bootLoaderOpts := []vz.LinuxBootLoaderOption{
+		vz.WithCommandLine(kernelArgs),
+	}
+
+	bootLoader, err := vz.NewLinuxBootLoader(
+		config.KernelPath,
+		bootLoaderOpts...,
+	)
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrBootLoader, err)
+	}
+
+	vzConfig, err := vz.NewVirtualMachineConfiguration(
+		bootLoader,
+		uint(vcpus),
+		uint64(config.MemoryMB)*1024*1024,
+	)
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrVMConfig, err)
+	}
+
+	configWithRootfs := *config
+	configWithRootfs.RootfsPath = tempRootfs
+	if err := b.configureStorage(vzConfig, &configWithRootfs); err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrStorageConfig, err)
+	}
+
+	if err := b.configureNetwork(vzConfig, socketPair, config.UseInterception, config.NoNetwork); err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrNetworkConfig, err)
+	}
+
+	vsockConfig, err := vz.NewVirtioSocketDeviceConfiguration()
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrVsockConfig, err)
+	}
+	vzConfig.SetSocketDevicesVirtualMachineConfiguration([]vz.SocketDeviceConfiguration{vsockConfig})
+
+	// Add entropy device for virtio random
+	entropyConfig, err := vz.NewVirtioEntropyDeviceConfiguration()
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrEntropyConfig, err)
+	}
+	vzConfig.SetEntropyDevicesVirtualMachineConfiguration([]*vz.VirtioEntropyDeviceConfiguration{entropyConfig})
+
+	console, err := b.configureConsole(vzConfig, config)
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrConsoleConfig, err)
+	}
+	releaseConsole := true
+	defer func() {
+		if !releaseConsole {
+			return
+		}
+		if console.stdinNull != nil {
+			_ = console.stdinNull.Close()
+			console.stdinNull = nil
+		}
+		if console.logFile != nil {
+			_ = console.logFile.Close()
+			console.logFile = nil
+		}
+	}()
+
+	validated, err := vzConfig.Validate()
+	if err != nil || !validated {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.With(ErrVMConfigInvalid, ": validated=%v: %w", validated, err)
+	}
+
+	vzVM, err := vz.NewVirtualMachine(vzConfig)
+	if err != nil {
+		os.Remove(tempRootfs)
+		closeSocketPair()
+		return nil, errx.Wrap(ErrVMCreate, err)
+	}
+	releaseConsole = false
+
+	return &DarwinMachine{
+		id:          config.ID,
+		config:      config,
+		vm:          vzVM,
+		socketPair:  socketPair,
+		tempRootfs:  tempRootfs,
+		consoleRead: console.stdinNull,
+		consoleLog:  console.logFile,
+	}, nil
+}
+
+func (b *DarwinBackend) buildKernelArgs(config *vm.VMConfig) string {
+	if config.KernelArgs != "" {
+		return config.KernelArgs
+	}
+
+	workspace := config.Workspace
+	workspaceArg := ""
+	if workspace != "" {
+		workspaceArg = " matchlock.workspace=" + workspace
+	}
+
+	hostname := config.Hostname
+	if hostname == "" {
+		hostname = config.ID
+	}
+
+	mtu := effectiveMTU(config.MTU)
+
+	// Root device is /dev/vda (first virtio block device)
+	privilegedArg := ""
+	if config.Privileged {
+		privilegedArg = " matchlock.privileged=1"
+	}
+
+	diskArgs := ""
+	devLetter := 'b' // vda is rootfs
+	if config.OverlayEnabled {
+		lowerDevs := make([]string, 0, len(config.OverlayLowerPaths))
+		lowerFS := make([]string, 0, len(config.OverlayLowerPaths))
+		for i := range config.OverlayLowerPaths {
+			lowerDevs = append(lowerDevs, fmt.Sprintf("vd%c", devLetter))
+			fsType := "erofs"
+			if i < len(config.OverlayLowerFSTypes) && config.OverlayLowerFSTypes[i] != "" {
+				fsType = config.OverlayLowerFSTypes[i]
+			}
+			lowerFS = append(lowerFS, fsType)
+			devLetter++
+		}
+		upperDev := fmt.Sprintf("vd%c", devLetter)
+		devLetter++
+		diskArgs += fmt.Sprintf(
+			" matchlock.overlay=1 matchlock.overlay.lower=%s matchlock.overlay.lowerfs=%s matchlock.overlay.upper=%s",
+			strings.Join(lowerDevs, ","),
+			strings.Join(lowerFS, ","),
+			upperDev,
+		)
+	}
+	for _, disk := range config.ExtraDisks {
+		dev := fmt.Sprintf("vd%c", devLetter)
+		devLetter++
+		diskMount := diskKernelArg(disk)
+		diskArgs += fmt.Sprintf(" matchlock.disk.%s=%s", dev, diskMount)
+	}
+
+	addHostArgs := ""
+	for i, mapping := range config.AddHosts {
+		addHostArgs += fmt.Sprintf(" matchlock.add_host.%d=%s,%s", i, mapping.Host, mapping.IP)
+	}
+
+	if config.NoNetwork {
+		return fmt.Sprintf(
+			"console=hvc0 root=/dev/vda rw init=/init reboot=k panic=1 ip=off hostname=%s%s matchlock.dns=%s matchlock.no_network=1%s%s matchlock.cpus=%g",
+			hostname, workspaceArg, vm.KernelDNSParam(config.DNSServers), privilegedArg, diskArgs+addHostArgs, config.CPUs,
+		)
+	}
+
+	if config.UseInterception {
+		guestIP := config.GuestIP
+		if guestIP == "" {
+			guestIP = "192.168.100.2"
+		}
+		gatewayIP := config.GatewayIP
+		if gatewayIP == "" {
+			gatewayIP = "192.168.100.1"
+		}
+		return fmt.Sprintf(
+			"console=hvc0 root=/dev/vda rw init=/init reboot=k panic=1 ip=%s::%s:255.255.255.0::eth0:off%s hostname=%s%s matchlock.dns=%s matchlock.mtu=%d%s%s%s matchlock.cpus=%g",
+			guestIP, gatewayIP, vm.KernelIPDNSSuffix(config.DNSServers), hostname, workspaceArg, vm.KernelDNSParam(config.DNSServers), mtu, privilegedArg, diskArgs, addHostArgs, config.CPUs,
+		)
+	}
+
+	return fmt.Sprintf(
+		"console=hvc0 root=/dev/vda rw init=/init reboot=k panic=1 ip=dhcp hostname=%s%s matchlock.dns=%s matchlock.mtu=%d%s%s%s matchlock.cpus=%g",
+		hostname, workspaceArg, vm.KernelDNSParam(config.DNSServers), mtu, privilegedArg, diskArgs, addHostArgs, config.CPUs,
+	)
+}
+
+func diskKernelArg(disk vm.DiskConfig) string {
+	parts := []string{disk.GuestMount}
+	if disk.ReadOnly {
+		parts = append(parts, "ro")
+	}
+	if disk.OwnerUID != nil {
+		parts = append(parts, fmt.Sprintf("uid=%d", *disk.OwnerUID))
+	}
+	if disk.OwnerGID != nil {
+		parts = append(parts, fmt.Sprintf("gid=%d", *disk.OwnerGID))
+	}
+	return strings.Join(parts, ",")
+}
+
+func effectiveMTU(mtu int) int {
+	if mtu > 0 {
+		return mtu
+	}
+	return api.DefaultNetworkMTU
+}
+
+func (b *DarwinBackend) configureStorage(vzConfig *vz.VirtualMachineConfiguration, config *vm.VMConfig) error {
+	diskAttachment, err := vz.NewDiskImageStorageDeviceAttachmentWithCacheAndSync(
+		config.RootfsPath,
+		false,
+		vz.DiskImageCachingModeAutomatic,
+		vz.DiskImageSynchronizationModeFsync,
+	)
+	if err != nil {
+		return errx.Wrap(ErrDiskAttachment, err)
+	}
+
+	storageConfig, err := vz.NewVirtioBlockDeviceConfiguration(diskAttachment)
+	if err != nil {
+		return errx.Wrap(ErrStorageConfig, err)
+	}
+
+	devices := []vz.StorageDeviceConfiguration{storageConfig}
+
+	if config.OverlayEnabled {
+		for _, lowerPath := range config.OverlayLowerPaths {
+			lowerAttachment, err := vz.NewDiskImageStorageDeviceAttachmentWithCacheAndSync(
+				lowerPath,
+				true,
+				vz.DiskImageCachingModeAutomatic,
+				vz.DiskImageSynchronizationModeFsync,
+			)
+			if err != nil {
+				return errx.Wrap(ErrDiskAttachment, err)
+			}
+			lowerConfig, err := vz.NewVirtioBlockDeviceConfiguration(lowerAttachment)
+			if err != nil {
+				return errx.Wrap(ErrStorageConfig, err)
+			}
+			devices = append(devices, lowerConfig)
+		}
+
+		upperAttachment, err := vz.NewDiskImageStorageDeviceAttachmentWithCacheAndSync(
+			config.OverlayUpperPath,
+			false,
+			vz.DiskImageCachingModeAutomatic,
+			vz.DiskImageSynchronizationModeFsync,
+		)
+		if err != nil {
+			return errx.Wrap(ErrDiskAttachment, err)
+		}
+		upperConfig, err := vz.NewVirtioBlockDeviceConfiguration(upperAttachment)
+		if err != nil {
+			return errx.Wrap(ErrStorageConfig, err)
+		}
+		devices = append(devices, upperConfig)
+	}
+
+	for i, disk := range config.ExtraDisks {
+		extraAttachment, err := vz.NewDiskImageStorageDeviceAttachmentWithCacheAndSync(
+			disk.HostPath,
+			disk.ReadOnly,
+			vz.DiskImageCachingModeAutomatic,
+			vz.DiskImageSynchronizationModeFsync,
+		)
+		if err != nil {
+			return errx.With(ErrExtraDiskAttach, ": disk %d: %w", i, err)
+		}
+
+		extraConfig, err := vz.NewVirtioBlockDeviceConfiguration(extraAttachment)
+		if err != nil {
+			return errx.With(ErrExtraDiskConfig, ": disk %d: %w", i, err)
+		}
+
+		devices = append(devices, extraConfig)
+	}
+
+	vzConfig.SetStorageDevicesVirtualMachineConfiguration(devices)
+	return nil
+}
+
+// CopyRootfsToTemp copies the rootfs image to a temp file so each VM gets a clean copy
+func CopyRootfsToTemp(srcPath string) (string, error) {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	// Create temp file in same directory to ensure same filesystem (for efficient copy)
+	dir := filepath.Dir(srcPath)
+	dst, err := os.CreateTemp(dir, "matchlock-rootfs-*.ext4")
+	if err != nil {
+		// Fall back to system temp if same dir fails
+		dst, err = os.CreateTemp("", "matchlock-rootfs-*.ext4")
+		if err != nil {
+			return "", err
+		}
+	}
+	dstPath := dst.Name()
+
+	_, err = io.Copy(dst, src)
+	if err != nil {
+		dst.Close()
+		os.Remove(dstPath)
+		return "", err
+	}
+
+	if err := dst.Close(); err != nil {
+		os.Remove(dstPath)
+		return "", err
+	}
+
+	return dstPath, nil
+}
+
+func (b *DarwinBackend) configureNetwork(vzConfig *vz.VirtualMachineConfiguration, socketPair *SocketPair, useInterception bool, noNetwork bool) error {
+	if noNetwork {
+		vzConfig.SetNetworkDevicesVirtualMachineConfiguration([]*vz.VirtioNetworkDeviceConfiguration{})
+		return nil
+	}
+
+	var netAttachment vz.NetworkDeviceAttachment
+	var err error
+
+	if useInterception {
+		if socketPair == nil {
+			return ErrNetworkConfig
+		}
+		// Use socket pair for traffic interception via gVisor stack
+		netAttachment, err = vz.NewFileHandleNetworkDeviceAttachment(socketPair.GuestFile())
+		if err != nil {
+			return errx.Wrap(ErrFileHandleAttach, err)
+		}
+	} else {
+		// Use NAT for simple networking without interception
+		netAttachment, err = vz.NewNATNetworkDeviceAttachment()
+		if err != nil {
+			return errx.Wrap(ErrNATAttach, err)
+		}
+	}
+
+	netConfig, err := vz.NewVirtioNetworkDeviceConfiguration(netAttachment)
+	if err != nil {
+		return errx.Wrap(ErrNetworkConfig, err)
+	}
+
+	mac, err := vz.NewRandomLocallyAdministeredMACAddress()
+	if err != nil {
+		return errx.Wrap(ErrMACAddress, err)
+	}
+	netConfig.SetMACAddress(mac)
+
+	vzConfig.SetNetworkDevicesVirtualMachineConfiguration([]*vz.VirtioNetworkDeviceConfiguration{netConfig})
+	return nil
+}
+
+func (b *DarwinBackend) configureConsole(vzConfig *vz.VirtualMachineConfiguration, config *vm.VMConfig) (*consoleFiles, error) {
+	// Debug console - kernel output goes to file
+	logPath := config.LogPath
+	if logPath == "" {
+		logPath = "console.log"
+	}
+	if err := os.MkdirAll(filepath.Dir(logPath), 0755); err != nil {
+		return nil, errx.Wrap(ErrConsoleLog, err)
+	}
+	logFile, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC|os.O_APPEND, 0644)
+	if err != nil {
+		return nil, errx.Wrap(ErrConsoleLog, err)
+	}
+
+	nullRead, err := os.Open("/dev/null")
+	if err != nil {
+		logFile.Close()
+		return nil, errx.Wrap(ErrDevNull, err)
+	}
+
+	serialAttachment, err := vz.NewFileHandleSerialPortAttachment(nullRead, logFile)
+	if err != nil {
+		nullRead.Close()
+		logFile.Close()
+		return nil, errx.Wrap(ErrSerialAttach, err)
+	}
+
+	consoleConfig, err := vz.NewVirtioConsoleDeviceSerialPortConfiguration(serialAttachment)
+	if err != nil {
+		nullRead.Close()
+		logFile.Close()
+		return nil, errx.Wrap(ErrConsoleDevice, err)
+	}
+
+	vzConfig.SetSerialPortsVirtualMachineConfiguration([]*vz.VirtioConsoleDeviceSerialPortConfiguration{consoleConfig})
+	return &consoleFiles{
+		stdinNull: nullRead,
+		logFile:   logFile,
+	}, nil
+}

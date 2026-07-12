@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test-linux:
+    name: Test (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+          experimental: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install filesystem tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y e2fsprogs erofs-utils
+
+      - name: Build
+        run: mise run cross-build:linux
+
+      - name: Build guest binaries
+        run: mise run cross-build:guest
+
+      - name: Test
+        run: mise run test
+
+      - name: Fmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: mise run vet
+
+      - name: Lint
+        run: mise run lint
+
+  acceptance-linux:
+    name: Acceptance (Linux self-hosted)
+    runs-on: [self-hosted, Linux, X64]
+    needs: test-linux
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+          experimental: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install filesystem tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y e2fsprogs erofs-utils
+
+      - name: Build
+        run: mise run build
+
+      - name: Configure Linux host support
+        run: sudo ./bin/matchlock setup linux --binary "$PWD/bin/matchlock" --user "$USER"
+
+      - name: Acceptance tests
+        env:
+          MATCHLOCK_ACCEPTANCE_PARALLEL: 6
+        run: mise run test:acceptance
+
+  test-darwin:
+    name: Test (macOS arm64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+        with:
+          install: true
+          experimental: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install filesystem tools
+        run: |
+          brew install e2fsprogs erofs-utils
+          echo "/opt/homebrew/opt/e2fsprogs/bin" >> $GITHUB_PATH
+          echo "/opt/homebrew/opt/e2fsprogs/sbin" >> $GITHUB_PATH
+
+      - name: Build
+        run: mise run cross-build:darwin
+
+      - name: Fmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Test
+        run: mise run test
