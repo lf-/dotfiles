@@ -1,0 +1,10 @@
+go_binary(
+    name = "lid",
+    package_name = "jade.fyi/ghostjar/lid/cmd/lid",
+    srcs = glob(["*.go"]),
+    deps = [
+        "//programs/ghostjar/lid/internal/config:config",
+        "//programs/ghostjar/lid/internal/runner:runner",
+    ],
+    visibility = ["PUBLIC"],
+)
