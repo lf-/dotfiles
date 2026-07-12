@@ -1,0 +1,7 @@
+go 1.26.2
+
+use (
+	./programs/ghostjar/lid
+	./third_party/go
+	./third_party/go/matchlock
+)
