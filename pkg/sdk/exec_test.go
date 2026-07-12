@@ -62,7 +62,7 @@ func newExecRPCClient(t *testing.T, handle func(inboundRPC, func(interface{}))) 
 	return c, cleanup
 }
 
-func TestExecPipeWithDir(t *testing.T) {
+func TestExecPipe(t *testing.T) {
 	var gotCommand string
 	var gotDir string
 	var gotStdin string
@@ -135,7 +135,7 @@ func TestExecPipeWithDir(t *testing.T) {
 
 	stdin := strings.NewReader("hello-pipe")
 	var stdout, stderr bytes.Buffer
-	result, err := client.ExecPipeWithDir(context.Background(), "cat", "/tmp", stdin, &stdout, &stderr)
+	result, err := client.ExecPipe(context.Background(), "cat", ExecPipeOptions{WorkingDir: "/tmp", Stdin: stdin, Stdout: &stdout, Stderr: &stderr})
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.Equal(t, 5, result.ExitCode)
@@ -251,7 +251,7 @@ func TestExecInteractive(t *testing.T) {
 	close(resize)
 
 	var stdout bytes.Buffer
-	result, err := client.ExecInteractive(context.Background(), "sh", &ExecInteractiveOptions{
+	result, err := client.ExecInteractive(context.Background(), "sh", ExecInteractiveOptions{
 		Rows:   40,
 		Cols:   100,
 		Stdin:  strings.NewReader("tty-input"),

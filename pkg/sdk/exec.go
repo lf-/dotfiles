@@ -152,20 +152,28 @@ func (c *Client) ExecStreamWithDir(ctx context.Context, command, workingDir stri
 	}, nil
 }
 
-// ExecPipe executes a command in pipe mode with bidirectional stdin/stdout/stderr.
-// This mode does not allocate a PTY.
-func (c *Client) ExecPipe(ctx context.Context, command string, stdin io.Reader, stdout, stderr io.Writer) (*ExecPipeResult, error) {
-	return c.ExecPipeWithDir(ctx, command, "", stdin, stdout, stderr)
+// Parameters for `ExecPipe`. The zero value of this struct provides defaults.
+type ExecPipeOptions struct {
+	WorkingDir string
+	User       string
+	Stdin      io.Reader
+	Stdout     io.Writer
+	Stderr     io.Writer
 }
 
-// ExecPipeWithDir executes a command in pipe mode with a working directory.
-func (c *Client) ExecPipeWithDir(ctx context.Context, command, workingDir string, stdin io.Reader, stdout, stderr io.Writer) (*ExecPipeResult, error) {
+// ExecPipe executes a command in pipe mode with bidirectional stdin/stdout/stderr.
+// This mode does not allocate a PTY.
+func (c *Client) ExecPipe(ctx context.Context, command string, opts ExecPipeOptions) (*ExecPipeResult, error) {
 	params := map[string]string{
 		"command": command,
 	}
-	if workingDir != "" {
-		params["working_dir"] = workingDir
+	if opts.WorkingDir != "" {
+		params["working_dir"] = opts.WorkingDir
 	}
+	if opts.User != "" {
+		params["user"] = opts.User
+	}
+	stdin, stdout, stderr := opts.Stdin, opts.Stdout, opts.Stderr
 
 	reqID := c.requestID.Add(1)
 	readyCh := make(chan struct{})
@@ -227,11 +235,7 @@ func (c *Client) ExecPipeWithDir(ctx context.Context, command, workingDir string
 }
 
 // ExecInteractive executes a command in TTY mode (equivalent to CLI -it behavior).
-func (c *Client) ExecInteractive(ctx context.Context, command string, opts *ExecInteractiveOptions) (*ExecInteractiveResult, error) {
-	if opts == nil {
-		opts = &ExecInteractiveOptions{}
-	}
-
+func (c *Client) ExecInteractive(ctx context.Context, command string, opts ExecInteractiveOptions) (*ExecInteractiveResult, error) {
 	rows := opts.Rows
 	cols := opts.Cols
 	if rows == 0 {

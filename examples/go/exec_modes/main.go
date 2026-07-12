@@ -101,7 +101,7 @@ func run() error {
 		}
 	}()
 
-	ttyResult, err := client.ExecInteractive(ctx, "sh", &sdk.ExecInteractiveOptions{
+	ttyResult, err := client.ExecInteractive(ctx, "sh", sdk.ExecInteractiveOptions{
 		WorkingDir: "/workspace",
 		Rows:       uint16(rows),
 		Cols:       uint16(cols),
