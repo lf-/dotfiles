@@ -25,6 +25,8 @@ var (
 	ErrBuildKitBuild       = errors.New("BuildKit build")
 	ErrOpenImageTarball    = errors.New("open built image tarball")
 	ErrImportImage         = errors.New("import built image")
+	ErrResolveOutputDir    = errors.New("resolve output dir")
+	ErrCopyOutputFiles     = errors.New("copy output files")
 )
 
 // Exec errors

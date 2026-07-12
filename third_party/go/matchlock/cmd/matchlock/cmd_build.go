@@ -7,8 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
+	shellquote "github.com/kballard/go-shellquote"
 	"github.com/spf13/cobra"
 	"golang.org/x/sys/unix"
 
@@ -37,6 +39,9 @@ To pull a pre-built container image, use "matchlock pull" instead.`,
 func init() {
 	buildCmd.Flags().StringP("tag", "t", "", "Tag the built image locally")
 	buildCmd.Flags().StringP("file", "f", "Dockerfile", "Path to Dockerfile")
+	buildCmd.Flags().String("target", "", "Set the target build stage")
+	buildCmd.Flags().StringArray("build-arg", nil, "Set a build-time variable (KEY=VALUE, repeatable)")
+	buildCmd.Flags().String("output-dir", "", "Write build output files to this host directory (type=local; makes -t optional)")
 	buildCmd.Flags().Float64("build-cpus", 0, "Number of CPUs for BuildKit VM (supports fractional values, 0 = all available)")
 	buildCmd.Flags().Int("build-memory", 0, "Memory in MB for BuildKit VM (0 = all available)")
 	buildCmd.Flags().Int("build-disk", 10240, "Disk size in MB for BuildKit VM")
@@ -157,8 +162,12 @@ func lockBuildCache(cachePath string) (*os.File, error) {
 }
 
 func runDockerfileBuild(cmd *cobra.Command, contextDir, dockerfile, tag string) error {
-	if tag == "" {
-		return fmt.Errorf("-t/--tag is required when building from a Dockerfile")
+	target, _ := cmd.Flags().GetString("target")
+	buildArgs, _ := cmd.Flags().GetStringArray("build-arg")
+	outputDest, _ := cmd.Flags().GetString("output-dir")
+
+	if tag == "" && outputDest == "" {
+		return fmt.Errorf("-t/--tag is required when --output-dir is not set")
 	}
 
 	cpus, _ := cmd.Flags().GetFloat64("build-cpus")
@@ -325,6 +334,22 @@ func runDockerfileBuild(cmd *cobra.Command, contextDir, dockerfile, tag string) 
 		noCacheOpt = "  --no-cache \\\n"
 	}
 
+	targetOpt := ""
+	if target != "" {
+		targetOpt = fmt.Sprintf("  --opt %s \\\n", shellquote.Join("target="+target))
+	}
+
+	var buildArgOptsBuilder strings.Builder
+	for _, arg := range buildArgs {
+		fmt.Fprintf(&buildArgOptsBuilder, "  --opt %s \\\n", shellquote.Join("build-arg:"+arg))
+	}
+	buildArgOpts := buildArgOptsBuilder.String()
+
+	outputOpt := "  --output type=docker,dest=/workspace/output/image.tar"
+	if outputDest != "" {
+		outputOpt = "  --output type=local,dest=/workspace/output"
+	}
+
 	buildScript := fmt.Sprintf(`#!/bin/sh
 set -e
 export HOME=/root
@@ -347,12 +372,12 @@ buildctl --addr unix://$SOCK build \
   --frontend dockerfile.v0 \
   --local context=/workspace/context \
   --local dockerfile=%s \
-%s%s  --output type=docker,dest=/workspace/output/image.tar
+%s%s%s%s%s
 RC=$?
 [ $RC -ne 0 ] && { echo "=== buildkitd log ===" >&2; cat /tmp/buildkitd.log >&2; }
 kill $BKPID 2>/dev/null
 exit $RC
-`, guestDockerfileDir, filenameOpt, noCacheOpt)
+`, guestDockerfileDir, filenameOpt, noCacheOpt, targetOpt, buildArgOpts, outputOpt)
 
 	if err := sb.WriteFile(ctx, "/workspace/buildkit-run.sh", []byte(buildScript), 0755); err != nil {
 		return errx.Wrap(ErrWriteBuildScript, err)
@@ -364,6 +389,38 @@ exit $RC
 	}
 	if result.ExitCode != 0 {
 		return fmt.Errorf("BuildKit build failed (exit %d)", result.ExitCode)
+	}
+
+	if outputDest != "" {
+		absOutputDest, err := filepath.Abs(outputDest)
+		if err != nil {
+			return errx.Wrap(ErrResolveOutputDir, err)
+		}
+		if err := os.MkdirAll(absOutputDest, 0755); err != nil {
+			return errx.Wrap(ErrResolveOutputDir, err)
+		}
+		if err := filepath.Walk(outputDir, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			rel, err := filepath.Rel(outputDir, path)
+			if err != nil {
+				return err
+			}
+			dest := filepath.Join(absOutputDest, rel)
+			if info.IsDir() {
+				return os.MkdirAll(dest, info.Mode())
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			return os.WriteFile(dest, data, info.Mode())
+		}); err != nil {
+			return errx.Wrap(ErrCopyOutputFiles, err)
+		}
+		fmt.Fprintf(os.Stderr, "Build output written to %s\n", absOutputDest)
+		return nil
 	}
 
 	fmt.Fprintf(os.Stderr, "Importing built image as %s...\n", tag)
