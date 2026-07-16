@@ -44,13 +44,9 @@ def jj_remotes() -> dict[str, str]:
     }
 
 
-def main():
-    ap = argparse.ArgumentParser(description="Create a pull request with jj")
-    ap.add_argument("rev", help="Revision to PR")
-    args, rest = ap.parse_known_intermixed_args()
-
-    bookmarks = jj_log("local_bookmarks", args.rev)
-    remote_bookmarks = jj_log("remote_bookmarks", args.rev)
+def make_pr(rev: str, rest: list[str]):
+    bookmarks = jj_log("local_bookmarks", rev)
+    remote_bookmarks = jj_log("remote_bookmarks", rev)
     if len(bookmarks) != 1:
         raise ValueError(f"Wrong number of bookmarks there buddy: {bookmarks}")
 
@@ -92,6 +88,23 @@ def main():
 
     # make a pr!
     subprocess.call(["gh", "pr", "create", "--head", github_branch, *rest])
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Create pull requests with jj")
+    ap.add_argument("revs", nargs="+", help="Revisions to PR")
+    # REMAINDER swallows everything from the first option onward, so option
+    # values that look positional (e.g. the foo in --title foo) aren't eaten
+    # as revisions.
+    ap.add_argument(
+        "gh_args",
+        nargs=argparse.REMAINDER,
+        help="Options passed to `gh pr create` verbatim",
+    )
+    args = ap.parse_args()
+
+    for rev in args.revs:
+        make_pr(rev, args.gh_args)
 
 
 if __name__ == "__main__":
