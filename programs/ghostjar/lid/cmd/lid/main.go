@@ -23,6 +23,7 @@ func main() {
 // globalOpts holds flags that apply to every subcommand.
 type globalOpts struct {
 	configPath string
+	useUserns  bool
 }
 
 func run(args []string) int {
@@ -32,6 +33,7 @@ func run(args []string) int {
 	var chdir string
 	fs.StringVar(&g.configPath, "config", "", "path to project lid.star (overrides discovery)")
 	fs.StringVar(&chdir, "C", "", "change to this directory before running")
+	fs.BoolVar(&g.useUserns, "userns", false, "run matchlock in user+network namespace (unprivileged; requires pasta; still needs kvm group)")
 	fs.Usage = func() { usage(fs) }
 
 	if err := fs.Parse(args); err != nil {
@@ -81,7 +83,7 @@ func usage(fs *flag.FlagSet) {
 	fmt.Fprint(out, `lid — run agents inside matchlock microVMs
 
 Usage:
-  lid [--config PATH] [-C DIR] <command> [args]
+  lid [--config PATH] [-C DIR] [--userns] <command> [args]
 
 Commands:
   run [profile] [-- extra args]   boot a VM and run the profile command
@@ -140,7 +142,10 @@ func cmdBake(g globalOpts, args []string) int {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	tag, err := runner.Bake(ctx, prof, os.Stderr, runner.BakeOptions{CacheSizeMB: cacheSizeMB})
+	tag, err := runner.Bake(ctx, prof, os.Stderr, runner.BakeOptions{
+		CacheSizeMB: cacheSizeMB,
+		UseUserns:   disc.Merged.Config.UseUserns || g.useUserns,
+	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "lid: %v\n", err)
 		return 1
@@ -193,9 +198,10 @@ func launch(g globalOpts, profileName string, overrideCmd, extra []string) int {
 	defer stop()
 
 	exit, err := runner.Run(ctx, runner.RunOptions{
-		Profile: prof,
-		Cwd:     cwd,
-		Command: command,
+		Profile:   prof,
+		Cwd:       cwd,
+		Command:   command,
+		UseUserns: disc.Merged.Config.UseUserns || g.useUserns,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "lid: %v\n", err)

@@ -71,8 +71,12 @@ type Client struct {
 type Config struct {
 	// BinaryPath is the path to the matchlock binary
 	BinaryPath string
-	// UseSudo runs matchlock with sudo (required for TAP devices)
+	// UseSudo runs matchlock with sudo (required for TAP devices without userns)
 	UseSudo bool
+	// UseUserns runs matchlock in a user+network namespace via pasta.
+	// No file-caps, no netdev group, and no sudo are required — only /dev/kvm
+	// access (kvm group) remains necessary. Supersedes UseSudo when both are set.
+	UseUserns bool
 }
 
 // DefaultConfig returns the default client configuration
@@ -89,9 +93,12 @@ func DefaultConfig() Config {
 // NewClient creates a new Matchlock client and starts the RPC process
 func NewClient(cfg Config) (*Client, error) {
 	var cmd *exec.Cmd
-	if cfg.UseSudo {
+	switch {
+	case cfg.UseUserns:
+		cmd = exec.Command(cfg.BinaryPath, "--userns", "rpc")
+	case cfg.UseSudo:
 		cmd = exec.Command("sudo", cfg.BinaryPath, "rpc")
-	} else {
+	default:
 		cmd = exec.Command(cfg.BinaryPath, "rpc")
 	}
 

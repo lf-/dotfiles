@@ -26,6 +26,10 @@ type RunOptions struct {
 	Cwd     string
 	Command []string // full argv to run in the guest (profile.Command + extras)
 
+	// UseUserns runs matchlock in a user+network namespace via pasta (unprivileged).
+	// Requires pasta on PATH and /dev/kvm access; no file-caps or netdev group needed.
+	UseUserns bool
+
 	// Optional overrides; defaulted to the process std streams / real resolver.
 	Stdin        *os.File
 	Stdout       *os.File
@@ -167,6 +171,14 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 	}
 
 	builder := Translate(prof, opts.Cwd, home, cwdGuest, secrets, oauthProvider, oauthHosts, githubApps, guestUID, guestGID)
+
+	if opts.UseUserns {
+		// MATCHLOCK_USERNS is read by the matchlock binary via viper on startup.
+		// The child process inherits the current process's environment, so setting
+		// it here causes the matchlock rpc process to enter a user+network namespace.
+		os.Setenv("MATCHLOCK_USERNS", "true")
+		defer os.Unsetenv("MATCHLOCK_USERNS")
+	}
 
 	client, err := sdk.NewClient(sdk.DefaultConfig())
 	if err != nil {

@@ -293,14 +293,16 @@ func stringList(l *starlark.List, kwarg string, wrap error) ([]string, error) {
 
 // loader carries the per-LoadFile registration state.
 type loader struct {
-	file *File
-	seen map[string]bool
+	file       *File
+	seen       map[string]bool
+	configSeen bool
 }
 
 func (ld *loader) module() *starlarkstruct.Module {
 	return &starlarkstruct.Module{
 		Name: "lid",
 		Members: starlark.StringDict{
+			"config":              starlark.NewBuiltin("lid.config", ld.configBuiltin),
 			"sandbox":             starlark.NewBuiltin("lid.sandbox", ld.sandbox),
 			"network":             starlark.NewBuiltin("lid.network", networkBuiltin),
 			"secret":              starlark.NewBuiltin("lid.secret", secretBuiltin),
@@ -313,6 +315,24 @@ func (ld *loader) module() *starlarkstruct.Module {
 			"hosts":               hostsStruct,
 		},
 	}
+}
+
+func (ld *loader) configBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {
+	if len(args) > 0 {
+		return nil, fmt.Errorf("%s: positional arguments are not allowed; use keyword arguments", b.Name())
+	}
+	if ld.configSeen {
+		return nil, fmt.Errorf("%s: may only be called once per file", b.Name())
+	}
+	var useUserns bool
+	if err := starlark.UnpackArgs(b.Name(), args, kwargs,
+		"userns?", &useUserns,
+	); err != nil {
+		return nil, err
+	}
+	ld.configSeen = true
+	ld.file.Config.UseUserns = useUserns
+	return starlark.None, nil
 }
 
 func networkBuiltin(_ *starlark.Thread, b *starlark.Builtin, args starlark.Tuple, kwargs []starlark.Tuple) (starlark.Value, error) {

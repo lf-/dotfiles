@@ -366,6 +366,13 @@ func New(ctx context.Context, config *api.Config, opts *Options) (sb *Sandbox, r
 	// Set up basic NAT for guest network access using nftables
 	var natRules *sandboxnet.NFTablesNAT
 	if !noNetwork {
+		// Masquerade is inert unless the netns forwards packets between the
+		// guest tap and the egress interface. In userns mode the child netns
+		// starts with ip_forward=0, so enable it here; on the host path it is
+		// already on (via `setup linux`) and this is a harmless no-op.
+		if err := linux.SetupIPForwarding(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to enable IP forwarding: %v\n", err)
+		}
 		natRules = sandboxnet.NewNFTablesNAT(linuxMachine.TapName())
 		if err := natRules.Setup(); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to setup NAT: %v\n", err)

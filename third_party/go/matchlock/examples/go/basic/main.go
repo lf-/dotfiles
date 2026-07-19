@@ -32,6 +32,9 @@ func run() error {
 	if os.Getenv("MATCHLOCK_BIN") == "" {
 		cfg.BinaryPath = "./bin/matchlock"
 	}
+	// Set UseUserns: true to run unprivileged (no file-caps, no netdev group).
+	// Requires: pasta on PATH, /dev/kvm access (kvm group).
+	cfg.UseUserns = os.Getenv("MATCHLOCK_USERNS") == "1"
 
 	client, err := sdk.NewClient(cfg)
 	if err != nil {

@@ -475,3 +475,52 @@ func TestSecretSourceFields(t *testing.T) {
 		t.Errorf("AllowedHosts = %q, want %q", p.Net.AllowedHosts, wantHosts)
 	}
 }
+
+func TestGlobalConfigDefaultsDisabled(t *testing.T) {
+	f, err := config.LoadFile("cfg.star", []byte(sb()))
+	if err != nil {
+		t.Fatalf("LoadFile: %v", err)
+	}
+	if f.Config.UseUserns {
+		t.Errorf("default Config.UseUserns = true, want false")
+	}
+}
+
+func TestGlobalConfigUserns(t *testing.T) {
+	f, err := config.LoadFile("cfg.star", []byte("lid.config(userns = True)\n"+sb()))
+	if err != nil {
+		t.Fatalf("LoadFile: %v", err)
+	}
+	if !f.Config.UseUserns {
+		t.Errorf("lid.config(userns=True): Config.UseUserns = false, want true")
+	}
+	if len(f.Profiles) != 1 {
+		t.Fatalf("expected 1 profile, got %d", len(f.Profiles))
+	}
+}
+
+func TestGlobalConfigMergeOR(t *testing.T) {
+	none := &config.File{}
+	withUserns := &config.File{Config: config.GlobalConfig{UseUserns: true}}
+
+	cases := []struct {
+		name    string
+		g, p    *config.File
+		wantNS  bool
+	}{
+		{"global_true_project_false", withUserns, none, true},
+		{"global_false_project_true", none, withUserns, true},
+		{"both_true", withUserns, withUserns, true},
+		{"both_false", none, none, false},
+		{"global_nil", nil, withUserns, true},
+		{"project_nil", withUserns, nil, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m := config.Merge(tc.g, tc.p)
+			if m.Config.UseUserns != tc.wantNS {
+				t.Errorf("UseUserns = %v, want %v", m.Config.UseUserns, tc.wantNS)
+			}
+		})
+	}
+}

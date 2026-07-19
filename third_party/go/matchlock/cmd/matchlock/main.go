@@ -31,6 +31,9 @@ func init() {
 
 	rootCmd.PersistentFlags().String("log-level", logger.DefaultLevel, "Log level (debug, info, warn, error)")
 	viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
+
+	rootCmd.PersistentFlags().Bool("userns", false, "Run in user+network namespace (unprivileged; requires pasta; still needs kvm group)")
+	viper.BindPFlag("userns", rootCmd.PersistentFlags().Lookup("userns"))
 }
 
 func configureRootLogging(cmd *cobra.Command, args []string) error {

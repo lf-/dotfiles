@@ -5,12 +5,14 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/jingkaihe/matchlock/internal/errx"
 	"github.com/jingkaihe/matchlock/pkg/api"
 	"github.com/jingkaihe/matchlock/pkg/image"
 	"github.com/jingkaihe/matchlock/pkg/rpc"
 	"github.com/jingkaihe/matchlock/pkg/sandbox"
+	"github.com/jingkaihe/matchlock/pkg/userns"
 )
 
 var rpcCmd = &cobra.Command{
@@ -24,6 +26,16 @@ func init() {
 }
 
 func runRPC(cmd *cobra.Command, args []string) error {
+	if viper.GetBool("userns") {
+		// Enter a user+network namespace. For RPC mode there is no detach
+		// and no MTU flag; use the network default MTU for pasta configuration.
+		if _, err := userns.Enter(false, api.DefaultNetworkMTU); err != nil {
+			return err
+		}
+		// If we're the outer foreground process, Enter calls os.Exit.
+		// If we're the inner, WaitForNetwork has run; fall through.
+	}
+
 	ctx, cancel := contextWithSignal(context.Background())
 	defer cancel()
 

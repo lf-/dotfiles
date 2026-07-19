@@ -12,12 +12,14 @@ import (
 
 	shellquote "github.com/kballard/go-shellquote"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"golang.org/x/sys/unix"
 
 	"github.com/jingkaihe/matchlock/internal/errx"
 	"github.com/jingkaihe/matchlock/pkg/api"
 	"github.com/jingkaihe/matchlock/pkg/image"
 	"github.com/jingkaihe/matchlock/pkg/sandbox"
+	"github.com/jingkaihe/matchlock/pkg/userns"
 )
 
 var buildCmd = &cobra.Command{
@@ -180,6 +182,19 @@ func runDockerfileBuild(cmd *cobra.Command, contextDir, dockerfile, tag string) 
 
 	if networkMTU <= 0 {
 		return fmt.Errorf("--mtu must be > 0")
+	}
+
+	if viper.GetBool("userns") {
+		// Enter a user+network namespace before any build setup runs. The outer
+		// process forks an inner that re-execs this same `build` command and
+		// resumes here; the outer never returns (Enter calls os.Exit once the
+		// inner finishes). Doing this first is essential: the BuildKit rootfs
+		// build and the cache flock below must execute only in the inner —
+		// otherwise the outer would hold the lock while waiting on an inner that
+		// blocks trying to acquire it.
+		if _, err := userns.Enter(false, networkMTU); err != nil {
+			return err
+		}
 	}
 
 	hostCPUs := runtime.NumCPU()

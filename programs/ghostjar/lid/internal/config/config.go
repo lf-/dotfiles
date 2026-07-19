@@ -112,8 +112,17 @@ type Profile struct {
 	PersistClaude  bool        // persist Claude conversation state across runs via a per-project host store
 }
 
+// GlobalConfig holds host-level settings from lid.config() that apply to all
+// profiles. Zero value means all features disabled.
+type GlobalConfig struct {
+	// UseUserns activates matchlock's user+network namespace mode (Linux only;
+	// silently ignored on non-Linux hosts).
+	UseUserns bool
+}
+
 // File is the result of evaluating one starlark config file.
 type File struct {
+	Config   GlobalConfig
 	Profiles []*Profile // registration order
 }
 
@@ -128,6 +137,12 @@ func LoadFile(filename string, src []byte) (*File, error) {
 // kept, followed by project-only profiles in registration order.
 func Merge(global, project *File) *File {
 	merged := &File{}
+	if global != nil {
+		merged.Config = global.Config
+	}
+	if project != nil {
+		merged.Config.UseUserns = merged.Config.UseUserns || project.Config.UseUserns
+	}
 	byName := make(map[string]*Profile)
 	if project != nil {
 		for _, p := range project.Profiles {

@@ -24,6 +24,7 @@ import (
 	"github.com/jingkaihe/matchlock/pkg/image"
 	"github.com/jingkaihe/matchlock/pkg/sandbox"
 	"github.com/jingkaihe/matchlock/pkg/state"
+	"github.com/jingkaihe/matchlock/pkg/userns"
 	"github.com/jingkaihe/matchlock/pkg/vm"
 )
 
@@ -193,6 +194,29 @@ func runRun(cmd *cobra.Command, args []string) error {
 	if err := validateDetachFlags(detach, tty, interactive); err != nil {
 		return err
 	}
+
+	// Read MTU early; needed by the userns gate below and validated later.
+	networkMTU, _ := cmd.Flags().GetInt("mtu")
+
+	if viper.GetBool("userns") {
+		childPID, err := userns.Enter(detach, networkMTU)
+		if err != nil {
+			return err
+		}
+		if childPID > 0 {
+			// Outer detached process: poll state DB for the VM ID.
+			vmID, err := waitDetachedVMID(childPID)
+			if err != nil {
+				return err
+			}
+			fmt.Println(vmID)
+			return nil
+		}
+		// childPID == 0: either inner (WaitForNetwork done) or foreground outer
+		// (os.Exit was called — unreachable). Fall through to sandbox execution.
+		// The inner process always has detach=false (args transformed by Enter).
+	}
+
 	if detach {
 		rm = false
 	}
@@ -216,7 +240,7 @@ func runRun(cmd *cobra.Command, args []string) error {
 	secretFile, _ := cmd.Flags().GetString("secret-file")
 	dnsServers, _ := cmd.Flags().GetStringSlice("dns-servers")
 	hostname, _ := cmd.Flags().GetString("hostname")
-	networkMTU, _ := cmd.Flags().GetInt("mtu")
+	// networkMTU already read above for userns gate.
 	noNetwork, _ := cmd.Flags().GetBool("no-network")
 	networkIntercept, _ := cmd.Flags().GetBool("network-intercept")
 	publishSpecs, _ := cmd.Flags().GetStringArray("publish")

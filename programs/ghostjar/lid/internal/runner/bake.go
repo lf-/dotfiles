@@ -49,6 +49,10 @@ type BakeOptions struct {
 	// CacheSizeMB is passed to matchlock build --build-cache-size. Zero uses
 	// matchlock's default (10 GiB).
 	CacheSizeMB int
+	// UseUserns runs `matchlock build` in a user+network namespace via pasta
+	// (unprivileged), mirroring `lid run`. Without it, the BuildKit VM's TAP
+	// creation fails with EPERM on hosts where lid runs unprivileged.
+	UseUserns bool
 }
 
 // Bake builds the profile's baked image (base image + setup steps) into the
@@ -80,6 +84,12 @@ func Bake(ctx context.Context, p *config.Profile, logw io.Writer, opts BakeOptio
 	cmd := exec.CommandContext(ctx, matchlockBin(), argv...)
 	cmd.Stdout = logw
 	cmd.Stderr = logw
+	if opts.UseUserns {
+		// matchlock reads MATCHLOCK_USERNS via viper on startup; the build
+		// command enters a user+network namespace when it is set. Scope it to
+		// this subprocess rather than mutating the parent's environment.
+		cmd.Env = append(os.Environ(), "MATCHLOCK_USERNS=true")
+	}
 	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("bake: matchlock build: %w", err)
 	}

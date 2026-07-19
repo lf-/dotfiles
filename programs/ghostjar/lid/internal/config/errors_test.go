@@ -163,6 +163,11 @@ func TestErrorSentinels(t *testing.T) {
 
 		// --- init ---
 		{"init_non_string", sb(`init = [1]`), both(config.ErrBadCommand)},
+
+		// --- lid.config ---
+		{"config_twice", "lid.config(userns = True)\nlid.config(userns = True)", []error{config.ErrEval}},
+		{"config_positional", "lid.config(True)", []error{config.ErrEval}},
+		{"config_unknown_kwarg", "lid.config(nope = True)", []error{config.ErrEval}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

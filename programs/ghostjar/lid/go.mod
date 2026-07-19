@@ -14,3 +14,5 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 )
+
+replace github.com/jingkaihe/matchlock => ../../../third_party/go/matchlock
