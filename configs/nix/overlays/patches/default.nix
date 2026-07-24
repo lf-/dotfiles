@@ -1,3 +1,2 @@
 [
-  (import ./nix-direnv.nix)
 ]

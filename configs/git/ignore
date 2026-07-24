@@ -35,3 +35,4 @@ node_modules/
 $.jj/
 
 **/.claude/settings.local.json
+**/.claude/worktrees/

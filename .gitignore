@@ -4,6 +4,7 @@ gtk3/bookmarks
 fonts/.uuid
 *.zwc
 buck-out/
+prelude/
 
 # Per-machine buckconfig (contains API keys). See .buckconfig.d/04-buildbuddy.
 .buckconfig.local
