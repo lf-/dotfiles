@@ -1,0 +1,40 @@
+[cells]
+  root = .
+  prelude = prelude
+  toolchains = toolchains
+  none = none
+
+[cell_aliases]
+  config = prelude
+  ovr_config = prelude
+  fbcode = none
+  fbsource = none
+  fbcode_macros = none
+  buck = none
+
+# Uses a copy of the prelude bundled with the buck2 binary. You can alternatively delete this
+# section and vendor a copy of the prelude to the `prelude` directory of your project.
+[external_cells]
+  prelude = bundled
+
+# The default *target* platform -- what a target is built for when nothing asks
+# for anything else.  See //platforms for why this is not the same thing as the
+# execution platform below.
+[parser]
+  target_platform_detector_spec = target:root//...->root//platforms:default \
+    target:prelude//...->root//platforms:default \
+    target:toolchains//...->root//platforms:default \
+    target:elk//...->root//platforms:default
+
+[buck2]
+    declare_output_has_content_based_path_default = true
+    action_has_content_based_path_default = true
+
+[project]
+ignores = .git, .jj, .claude
+
+# Where actions run.  //platforms:exec is an alias chosen by
+# `[buck2_re_client] default_mode`, which is "none" (purely local) until there
+# is a remote executor to talk to.
+[build]
+  execution_platforms = root//platforms:exec

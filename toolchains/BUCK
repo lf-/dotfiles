@@ -1,8 +1,9 @@
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
-load("@prelude//toolchains:python.bzl", "remote_python_toolchain")
 load("@prelude//toolchains/go:system_go_bootstrap_toolchain.bzl", "system_go_bootstrap_toolchain")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
+load("@toolchains//:hermetic_python_toolchain.bzl", "hermetic_python_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
 load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain")
 
@@ -50,8 +51,24 @@ system_go_bootstrap_toolchain(
     visibility = ["PUBLIC"],
 )
 
-remote_python_toolchain(
+hermetic_python_toolchain(
     name = "python",
+    rev = "20260728",
+    sha256s = {
+        "aarch64-apple-darwin": "f4b47659e2da4b97f38cefdf5ad19f0042946099d843cde60de308708e5b1ac5",
+        "aarch64-unknown-linux-gnu": "44f86d58f3bbc1aa6c95ee90f03226e0fdbd22475a98c4410e5a20042b7f40d3",
+        "x86_64_v3-unknown-linux-gnu": "d7f8c06141ba5c07841e07168889695cf09baa533347a0f54079a967527cffe3",
+    },
+    version = "3.14.6",
+    # this allows building python packages for distribution
+    package_style = "outplace",
+)
+
+# Every `genrule` wants one of these; the python toolchain has one to gather the
+# libpython symbols native extensions link against. `zip_scrubber = None` is all
+# the prelude's own implementation does.
+system_genrule_toolchain(
+    name = "genrule",
     visibility = ["PUBLIC"],
 )
 

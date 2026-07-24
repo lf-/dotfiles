@@ -3,10 +3,15 @@
 
 Usage:
     buck run toolchains//:update_hermetic_toolchain -- <rust|go> <target> <version>
+    buck run toolchains//:update_hermetic_toolchain -- python <target> <version> [rev]
 
 Examples:
-    buck run toolchains//:update_hermetic_toolchain -- rust toolchains//:rust 1.87.0
-    buck run toolchains//:update_hermetic_toolchain -- go  toolchains//:go  1.23.5
+    buck run toolchains//:update_hermetic_toolchain -- rust   toolchains//:rust   1.87.0
+    buck run toolchains//:update_hermetic_toolchain -- go     toolchains//:go     1.23.5
+    buck run toolchains//:update_hermetic_toolchain -- python toolchains//:python 3.13.6 20250807
+
+`rev` is the python-build-standalone release tag; it defaults to the latest
+release, which does not necessarily publish the CPython version you asked for.
 """
 
 import ast
@@ -109,19 +114,53 @@ def fetch_go_sha256s(version, platform_keys):
     raise ValueError(f"go{version} not found in https://go.dev/dl/ index")
 
 
+PBS_REPO = "astral-sh/python-build-standalone"
+
+
+def fetch_latest_pbs_rev():
+    url = f"https://api.github.com/repos/{PBS_REPO}/releases/latest"
+    print(f"  fetching {url}", flush=True)
+    with urllib.request.urlopen(url) as resp:
+        return json.loads(resp.read())["tag_name"]
+
+
+def fetch_python_sha256s(version, rev, triples):
+    """Look up each triple's archive in a python-build-standalone release's SHA256SUMS."""
+    url = f"https://github.com/{PBS_REPO}/releases/download/{rev}/SHA256SUMS"
+    print(f"  fetching {url}", flush=True)
+    sums = {}
+    with urllib.request.urlopen(url) as resp:
+        for line in resp.read().decode().splitlines():
+            fields = line.split()
+            if len(fields) == 2:
+                sums[fields[1]] = fields[0]
+
+    result = {}
+    for triple in triples:
+        archive = f"cpython-{version}+{rev}-{triple}-install_only_stripped.tar.gz"
+        if archive not in sums:
+            raise ValueError(f"{archive} is not in release {rev}'s SHA256SUMS")
+        result[triple] = sums[archive]
+    return result
+
+
 def main():
     if len(sys.argv) < 4:
         print(__doc__, file=sys.stderr)
         sys.exit(1)
 
     kind, label, version = sys.argv[1], sys.argv[2], sys.argv[3]
-    if kind not in ("rust", "go"):
-        sys.exit(f"error: unknown toolchain kind {kind!r} — expected 'rust' or 'go'")
+    if kind not in ("rust", "go", "python"):
+        sys.exit(f"error: unknown toolchain kind {kind!r} — expected 'rust', 'go' or 'python'")
+
+    rev = sys.argv[4] if len(sys.argv) > 4 else None
+    if rev and kind != "python":
+        sys.exit(f"error: a rev is only meaningful for python toolchains, not {kind!r}")
 
     root = find_workspace_root()
     cells = read_cells(root)
     target = buck2_to_buildozer_label(label, cells)
-    sha256_attr = "sha256s" if kind == "rust" else "sha256"
+    sha256_attr = "sha256" if kind == "go" else "sha256s"
 
     print(f"updating {kind} toolchain {target} to version {version}")
 
@@ -134,6 +173,15 @@ def main():
         for triple in triples:
             new_hashes[triple] = fetch_rust_sha256(version, triple)
             print(f"  {triple}: {new_hashes[triple]}")
+    elif kind == "python":
+        if rev is None:
+            rev = fetch_latest_pbs_rev()
+            print(f"rev: {rev} (latest release)")
+        triples = list(current)
+        print(f"triples: {triples}")
+        new_hashes = fetch_python_sha256s(version, rev, triples)
+        for k, v in new_hashes.items():
+            print(f"  {k}: {v}")
     else:
         platforms = set(current)
         print(f"platforms: {sorted(platforms)}")
@@ -145,6 +193,8 @@ def main():
             print(f"warning: no hashes found for {sorted(missing)}", file=sys.stderr)
 
     buildozer_set("version", f'"{version}"', target, root)
+    if kind == "python":
+        buildozer_set("rev", f'"{rev}"', target, root)
     buildozer_dict_set(sha256_attr, new_hashes, target, root)
     print("done")
 
