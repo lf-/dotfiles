@@ -1,0 +1,10 @@
+[project]
+name = "third-party-python"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+  "tree-sitter",
+  "tree-sitter-bash",
+  "pytest",
+  "hypothesis",
+]

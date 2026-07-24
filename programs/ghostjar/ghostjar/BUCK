@@ -1,0 +1,9 @@
+python_library(
+    name = "ghostjar",
+    srcs = glob(["*.py"]),
+    base_module = "ghostjar",
+    deps = [
+        "//third_party/python:tree-sitter",
+        "//third_party/python:tree-sitter-bash",
+    ],
+)

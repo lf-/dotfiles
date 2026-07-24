@@ -1,0 +1,9 @@
+[cells]
+elk = elk
+
+[external_cells]
+elk = git
+
+[external_cell_elk]
+    git_origin = https://github.com/cormacrelf/elk
+    commit_hash = 5617b3eb072bb3a76cd88697a41df75d27e57ede
