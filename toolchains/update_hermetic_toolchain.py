@@ -2,16 +2,20 @@
 """Fetch upstream SHA256 hashes and update a hermetic toolchain target via buildozer.
 
 Usage:
-    buck run toolchains//:update_hermetic_toolchain -- <rust|go> <target> <version>
+    buck run toolchains//:update_hermetic_toolchain -- <rust|go|java> <target> <version>
     buck run toolchains//:update_hermetic_toolchain -- python <target> <version> [rev]
 
 Examples:
     buck run toolchains//:update_hermetic_toolchain -- rust   toolchains//:rust   1.87.0
     buck run toolchains//:update_hermetic_toolchain -- go     toolchains//:go     1.23.5
+    buck run toolchains//:update_hermetic_toolchain -- java   toolchains//:java   24.0.2
     buck run toolchains//:update_hermetic_toolchain -- python toolchains//:python 3.13.6 20250807
 
 `rev` is the python-build-standalone release tag; it defaults to the latest
 release, which does not necessarily publish the CPython version you asked for.
+
+A java `version` may be a prefix ("24"); the exact OpenJDK version it resolves to
+is written back along with the Zulu version publishing it.
 """
 
 import ast
@@ -21,7 +25,10 @@ import os
 import re
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
+
+KINDS = ("go", "java", "python", "rust")
 
 
 def find_workspace_root():
@@ -114,6 +121,66 @@ def fetch_go_sha256s(version, platform_keys):
     raise ValueError(f"go{version} not found in https://go.dev/dl/ index")
 
 
+AZUL_API = "https://api.azul.com/metadata/v1/zulu/packages/"
+
+# `zulu<zulu_version>-ca-jdk<java_version>-<platform>.tar.gz`
+_ZULU_ARCHIVE = re.compile(r"^zulu([\d.]+)-ca-jdk([\d.]+)-(.+)\.tar\.gz$")
+
+
+def version_key(version):
+    return tuple(int(part) for part in version.split("."))
+
+
+def fetch_azul_release(version, platforms):
+    """Resolve a JDK version to one Zulu release covering every platform.
+
+    Returns (java_version, zulu_version, {platform: sha256}). Azul treats
+    `version` as a prefix, so several releases can come back; the newest one
+    publishing every platform wins, since mixing releases is not worth having.
+    """
+    query = urllib.parse.urlencode(
+        {
+            "java_version": version,
+            "java_package_type": "jdk",
+            "javafx_bundled": "false",
+            "release_status": "ga",
+            "latest": "true",
+            "archive_type": "tar.gz",
+            # A different JDK under an almost identical name.
+            "crac_supported": "false",
+            "include_fields": "sha256_hash",
+            "page_size": "1000",
+        }
+    )
+    url = f"{AZUL_API}?{query}"
+    print(f"  fetching {url}", flush=True)
+    with urllib.request.urlopen(url) as resp:
+        packages = json.loads(resp.read())
+
+    releases = {}  # (java_version, zulu_version) -> {platform: sha256}
+    for package in packages:
+        match = _ZULU_ARCHIVE.match(package["name"])
+        if not match:
+            continue
+        zulu_version, java_version, platform = match.groups()
+        # Also drops the musl builds, spelled `linux_musl_*`.
+        if platform not in platforms:
+            continue
+        releases.setdefault((java_version, zulu_version), {})[platform] = package["sha256_hash"]
+
+    complete = {key: sums for key, sums in releases.items() if set(sums) == set(platforms)}
+    if not complete:
+        partial = {f"jdk{k[0]}/zulu{k[1]}": sorted(v) for k, v in releases.items()}
+        raise ValueError(
+            f"no Zulu release of java {version} publishes all of {sorted(platforms)}; found {partial}"
+        )
+
+    java_version, zulu_version = max(
+        complete, key=lambda key: (version_key(key[0]), version_key(key[1]))
+    )
+    return java_version, zulu_version, complete[java_version, zulu_version]
+
+
 PBS_REPO = "astral-sh/python-build-standalone"
 
 
@@ -150,8 +217,8 @@ def main():
         sys.exit(1)
 
     kind, label, version = sys.argv[1], sys.argv[2], sys.argv[3]
-    if kind not in ("rust", "go", "python"):
-        sys.exit(f"error: unknown toolchain kind {kind!r} — expected 'rust', 'go' or 'python'")
+    if kind not in KINDS:
+        sys.exit(f"error: unknown toolchain kind {kind!r} — expected one of {', '.join(KINDS)}")
 
     rev = sys.argv[4] if len(sys.argv) > 4 else None
     if rev and kind != "python":
@@ -160,14 +227,22 @@ def main():
     root = find_workspace_root()
     cells = read_cells(root)
     target = buck2_to_buildozer_label(label, cells)
-    sha256_attr = "sha256" if kind == "go" else "sha256s"
 
     print(f"updating {kind} toolchain {target} to version {version}")
 
+    sha256_attr = "sha256" if kind == "go" else "sha256s"
     current = parse_starlark_string_dict(buildozer_print(sha256_attr, target, root))
 
+    zulu_version = None
     new_hashes = {}
-    if kind == "rust":
+    if kind == "java":
+        platforms = list(current)
+        print(f"platforms: {platforms}")
+        version, zulu_version, new_hashes = fetch_azul_release(version, platforms)
+        print(f"resolved: openjdk {version}, zulu {zulu_version}")
+        for k, v in sorted(new_hashes.items()):
+            print(f"  {k}: {v}")
+    elif kind == "rust":
         triples = list(current)
         print(f"triples: {triples}")
         for triple in triples:
@@ -195,6 +270,8 @@ def main():
     buildozer_set("version", f'"{version}"', target, root)
     if kind == "python":
         buildozer_set("rev", f'"{rev}"', target, root)
+    if kind == "java":
+        buildozer_set("zulu_version", f'"{zulu_version}"', target, root)
     buildozer_dict_set(sha256_attr, new_hashes, target, root)
     print("done")
 

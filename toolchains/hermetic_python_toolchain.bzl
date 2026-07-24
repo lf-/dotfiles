@@ -6,7 +6,7 @@ def python_toolchain_impl(ctx) -> list[Provider]:
         DefaultInfo(),
         PythonToolchainInfo(
             interpreter = ctx.attrs.interpreter[RunInfo],
-            host_interpreter = ctx.attrs.interpreter[RunInfo],
+            host_interpreter = ctx.attrs.host_interpreter[RunInfo],
             compile = ctx.attrs.compile[DefaultInfo].default_outputs[0],
             package_style = ctx.attrs.package_style,
             native_link_strategy = "separate",
@@ -23,6 +23,12 @@ python_toolchain = rule(
     attrs = {
         "compile": attrs.default_only(attrs.dep(default = "prelude//python/tools:compile.py")),
         "extension_linker_flags": attrs.list(attrs.arg()),
+        # `exec_dep`, because this one runs build actions -- pyc compilation,
+        # packaging -- so it must be the execution platform's. `interpreter` is
+        # what the built binary runs under and follows the target platform. Same
+        # label, different configuration; with both as plain deps a cross build
+        # tries to run the target's interpreter on the host.
+        "host_interpreter": attrs.exec_dep(providers = [RunInfo]),
         "interpreter": attrs.dep(providers = [RunInfo]),
         "package_style": attrs.string(default = "inplace"),
     },
@@ -129,6 +135,9 @@ def hermetic_python_toolchain(
                 "python": ["python.exe" if windows else "bin/python"],
             },
             urls = [_ARCHIVE_URL.format(rev = rev, triple = triple, version = version)],
+            # Runs on one platform; without this a `toolchains//...` build
+            # fetches every one of them.
+            target_compatible_with = [os_key, cpu_key],
         )
 
         archives[triple] = ":{}".format(archive)
@@ -165,6 +174,7 @@ def hermetic_python_toolchain(
     python_toolchain(
         name = name,
         extension_linker_flags = _by_platform(os_cpu, extension_linker_flags),
+        host_interpreter = ":{}".format(cpython),
         interpreter = ":{}".format(cpython),
         visibility = visibility,
         **kwargs

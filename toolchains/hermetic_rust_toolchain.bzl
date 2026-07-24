@@ -78,9 +78,9 @@ def _hermetic_rust_dist_impl(ctx: AnalysisContext) -> list[Provider]:
     return [
         DefaultInfo(default_output = sysroot),
         RustDistInfo(
-            compiler = RunInfo(args = [sysroot.project("bin/rustc")]),
-            clippy_driver = RunInfo(args = [sysroot.project("bin/clippy-driver")]),
-            rustdoc = RunInfo(args = [sysroot.project("bin/rustdoc")]),
+            compiler = RunInfo(args = cmd_args(sysroot.project("bin/rustc"), hidden = sysroot)),
+            clippy_driver = RunInfo(args = cmd_args(sysroot.project("bin/clippy-driver"), hidden = sysroot)),
+            rustdoc = RunInfo(args = cmd_args(sysroot.project("bin/rustdoc"), hidden = sysroot)),
             triple = triple,
         ),
     ]
@@ -178,6 +178,9 @@ def hermetic_rust_toolchain(
             version = version,
             triple = triple,
             sha256 = checksum,
+            # One triple only; without this a `toolchains//...` build fetches
+            # and unpacks every one of them.
+            target_compatible_with = [os_key, cpu_key],
         )
 
         if os_key not in os_cpu_dist:

@@ -1,11 +1,15 @@
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load("@prelude//toolchains:dex.bzl", "system_noop_dex_toolchain")
 load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
+load("@prelude//toolchains:kotlin.bzl", "system_kotlin_bootstrap_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
+load("@prelude//toolchains:zip_file.bzl", "zip_file_toolchain")
+load("@root//platforms:defs.bzl", "remote_test_execution_profiles")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
+load("@toolchains//:hermetic_java_toolchain.bzl", "hermetic_java_toolchain")
 load("@toolchains//:hermetic_python_toolchain.bzl", "hermetic_python_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
 load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain")
-load("@root//platforms:defs.bzl", "remote_test_execution_profiles")
 
 _RE_TESTS = remote_test_execution_profiles()
 
@@ -47,6 +51,53 @@ hermetic_go_toolchain(
         "linux-arm64": "fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49",
     },
     version = "1.26.5",
+    visibility = ["PUBLIC"],
+)
+
+# Capped at 24 by `:kotlin_bootstrap` below, not by taste.
+hermetic_java_toolchain(
+    name = "java",
+    # Azul moves this between releases; re-check when bumping.
+    macos_home = "zulu-24.jdk/Contents/Home",
+    sha256s = {
+        "linux_aarch64": "855d7d836d902969e03af3468787426933b32e47ba56376c3c21908959728a3d",
+        "linux_x64": "b1e665e686661c994016c391ea6140bd7f42118f966ad2887986e2ed6f113bf5",
+        "macosx_aarch64": "8c31e83c6e0da4d5d52b7e723477b924192668a3408b19a63041343fd8dc7e75",
+    },
+    version = "24.0.2",
+    zulu_version = "24.32.13",
+)
+
+# Every `java_library` and `prebuilt_jar` wants a dex toolchain, Android or not:
+# the prelude's own tools name `:empty_dex`, everything else `:dex`. Dexing needs
+# the Android SDK, so both are the prelude's no-op.
+system_noop_dex_toolchain(
+    name = "dex",
+    visibility = ["PUBLIC"],
+)
+
+system_noop_dex_toolchain(
+    name = "empty_dex",
+    visibility = ["PUBLIC"],
+)
+
+# Nothing of ours is Kotlin, but `jar_builder` and `zip_scrubber` are defaults on
+# every java_toolchain and live in a `kotlin_library` package, so no Java builds
+# without this. Takes no JDK of ours, hence not in `hermetic_java_toolchain`.
+#
+# Its kotlin-compiler-embeddable 2.1.0 is what caps `:java` at 24: newer JDKs
+# throw in its bundled IntelliJ utils. A hermetic Kotlin was tried and dropped --
+# a newer kotlinc handles the JDK but stamps `@Metadata` the prelude's ABI
+# stubber (a separate 2.1.0 pin) won't read.
+system_kotlin_bootstrap_toolchain(
+    name = "kotlin_bootstrap",
+    visibility = ["PUBLIC"],
+)
+
+# javacd's protobuf model ships as a `.src.zip`, so building the Java compiler
+# needs a zip rule.
+zip_file_toolchain(
+    name = "zip_file",
     visibility = ["PUBLIC"],
 )
 

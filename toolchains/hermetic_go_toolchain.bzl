@@ -65,6 +65,9 @@ def hermetic_go_toolchain(
             sha256 = checksum,
             strip_prefix = "go",
             urls = ["https://dl.google.com/go/go{}.{}-{}.{}".format(version, go_os, go_arch, _OS_ARCHIVE_EXT[go_os])],
+            # Runs on one platform; without this a `toolchains//...` build
+            # fetches every one of them.
+            target_compatible_with = [os_key, arch_key],
         )
 
         if os_key not in os_arch_root:

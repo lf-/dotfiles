@@ -1,0 +1,27 @@
+# Smoke test for the hermetic Java toolchain. Nothing else here is Java, so
+# without it a bad toolchain edit surfaces as a silent fallback to a system JDK.
+#
+# Wants to be a `java_test`, which would also cover `toolchains//:java_test`, but
+# that pulls in the prelude's JUnit runner: its Kotlin half compiles to
+# `@Metadata` 2.2.0 while the prelude's ABI stubber pins kotlin-metadata-jvm
+# 2.1.0 and reads strict, so it fails inside the prelude. Still broken on the
+# bundled prelude as of 2026-08-17.
+
+sh_test(
+    name = "java_smoke",
+    test = ":main",
+)
+
+java_binary(
+    name = "main",
+    main_class = "JavaSmoke",
+    deps = [":lib"],
+)
+
+java_library(
+    name = "lib",
+    srcs = ["JavaSmoke.java"],
+    # The prelude pins source/target at 8; a record needs 16+.
+    source = "17",
+    target = "17",
+)
