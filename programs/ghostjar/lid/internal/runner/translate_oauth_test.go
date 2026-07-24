@@ -212,6 +212,7 @@ func buildAPIKeyProvider(t *testing.T, key string) *ClaudeOAuthProvider {
 		}},
 		NowMS:     func() int64 { return 0 },
 		WriteFile: nopWriteFile,
+		GOOS:      "darwin",
 	}
 	p, err := newClaudeOAuthProviderWithDeps(context.Background(), "", nil, deps)
 	if err != nil {

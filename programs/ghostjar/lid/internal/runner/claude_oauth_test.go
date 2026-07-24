@@ -135,6 +135,7 @@ func TestKeychainResolution(t *testing.T) {
 		HTTPDoer:  nil,
 		NowMS:     func() int64 { return 0 },
 		WriteFile: nopWriteFile,
+		GOOS:      "darwin",
 	}
 
 	provider, err := newClaudeOAuthProviderWithDeps(context.Background(), "", nil, deps)
@@ -184,6 +185,7 @@ func TestKeychainAPIKeyResolution(t *testing.T) {
 		HTTPDoer:  nil,
 		NowMS:     func() int64 { return 0 },
 		WriteFile: nopWriteFile,
+		GOOS:      "darwin",
 	}
 
 	provider, err := newClaudeOAuthProviderWithDeps(context.Background(), "", io.Discard, deps)
@@ -223,6 +225,7 @@ func TestKeychainAPIKeyRejectsNonKeyValue(t *testing.T) {
 		HTTPDoer:  nil,
 		NowMS:     func() int64 { return 0 },
 		WriteFile: nopWriteFile,
+		GOOS:      "darwin",
 	}
 
 	if _, err := newClaudeOAuthProviderWithDeps(context.Background(), "", io.Discard, deps); err == nil {
@@ -244,6 +247,7 @@ func TestFileFallbackWhenKeychainFails(t *testing.T) {
 		HTTPDoer:  nil,
 		NowMS:     func() int64 { return 0 },
 		WriteFile: nopWriteFile,
+		GOOS:      "darwin",
 	}
 
 	provider, err := newClaudeOAuthProviderWithDeps(context.Background(), "", io.Discard, deps)

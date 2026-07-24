@@ -88,6 +88,8 @@ type ClaudeOAuthDeps struct {
 	NowMS func() int64
 	// WriteFile writes bytes to a file with the given mode (for cred persistence).
 	WriteFile func(path string, data []byte, mode os.FileMode) error
+	// GOOS is the target OS for credential store selection (runtime.GOOS spelling).
+	GOOS string
 }
 
 func defaultDeps() ClaudeOAuthDeps {
@@ -100,6 +102,7 @@ func defaultDeps() ClaudeOAuthDeps {
 		WriteFile: func(path string, data []byte, mode os.FileMode) error {
 			return atomicWriteFile(path, data, mode)
 		},
+		GOOS: runtime.GOOS,
 	}
 }
 
@@ -305,7 +308,7 @@ func loadClaudeCredentials(ctx context.Context, configuredPath string, logw io.W
 
 	// Auto-detect. On macOS, try the subscription OAuth blob first, then the
 	// raw API key; on any OS, fall back to the OAuth credentials file.
-	if runtime.GOOS == "darwin" {
+	if deps.GOOS == "darwin" {
 		creds, account, err := tryKeychainLoad(ctx, deps)
 		if err == nil {
 			return creds, credSource{kind: credSourceKeychain, account: account}, nil
@@ -323,9 +326,6 @@ func loadClaudeCredentials(ctx context.Context, configuredPath string, logw io.W
 
 	// Fall back to file.
 	home := deps.Getenv("HOME")
-	if home == "" {
-		home = os.Getenv("HOME")
-	}
 	filePath := home + "/.claude/.credentials.json"
 	data, err := deps.ReadFile(filePath)
 	if err != nil {
