@@ -27,14 +27,26 @@
     target:elk//...->root//platforms:default
 
 [buck2]
-    declare_output_has_content_based_path_default = true
-    action_has_content_based_path_default = true
+declare_output_has_content_based_path_default = true
+action_has_content_based_path_default = true
+
+# eponymous targets :3
+infer_target_names = true
+
+# RE go brr :3
+defer_write_actions = true
+sqlite_materializer_state = true
+clean_stale_enabled = true
+# one week
+clean_stale_artifact_ttl_hours = 168
+clean_stale_period_hours = 24
+clean_stale_start_offset_hours = 12
 
 [project]
-ignores = .git, .jj, .claude
+ignore = .git, .jj, .claude
 
-# Where actions run.  //platforms:exec is an alias chosen by
-# `[buck2_re_client] default_mode`, which is "none" (purely local) until there
-# is a remote executor to talk to.
+# Where actions run.  //platforms:exec lists the host first and the remote
+# workers after it; `[buck2_re_client] default_mode` says how much of the RE
+# stack the host itself uses.  See //platforms and .buckconfig.d/04-buildbuddy.
 [build]
   execution_platforms = root//platforms:exec

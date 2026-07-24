@@ -1,0 +1,16 @@
+# `address` covers CAS, action cache and executors (the others fall back to it).
+# No URI scheme: buck2 picks TLS from `[buck2_re_client] tls` (default true).
+#
+# API key and `default_mode` go in `.buckconfig.local` (gitignored):
+#
+#   [buck2_re_client]
+#   default_mode = cached
+#   http_headers = x-buildbuddy-api-key:<key from buildbuddy.io/settings>
+#
+# `buck2 killall` after editing -- read once at startup.
+[buck2_re_client]
+  address = grpc://remote.buildbuddy.io:443
+
+# Explicit so a buck2 built with a different default still matches the cache.
+[buck2]
+  digest_algorithms = SHA256

@@ -5,6 +5,9 @@ fonts/.uuid
 *.zwc
 buck-out/
 
+# Per-machine buckconfig (contains API keys). See .buckconfig.d/04-buildbuddy.
+.buckconfig.local
+
 # Test runs write these into the source tree, deliberately: `.hypothesis` holds
 # the failing examples hypothesis replays. (Breaks under remote execution;
 # `-p no:cacheprovider` if that lands.)

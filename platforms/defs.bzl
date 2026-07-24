@@ -55,14 +55,9 @@ def _host_platform():
 
 HOST_PLATFORM = _host_platform()
 
-# cgo needs a C compiler that targets the *target* platform, and the only C
-# compiler we have is the host's (`toolchains//:cxx` runs whatever clang is on
-# the PATH).  So cgo is available exactly when we are not cross compiling.
-# Pinning the prelude's constraint off for the cross platforms is what stops
-# `go_stdlib` from feeding `crypto/internal/sysrand`'s `<sys/prctl.h>` to
-# Xcode's clang.  Building anything that genuinely needs cgo for another
-# platform will need a real cross toolchain first, at which point this comes
-# off the platform and onto whatever describes that toolchain's reach.
+# cgo needs a C compiler targeting the target platform; the only one we have
+# is the host's (`toolchains//:cxx`).  Disabling cgo for cross platforms
+# prevents `go_stdlib` from feeding Linux headers to Xcode's clang.
 _CGO_DISABLED = "prelude//go/constraints:cgo_enabled[false]"
 
 def target_platforms():
@@ -92,12 +87,30 @@ def target_platforms():
         visibility = ["PUBLIC"],
     )
 
-# RE workers advertise an OSFamily property; this is the spelling BuildBarn and
-# NativeLink both expect.
+# RE worker dispatch properties.  Spellings are BuildBuddy's
+# (https://buildbuddy.io/docs/rbe-platforms).
 _RE_OS_FAMILY = {
-    "linux": "Linux",
-    "macos": "Darwin",
+    "linux": "linux",
+    "macos": "darwin",
 }
+
+_RE_ARCH = {
+    "arm64": "arm64",
+    "x86_64": "amd64",
+}
+
+# Image for Linux actions.  buildpack-deps provides the shell tools
+# (`unzip`, `xz`) that `http_archive` needs; our Go/Rust/Python toolchains
+# are hermetic.  Pulled via gcr.io's Hub mirror to dodge rate limits.
+# Does not include clang -- Linux C compiles need a cross toolchain.
+_DEFAULT_CONTAINER_IMAGE = "docker://mirror.gcr.io/library/buildpack-deps:bookworm"
+
+# Remotely available (cpu, os) pairs, preference order.  x86_64 first so
+# unconstrained actions land there by default.
+REMOTE_EXEC_PLATFORMS = [
+    ("x86_64", "linux"),
+    ("arm64", "linux"),
+]
 
 # How much of the remote execution stack an execution platform uses.  The modes
 # are cumulative -- "remote" implies the cache, because under REAPI the executor
@@ -115,27 +128,37 @@ def _execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
     remote = mode == ExecutorMode("remote")
     cached = mode != ExecutorMode("local")
 
+    # Only enable local execution when this platform matches the host.
+    local = (ctx.attrs.cpu, ctx.attrs.os) == HOST_PLATFORM
+
     executor = {
-        "local_enabled": True,
+        "local_enabled": local,
         "remote_enabled": remote,
         # We build on macOS and Linux only.
         "use_windows_path_separators": False,
     }
 
     if cached:
+        # Properties are part of the action digest, so they must be set even in
+        # cache-only mode -- otherwise a macOS cache hit could serve a Linux
+        # worker.
+        executor["remote_execution_properties"] = _re_properties(ctx.attrs.cpu, ctx.attrs.os)
         executor["remote_cache_enabled"] = True
         executor["remote_dep_file_cache_enabled"] = True
-        executor["allow_cache_uploads"] = read_root_config("buck2_re_client", "cache_upload", "false") == "true"
-        # How output paths are described to the executor.  "strict" is what the
-        # REAPI itself specifies; the alternative exists for Meta-internal
-        # reasons and is not something we will ever want.
+
+        # Per-action upload for rules that opt in (genrule, rust, cxx).
+        # Do NOT use `[buck2] default_allow_cache_upload` or
+        # `BUCK2_TEST_FORCE_CACHE_UPLOAD` -- blanket upload corrupts Python
+        # outputs.  Also: `toolchains//:cxx` resolves clang from PATH, so
+        # cxx cache entries are only valid across identical host toolchains.
+        executor["allow_cache_uploads"] = read_root_config("buck2_re_client", "cache_upload", "true") == "true"
+
+        # "strict" is what REAPI specifies; the alternative is Meta-internal.
         executor["remote_output_paths"] = "strict"
 
     if remote:
         executor["remote_execution_use_case"] = "buck2-default"
-        executor["remote_execution_properties"] = {
-            "OSFamily": _RE_OS_FAMILY[ctx.attrs.os],
-        }
+
         # Without this the hybrid executor races local against remote for every
         # action, which is the right default once RE is fast and close by.
         force_remote = read_root_config("buck2_re_client", "force_remote", "false") == "true"
@@ -152,15 +175,54 @@ def _execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
         DefaultInfo(),
         platform,
         PlatformInfo(label = str(ctx.label.raw_target()), configuration = cfg),
-        ExecutionPlatformRegistrationInfo(
-            platforms = [platform],
-            exec_marker_constraint = get_exec_platform_marker(),
-        ),
     ]
+
+def _re_properties(cpu: str, os: str) -> dict[str, str]:
+    """What a worker has to be for an action of this (cpu, os) to run on it."""
+    properties = {
+        "Arch": _RE_ARCH[cpu],
+        "OSFamily": _RE_OS_FAMILY[os],
+    }
+
+    # Only Linux workers run in a container.
+    if os == "linux":
+        properties["container-image"] = read_root_config(
+            "buck2_re_client",
+            "container_image",
+            _DEFAULT_CONTAINER_IMAGE,
+        )
+
+    return properties
+
+def remote_test_execution_profiles():
+    """Test execution profiles for `remote_test_execution_toolchain`.
+
+    Without profiles, tests always run locally -- even cross-compiled ones,
+    which just fails.  These select by target configuration so a Linux test
+    binary runs on a Linux worker.
+    """
+    profiles = {}
+    by_cpu = {}
+    for (cpu, os) in REMOTE_EXEC_PLATFORMS:
+        name = _platform_name(cpu, os)
+        profiles[name] = {
+            "capabilities": _re_properties(cpu, os),
+            "use_case": "buck2-default",
+        }
+        by_cpu["prelude//cpu/constraints:{}".format(cpu)] = name
+
+    return struct(
+        profiles = profiles,
+        default_profile = select({
+            "DEFAULT": None,
+            "prelude//os/constraints:linux": select(by_cpu),
+        }),
+    )
 
 _execution_platform = rule(
     impl = _execution_platform_impl,
     attrs = {
+        "cpu": attrs.enum(_RE_ARCH.keys()),
         "cpu_configuration": attrs.dep(providers = [ConfigurationInfo]),
         "mode": attrs.enum(ExecutorMode.values()),
         "os": attrs.enum(_RE_OS_FAMILY.keys()),
@@ -168,16 +230,32 @@ _execution_platform = rule(
     },
 )
 
-def execution_platforms():
-    """Execution platforms for the host, and `:exec` naming the chosen one.
+def _execution_platforms_impl(ctx: AnalysisContext) -> list[Provider]:
+    return [
+        DefaultInfo(),
+        ExecutionPlatformRegistrationInfo(
+            platforms = [p[ExecutionPlatformInfo] for p in ctx.attrs.platforms],
+            exec_marker_constraint = get_exec_platform_marker(),
+        ),
+    ]
 
-    Only the host is described.  Buck2 registers exactly the platforms listed
-    in the `ExecutionPlatformRegistrationInfo` that `[build] execution_platforms`
-    resolves to, and every one of those is somewhere an action might actually be
-    dispatched -- so a linux worker only belongs here once there is a real
-    remote executor behind it.  Cross compilation does not need one: a linux
-    target is built by host-run actions with GOOS set, which is exactly the
-    exec-platform-differs-from-target-platform case buck2 is built around.
+# Ordered set of execution platforms; buck2 picks the first whose constraints
+# satisfy the target's `exec_compatible_with`.
+_execution_platforms = rule(
+    impl = _execution_platforms_impl,
+    attrs = {
+        "platforms": attrs.list(attrs.dep(providers = [ExecutionPlatformInfo])),
+    },
+)
+
+def execution_platforms():
+    """Execution platform registration targets.
+
+    - `:exec` -- host first, then remote workers.  Default for all builds.
+    - `:exec-linux` -- remote Linux workers only.
+    - `:exec-<cpu>-<os>` -- a single remote worker.
+
+    Use `@platforms/<cpu>-<os>.mode` to target a specific remote platform.
     """
     cpu, os = HOST_PLATFORM
     host = _platform_name(cpu, os)
@@ -189,21 +267,60 @@ def execution_platforms():
             # `ConfigurationInfo` wants the `config_setting`s that wrap them.
             cpu_configuration = "prelude//cpu:{}".format(cpu),
             os_configuration = "prelude//os:{}".format(os),
+            cpu = cpu,
             os = os,
             mode = mode,
             visibility = ["PUBLIC"],
         )
 
-    # No RE endpoint is configured yet, so "local" is the only mode that works
-    # out of the box; the other two are here so that pointing at NativeLink is
-    # a `.buckconfig` edit rather than a rewrite of this file.
-    native.alias(
+    remote = []
+    for (re_cpu, re_os) in REMOTE_EXEC_PLATFORMS:
+        name = "{}-remote".format(_platform_name(re_cpu, re_os))
+
+        # Skip if the host already defined this platform.
+        if name == "{}-remote".format(host):
+            remote.append(":" + name)
+            continue
+
+        _execution_platform(
+            name = name,
+            cpu_configuration = "prelude//cpu:{}".format(re_cpu),
+            os_configuration = "prelude//os:{}".format(re_os),
+            cpu = re_cpu,
+            os = re_os,
+            mode = ExecutorMode("remote").value,
+            visibility = ["PUBLIC"],
+        )
+        remote.append(":" + name)
+
+    # "local" = no RE, "cached" = CAS only, "remote" = dispatch to workers.
+    # On macOS, "remote" needs darwin executors (BuildBuddy's pool is Linux).
+    mode = read_choice(
+        "buck2_re_client",
+        "default_mode",
+        ExecutorMode.values(),
+        default = ExecutorMode("local").value,
+    )
+
+    # In "local" mode, omit remote workers so constrained targets fail fast
+    # instead of hanging on an unconfigured CAS.
+    _execution_platforms(
         name = "exec",
-        actual = ":{}-{}".format(host, read_choice(
-            "buck2_re_client",
-            "default_mode",
-            ExecutorMode.values(),
-            default = ExecutorMode("local").value,
-        )),
+        platforms = [":{}-{}".format(host, mode)] +
+                    (remote if mode != ExecutorMode("local").value else []),
         visibility = ["PUBLIC"],
     )
+
+    _execution_platforms(
+        name = "exec-linux",
+        platforms = remote,
+        visibility = ["PUBLIC"],
+    )
+
+    # Single-worker registrations, for when you want a specific architecture.
+    for (re_cpu, re_os) in REMOTE_EXEC_PLATFORMS:
+        _execution_platforms(
+            name = "exec-{}".format(_platform_name(re_cpu, re_os)),
+            platforms = [":{}-remote".format(_platform_name(re_cpu, re_os))],
+            visibility = ["PUBLIC"],
+        )

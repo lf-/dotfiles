@@ -1,0 +1,2 @@
+--target-platforms=//platforms:arm64-linux
+--config=build.execution_platforms=//platforms:exec-arm64-linux

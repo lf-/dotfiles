@@ -1,11 +1,13 @@
 load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
 load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
 load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
-load("@prelude//toolchains/go:system_go_bootstrap_toolchain.bzl", "system_go_bootstrap_toolchain")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
 load("@toolchains//:hermetic_python_toolchain.bzl", "hermetic_python_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
 load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain")
+load("@root//platforms:defs.bzl", "remote_test_execution_profiles")
+
+_RE_TESTS = remote_test_execution_profiles()
 
 # `system_cxx_toolchain` cannot compile Objective-C; matchlock's
 # Virtualization.framework backend is written in it. See the bzl file.
@@ -20,6 +22,7 @@ hermetic_rust_toolchain(
     sha256s = {
         "aarch64-apple-darwin": "f04a974f3579d3524f6b9bc6490a27c9fb358050e7cd8a641945f30bf24c1dce",
         "x86_64-unknown-linux-gnu": "c295047583a56238ea06b43f849f4b877fa12bfd4c7103f8d9a74c94c9c4e108",
+        "aarch64-unknown-linux-gnu": "371eadcca97062219cbd8593628eb5d2802bc370515d085fedce1b56b2baed57",
     },
     version = "1.96.0",
 )
@@ -36,6 +39,7 @@ go_bootstrap_binary(
 
 hermetic_go_toolchain(
     name = "go",
+    bootstrap_name = "go_bootstrap",
     pkg_analyzer = ":pkg_analyzer",
     sha256 = {
         "darwin-arm64": "efb87ff28af9a188d0536ef5d42e63dd52ba8263cd7344a993cc48dd11dedb6a",
@@ -46,13 +50,10 @@ hermetic_go_toolchain(
     visibility = ["PUBLIC"],
 )
 
-system_go_bootstrap_toolchain(
-    name = "go_bootstrap",
-    visibility = ["PUBLIC"],
-)
-
 hermetic_python_toolchain(
     name = "python",
+    # this allows building python packages for distribution
+    package_style = "outplace",
     rev = "20260728",
     sha256s = {
         "aarch64-apple-darwin": "f4b47659e2da4b97f38cefdf5ad19f0042946099d843cde60de308708e5b1ac5",
@@ -60,8 +61,6 @@ hermetic_python_toolchain(
         "x86_64_v3-unknown-linux-gnu": "d7f8c06141ba5c07841e07168889695cf09baa533347a0f54079a967527cffe3",
     },
     version = "3.14.6",
-    # this allows building python packages for distribution
-    package_style = "outplace",
 )
 
 # Every `genrule` wants one of these; the python toolchain has one to gather the
@@ -79,11 +78,15 @@ noop_test_toolchain(
     visibility = ["PUBLIC"],
 )
 
-# go_test (and the other prelude test rules) also want this. With no profiles
-# declared it selects local execution, which is all we can do until there is a
-# remote executor to talk to.
+# This selects where to run tests (i.e. not running x86_64-linux tests on
+# arm64-macos).
+#
+# Profiles from `remote_test_execution_profiles()` keep test dispatch
+# properties in sync with //platforms' worker capabilities.
 remote_test_execution_toolchain(
     name = "remote_test_execution",
+    default_profile = _RE_TESTS.default_profile,
+    profiles = _RE_TESTS.profiles,
     visibility = ["PUBLIC"],
 )
 

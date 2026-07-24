@@ -1,0 +1,2 @@
+--target-platforms=//platforms:x86_64-linux
+--config=build.execution_platforms=//platforms:exec-x86_64-linux

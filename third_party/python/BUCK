@@ -2,7 +2,7 @@ load("@elk//:elk.bzl", "elk_packages", "uv_deps", "uv_packages")
 load(":linux-x86_64.tags.json", linux_x86_64_tags = "value")
 load(":linux-aarch64.tags.json", linux_aarch64_tags = "value")
 load(":macos-aarch64.tags.json", macos_aarch64_tags = "value")
-load(":uv.lock.toml", lock = "value")
+load(":uv.lock?as=toml", lock = "value")
 
 elk_packages(
     packages = uv_packages(lock),
