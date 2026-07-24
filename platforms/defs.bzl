@@ -147,10 +147,6 @@ def _execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
         executor["remote_dep_file_cache_enabled"] = True
 
         # Per-action upload for rules that opt in (genrule, rust, cxx).
-        # Do NOT use `[buck2] default_allow_cache_upload` or
-        # `BUCK2_TEST_FORCE_CACHE_UPLOAD` -- blanket upload corrupts Python
-        # outputs.  Also: `toolchains//:cxx` resolves clang from PATH, so
-        # cxx cache entries are only valid across identical host toolchains.
         executor["allow_cache_uploads"] = read_root_config("buck2_re_client", "cache_upload", "true") == "true"
 
         # "strict" is what REAPI specifies; the alternative is Meta-internal.

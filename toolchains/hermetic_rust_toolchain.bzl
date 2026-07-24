@@ -48,13 +48,22 @@ def _hermetic_rust_dist_impl(ctx: AnalysisContext) -> list[Provider]:
         category = "rust_extract",
         identifier = triple,
         local_only = True,
+        # enormous and eminently possible to remake...
+        allow_cache_upload = False,
     )
 
     # run install.sh to merge all components (rustc, rust-std, cargo, clippy, …) into one sysroot
     sysroot = ctx.actions.declare_output("sysroot", dir = True)
     install_script = ctx.actions.write(
         "install_rust.sh",
-        '#!/bin/sh\nset -e\nsh "$1/install.sh" --prefix="$2" --disable-ldconfig\n',
+        cmd_args(
+            "#!/bin/sh",
+            "set -e",
+            'sh "$1/install.sh" --prefix="$2" --disable-ldconfig',
+            # delete non-hermetic garbage
+            'rm "$2"/lib/rustlib/{install.log,manifest-*,rust-installer-version,uninstall.sh}',
+            delimiter = "\n",
+        ),
         is_executable = True,
     )
     ctx.actions.run(
@@ -62,6 +71,8 @@ def _hermetic_rust_dist_impl(ctx: AnalysisContext) -> list[Provider]:
         category = "rust_install",
         identifier = triple,
         local_only = True,
+        # enormous and eminently possible to remake...
+        allow_cache_upload = False,
     )
 
     return [

@@ -1,0 +1,7 @@
+[external_cells]
+prelude = git
+
+[external_cell_prelude]
+# jade/fix-prelude (python script hermeticity)
+git_origin = https://github.com/lf-/buck2-prelude
+commit_hash = 250e9e20ce7c6b06d751f1a00d57d71d5f93d3b6

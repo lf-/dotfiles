@@ -30,6 +30,9 @@
 declare_output_has_content_based_path_default = true
 action_has_content_based_path_default = true
 
+# rust caching :3
+default_allow_cache_upload = true
+
 # eponymous targets :3
 infer_target_names = true
 
