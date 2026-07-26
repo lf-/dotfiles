@@ -1,0 +1,7 @@
+# Hand-written: matchlock has no root Go package, so buckify never generates
+# here. Mirrors //programs/ghostjar/lid:lid.
+alias(
+    name = "matchlock",
+    actual = "//third_party/go/matchlock/cmd/matchlock",
+    visibility = ["PUBLIC"],
+)

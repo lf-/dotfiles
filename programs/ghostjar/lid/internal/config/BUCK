@@ -3,9 +3,21 @@ go_library(
     package_name = "jade.fyi/ghostjar/lid/internal/config",
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     deps = [
-        "//third_party/go/vendor/go.starlark.net/starlark:starlark",
-        "//third_party/go/vendor/go.starlark.net/starlarkstruct:starlarkstruct",
-        "//third_party/go/vendor/go.starlark.net/syntax:syntax",
+        "//third_party/go/deps:go.starlark.net/starlark",
+        "//third_party/go/deps:go.starlark.net/starlarkstruct",
+        "//third_party/go/deps:go.starlark.net/syntax",
     ],
     visibility = ["PUBLIC"],
 )
+
+# No go_test target: all ten of this package's test files declare
+# `package config_test`, and buck2's go rules do not support external test
+# packages — see the explicit refusal in prelude//go:package_builder.bzl
+# ("External tests are not supported, remove suffix '_test' from package
+# declaration"). Along the go_test path that check is not even reached; you get
+# a test binary containing zero tests, which passes. A green target that runs
+# nothing is worse than no target, so there isn't one.
+#
+# To run these under buck2 they would have to become `package config`, which
+# gives up the API-boundary discipline external tests buy. Deliberately not
+# changed here.

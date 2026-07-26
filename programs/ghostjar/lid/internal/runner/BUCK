@@ -4,8 +4,16 @@ go_library(
     srcs = glob(["*.go"], exclude = ["*_test.go"]),
     deps = [
         "//programs/ghostjar/lid/internal/config:config",
+        "//third_party/go/deps:golang.org/x/term",
         "//third_party/go/matchlock/pkg/sdk:sdk",
-        "//third_party/go/vendor/golang.org/x/term:term",
     ],
     visibility = ["PUBLIC"],
+)
+
+# srcs is required here: the library above excludes *_test.go, so
+# target_under_test alone would leave the test with no test files.
+go_test(
+    name = "runner_test",
+    srcs = glob(["*_test.go"]),
+    target_under_test = ":runner",
 )
