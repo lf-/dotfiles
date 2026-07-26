@@ -1,0 +1,14 @@
+load("//rules/codesign:codesign.bzl", "codesign_binary")
+
+codesign_binary(
+    name = "codesign-test-binary",
+    binary = "//programs/ghostjar/lid/cmd/lid:lid",
+    entitlements = "test.entitlements",
+)
+
+sh_test(
+    name = "codesign-test",
+    args = ["$(location :codesign-test-binary)"],
+    target_compatible_with = ["prelude//os/constraints:macos"],
+    test = "codesign_test.sh",
+)
