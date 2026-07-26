@@ -1,18 +1,6 @@
-sh_binary(
-    name = "_gobuckify",
-    main = "gobuckify.sh",
-)
-
-command_alias(
-    name = "gobuckify",
-    exe = ":_gobuckify",
-    env = {
-        "GOBUCKIFY": "$(exe prelude//go/tools/gobuckify:gobuckify)",
-        "GOWORK": "off",
-    },
-)
-
-sh_binary(
-    name = "vendor",
-    main = "vendor.sh",
+# `go` comes from `buck2 run toolchains//:go[go]`, invoked by the script itself:
+# a toolchain rule cannot be reached through `$(exe ...)`. Hence the $GO override.
+python_bootstrap_binary(
+    name = "buckify",
+    main = "buckify.py",
 )

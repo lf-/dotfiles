@@ -1,10 +1,14 @@
-load("@prelude//toolchains:cxx.bzl", "system_cxx_toolchain")
+load("@prelude//tests:test_toolchain.bzl", "noop_test_toolchain")
+load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_toolchain")
 load("@prelude//toolchains:python.bzl", "remote_python_toolchain")
 load("@prelude//toolchains/go:system_go_bootstrap_toolchain.bzl", "system_go_bootstrap_toolchain")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
+load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain")
 
-system_cxx_toolchain(
+# `system_cxx_toolchain` cannot compile Objective-C; matchlock's
+# Virtualization.framework backend is written in it. See the bzl file.
+objc_cxx_toolchain(
     name = "cxx",
     visibility = ["PUBLIC"],
 )
@@ -19,11 +23,23 @@ hermetic_rust_toolchain(
     version = "1.96.0",
 )
 
+# Upstream's analyzer discards a package's Objective-C sources; ours reports
+# them. `pkg_analyzer` is a plain overridable attr on `go_toolchain` (only
+# `system_go_toolchain` pins it with default_only), so this needs no prelude fork.
+go_bootstrap_binary(
+    name = "pkg_analyzer",
+    srcs = ["pkg_analyzer.go"],
+    build_args = ["pkg_analyzer.go"],
+    visibility = ["PUBLIC"],
+)
+
 hermetic_go_toolchain(
     name = "go",
+    pkg_analyzer = ":pkg_analyzer",
     sha256 = {
         "darwin-arm64": "efb87ff28af9a188d0536ef5d42e63dd52ba8263cd7344a993cc48dd11dedb6a",
         "linux-amd64": "5c2c3b16caefa1d968a94c1daca04a7ca301a496d9b086e17ad77bb81393f053",
+        "linux-arm64": "fe4789e92b1f33358680864bbe8704289e7bb5fc207d80623c308935bd696d49",
     },
     version = "1.26.5",
     visibility = ["PUBLIC"],
@@ -36,6 +52,21 @@ system_go_bootstrap_toolchain(
 
 remote_python_toolchain(
     name = "python",
+    visibility = ["PUBLIC"],
+)
+
+# Required by every prelude test rule (sh_test's private `_test_toolchain`
+# attr points at `toolchains//:test`); the prelude's noop implementation.
+noop_test_toolchain(
+    name = "test",
+    visibility = ["PUBLIC"],
+)
+
+# go_test (and the other prelude test rules) also want this. With no profiles
+# declared it selects local execution, which is all we can do until there is a
+# remote executor to talk to.
+remote_test_execution_toolchain(
+    name = "remote_test_execution",
     visibility = ["PUBLIC"],
 )
 
