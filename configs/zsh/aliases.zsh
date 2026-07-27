@@ -56,7 +56,13 @@ function removepath() {
 
 # Resolves // git-root-relative args. Populates _git_resolved_args array and
 # _git_resolved_print flag. Returns 1 (with error) if // is used outside a repo.
-function _git_resolve_args() {
+#
+# The double underscore is load-bearing: Claude Code snapshots the shell with
+# `typeset +f | grep -vE '^_[^_]'`, which drops single-underscore names on the
+# assumption that they are completion functions. cd/pushd below survive that
+# filter, so a single-underscore helper would leave them calling a function that
+# does not exist -- every cd in an agent shell dying with exit 127.
+function __git_resolve_args() {
     local _cmd=$1 _top; shift
     _git_resolved_args=() _git_resolved_print=0
     while [[ $# -gt 0 ]]; do
@@ -76,14 +82,14 @@ function _git_resolve_args() {
 
 function cd() {
     local _git_resolved_args _git_resolved_print
-    _git_resolve_args cd "$@" || return
+    __git_resolve_args cd "$@" || return
     (( _git_resolved_print )) && echo "cd ${_git_resolved_args[@]}"
     builtin cd "${_git_resolved_args[@]}"
 }
 
 function pushd() {
     local _git_resolved_args _git_resolved_print
-    _git_resolve_args pushd "$@" || return
+    __git_resolve_args pushd "$@" || return
     (( _git_resolved_print )) && echo "pushd ${_git_resolved_args[@]}"
     builtin pushd "${_git_resolved_args[@]}"
 }
