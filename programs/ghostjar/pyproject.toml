@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "tree-sitter>=0.23",
+    "tree-sitter-bash>=0.23",
+]
 
 [project.scripts]
-find-grep-guard = "ghostjar.find_grep_guard:main"
+bash-guard = "ghostjar.bash_guard:main"
+# Alias: ~/.claude/settings.json invokes this name, so it stays available.
+find-grep-guard = "ghostjar.bash_guard:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "hypothesis>=6"]
