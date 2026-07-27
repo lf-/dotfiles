@@ -1,7 +1,28 @@
-# Hand-written: matchlock has no root Go package, so buckify never generates
-# here. Mirrors //programs/ghostjar/lid:lid.
-alias(
+load("//rules/codesign:codesign.bzl", "codesign_binary")
+
+command_alias(
     name = "matchlock",
-    actual = "//third_party/go/matchlock/cmd/matchlock",
+    exe = ":matchlock_signed",
+    env = {
+        "MATCHLOCK_GUEST_INIT": "$(location :guest_init_for_guest)"
+    },
+)
+
+# The guest init runs inside the VM, so it must be built for Linux.
+configured_alias(
+    name = "guest_init_for_guest",
+    actual = "//third_party/go/matchlock/cmd/guest-init:guest-init",
+    platform = select({
+        "prelude//cpu:x86_64": "//platforms:x86_64-linux",
+        "prelude//cpu:arm64": "//platforms:arm64-linux",
+    }),
+)
+
+# Virtualization.framework refuses to start VMs unless the binary carries the
+# com.apple.security.virtualization entitlement; ad-hoc signing suffices.
+codesign_binary(
+    name = "matchlock_signed",
+    binary = "//third_party/go/matchlock/cmd/matchlock",
+    entitlements = "matchlock.entitlements",
     visibility = ["PUBLIC"],
 )

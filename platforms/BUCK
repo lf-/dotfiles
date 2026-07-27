@@ -1,0 +1,8 @@
+load(":defs.bzl", "execution_platforms", "target_platforms")
+
+# What we build for: `:arm64-macos`, `:arm64-linux`, `:x86_64-linux`, and
+# `:default` aliasing whichever of those is the host.
+target_platforms()
+
+# Where actions run: `:exec`, pointed at by `[build] execution_platforms`.
+execution_platforms()

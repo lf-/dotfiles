@@ -17,10 +17,16 @@
 [external_cells]
   prelude = bundled
 
+# The default *target* platform -- what a target is built for when nothing asks
+# for anything else.  See //platforms for why this is not the same thing as the
+# execution platform below.
 [parser]
-  target_platform_detector_spec = target:root//...->prelude//platforms:default \
-    target:prelude//...->prelude//platforms:default \
-    target:toolchains//...->prelude//platforms:default
+  target_platform_detector_spec = target:root//...->root//platforms:default \
+    target:prelude//...->root//platforms:default \
+    target:toolchains//...->root//platforms:default
 
+# Where actions run.  //platforms:exec is an alias chosen by
+# `[buck2_re_client] default_mode`, which is "none" (purely local) until there
+# is a remote executor to talk to.
 [build]
-  execution_platforms = prelude//platforms:default
+  execution_platforms = root//platforms:exec
