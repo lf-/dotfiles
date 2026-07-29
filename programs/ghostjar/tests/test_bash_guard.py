@@ -343,11 +343,18 @@ _safe_args = st.text(
     max_size=40,
 )
 
+# Excluded for the same reason as unbalanced quotes: `if && find | grep` is a
+# syntax error, not a command, so the guard correctly declines an opinion.
+_BASH_RESERVED_WORDS = frozenset(
+    "case coproc do done elif else esac fi for function if in select then "
+    "time until while".split()
+)
+
 _safe_word = st.text(
     alphabet=st.characters(whitelist_categories=("L", "N")),
     min_size=1,
     max_size=20,
-)
+).filter(lambda word: word not in _BASH_RESERVED_WORDS)
 
 
 def _searches_the_filesystem(find_args: str) -> bool:

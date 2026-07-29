@@ -1,0 +1,11 @@
+# The entry point is a *library*, not `srcs` of the test it serves: collection
+# only sees a target's own `srcs`, which keeps pytest from collecting the
+# runner itself. `base_module = ""` makes it importable as `buck_pytest.main`
+# wherever the package lives -- the stable string `pytest.bzl` names.
+python_library(
+    name = "main",
+    srcs = glob(["buck_pytest/*.py"]),
+    base_module = "",
+    visibility = ["PUBLIC"],
+    deps = ["//third_party/python:pytest"],
+)

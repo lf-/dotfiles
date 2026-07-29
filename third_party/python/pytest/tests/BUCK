@@ -1,0 +1,105 @@
+load("//third_party/python/pytest:pytest.bzl", "pytest")
+
+# Self-hosting, not circular: a break in the macro fails this target outright
+# rather than quietly passing.
+pytest(
+    name = "protocol",
+    srcs = ["test_protocol.py"],
+    deps = ["//third_party/python:hypothesis"],
+)
+
+# End-to-end, over real par files, a real link tree and the hermetic interpreter.
+#
+# A deliberately-failing suite must not be a `pytest()` target or `buck2 test
+# //...` goes red forever, so the fixtures are `python_binary` -- invisible to
+# a wildcard test run -- and `sh_test` asserts what they do.
+[
+    (
+        python_library(
+            name = "{}-lib".format(fixture),
+            # Destination on the left: the hand-written `__test_modules__.py`
+            # moves to top level, where `main.py` imports it; the test module
+            # keeps its own path, and with it its own dotted name.
+            srcs = {
+                "__test_modules__.py": "{}/__test_modules__.py".format(fixture),
+                "{0}/test_{0}.py".format(fixture): "{0}/test_{0}.py".format(fixture),
+            },
+            base_module = "",
+            deps = ["//third_party/python:pytest"],
+        ),
+        python_binary(
+            name = fixture,
+            main_module = "buck_pytest.main",
+            deps = [
+                ":{}-lib".format(fixture),
+                "//third_party/python/pytest:main",
+            ],
+        ),
+    )
+    for fixture in [
+        "failing",
+        "passing",
+        "empty",
+    ]
+]
+
+sh_test(
+    name = "failing-exits-70",
+    args = ["--exit", "70", "--", "$(exe :failing)"],
+    test = "expect.sh",
+)
+
+sh_test(
+    name = "passing-exits-0",
+    args = ["--exit", "0", "--", "$(exe :passing)"],
+    test = "expect.sh",
+)
+
+# Collecting nothing is a failure, not a quiet success. See `empty/test_empty.py`.
+sh_test(
+    name = "empty-exits-70",
+    args = ["--exit", "70", "--", "$(exe :empty)"],
+    test = "expect.sh",
+)
+
+# Exported so `$(location)` can hand the goldens to the tests.
+export_file(name = "passing.list.txt")
+
+export_file(name = "passing.results.json")
+
+sh_test(
+    name = "passing-lists-tests",
+    args = [
+        "--exit",
+        "0",
+        "--stdout",
+        "$(location :passing.list.txt)",
+        "--",
+        "$(exe :passing)",
+        "--list-tests",
+        "--list-format",
+        "buck",
+    ],
+    test = "expect.sh",
+)
+
+python_library(
+    name = "check-results-lib",
+    srcs = {"check_results.py": "check_results.py"},
+    base_module = "",
+)
+
+python_binary(
+    name = "check-results",
+    main_module = "check_results",
+    deps = [":check-results-lib"],
+)
+
+sh_test(
+    name = "passing-writes-results-json",
+    args = [
+        "$(exe :passing)",
+        "$(location :passing.results.json)",
+    ],
+    test = ":check-results",
+)

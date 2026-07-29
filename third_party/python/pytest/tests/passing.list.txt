@@ -1,0 +1,7 @@
+passing.test_passing#test_bare_function
+passing.test_passing.TestMethods#test_method_on_a_class
+passing.test_passing#test_parametrised[1]
+passing.test_passing#test_parametrised[2]
+passing.test_passing#test_skipped
+passing.test_passing#test_expected_failure
+passing.test_passing#test_writes_to_both_streams

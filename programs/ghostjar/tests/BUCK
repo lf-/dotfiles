@@ -1,0 +1,10 @@
+load("//third_party/python/pytest:pytest.bzl", "pytest")
+
+pytest(
+    name = "tests",
+    srcs = glob(["test_*.py"]),
+    deps = [
+        "//programs/ghostjar/ghostjar:ghostjar",
+        "//third_party/python:hypothesis",
+    ],
+)

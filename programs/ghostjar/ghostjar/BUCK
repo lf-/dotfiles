@@ -1,7 +1,10 @@
+# `base_module` makes these importable as `ghostjar.*`, matching how
+# `pyproject.toml` packages them.
 python_library(
     name = "ghostjar",
     srcs = glob(["*.py"]),
     base_module = "ghostjar",
+    visibility = ["//programs/ghostjar/..."],
     deps = [
         "//third_party/python:tree-sitter",
         "//third_party/python:tree-sitter-bash",

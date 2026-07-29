@@ -1,0 +1,72 @@
+[
+    {
+        "message": "",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_bare_function",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "SUCCESS"
+    },
+    {
+        "message": "",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_method_on_a_class",
+        "testCaseName": "passing.test_passing.TestMethods",
+        "time": 0,
+        "type": "SUCCESS"
+    },
+    {
+        "message": "",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_parametrised[1]",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "SUCCESS"
+    },
+    {
+        "message": "",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_parametrised[2]",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "SUCCESS"
+    },
+    {
+        "message": "Skipped: nothing to do here",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_skipped",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "ASSUMPTION_VIOLATION"
+    },
+    {
+        "message": "assert (2 + 2) == 5",
+        "stacktrace": null,
+        "stdErr": "",
+        "stdOut": "",
+        "testCase": "test_expected_failure",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "SUCCESS"
+    },
+    {
+        "message": "",
+        "stacktrace": null,
+        "stdErr": "hello from stderr\n",
+        "stdOut": "hello from stdout\n",
+        "testCase": "test_writes_to_both_streams",
+        "testCaseName": "passing.test_passing",
+        "time": 0,
+        "type": "SUCCESS"
+    }
+]
