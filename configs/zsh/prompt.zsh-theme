@@ -54,4 +54,9 @@ if (( ${+functions[git-info]} )); then
 fi
 
 PS1=$'$(prompt-pwd) ${VIRTUAL_ENV:+"${VIRTUAL_ENV:t} "}%(1j.%{\E[${MNML_BGJOB_MODE}m%}.)%F{%(?.${MNML_OK_COLOR}.${MNML_ERR_COLOR})}%(!.#.${MNML_USER_CHAR})%f%{\E[0m%}$(_prompt_mnml_keymap)'
-RPS1='%F{244}${SSH_TTY:+"%m "}${(e)git_info[rprompt]}%f'
+# NB: must be RPROMPT, not RPS1. Unlike PS1/PROMPT, those two are *not*
+# aliases for each other, and a set-but-empty RPROMPT beats a populated RPS1.
+# atuin's precmd unconditionally does RPROMPT="${RPROMPT-}", so setting RPS1
+# here gets shadowed by the empty RPROMPT it creates and the whole right side
+# silently vanishes.
+RPROMPT='%F{244}${SSH_TTY:+"%m "}${(e)git_info[rprompt]}%f'
