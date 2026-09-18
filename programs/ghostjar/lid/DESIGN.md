@@ -127,12 +127,17 @@ The subscription auth flow is fundamentally different from placeholder MITM:
    - Writes `<home>/.claude/settings.json` with
      `skipDangerousModePermissionPrompt: true`.
    - **Subscription host creds:** writes `<home>/.claude/.credentials.json`
-     with placeholder OAuth tokens (`sk-ant-oat01-lid-guest-placeholder`, expiry
-     in 2100) and the host's real scopes, `subscriptionType`, and
-     `rateLimitTier`. Guest Claude therefore sees a claude.ai subscriber, which
-     enables subscriber-only features such as Remote Control; any
-     `apiKeyHelper` would make it an API-key user instead. The hook replaces the
-     placeholder bearer before egress.
+     with a placeholder OAuth access token
+     (`sk-ant-oat01-lid-guest-placeholder`, expiry in 2100) and the host's real
+     scopes, `subscriptionType`, and `rateLimitTier`. Guest Claude therefore
+     sees a claude.ai subscriber, which enables subscriber-only features such
+     as Remote Control; any `apiKeyHelper` would make it an API-key user
+     instead. The hook replaces the placeholder bearer before egress. There is
+     deliberately **no refresh token**: Claude force-refreshes on some 401s
+     (e.g. Remote Control transport recovery), and a placeholder refresh token
+     earns `invalid_grant`, on which Claude blanks the credentials file and
+     logs the guest out. With none, Claude skips the refresh and keeps the
+     placeholder; the host refreshes the real token.
    - **API-key host creds:** adds `apiKeyHelper` printing the dummy
      `sk-ant-api03-lid-guest-placeholder` (approved in the state JSON) and
      removes `<home>/.claude/.credentials.json`. The hook overwrites

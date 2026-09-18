@@ -411,18 +411,30 @@ func TestGuestCredentialsJSON(t *testing.T) {
 	if bytes.Contains(data, []byte("real-")) {
 		t.Fatalf("guest creds leak real tokens: %s", data)
 	}
-	got, err := parseCredsJSON(data)
-	if err != nil {
+	var raw struct {
+		ClaudeAiOauth map[string]json.RawMessage `json:"claudeAiOauth"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		t.Fatalf("unmarshal guest creds: %v", err)
+	}
+	// A refresh token would let Claude attempt (and fail) a refresh, which
+	// makes it blank the credentials file.
+	if _, ok := raw.ClaudeAiOauth["refreshToken"]; ok {
+		t.Errorf("guest creds must not carry a refreshToken: %s", data)
+	}
+	var j claudeCredsJSON
+	if err := json.Unmarshal(data, &j); err != nil {
 		t.Fatalf("parse guest creds: %v", err)
 	}
-	if got.AccessToken != guestOAuthPlaceholder || got.RefreshToken != guestOAuthPlaceholder {
-		t.Errorf("tokens = %q/%q, want placeholder", got.AccessToken, got.RefreshToken)
+	got := j.ClaudeAiOauth
+	if got.AccessToken != guestOAuthPlaceholder {
+		t.Errorf("accessToken = %q, want placeholder", got.AccessToken)
 	}
 	if !strings.HasPrefix(got.AccessToken, "sk-ant-oat") {
 		t.Errorf("placeholder %q lacks sk-ant-oat prefix", got.AccessToken)
 	}
-	if got.ExpiresAtMS < 4000000000000 {
-		t.Errorf("expiresAt = %d, want far future", got.ExpiresAtMS)
+	if got.ExpiresAt < 4000000000000 {
+		t.Errorf("expiresAt = %d, want far future", got.ExpiresAt)
 	}
 	if got.SubscriptionType != "max" || got.RateLimitTier != "default_claude_max_20x" {
 		t.Errorf("subscription = %q/%q", got.SubscriptionType, got.RateLimitTier)
