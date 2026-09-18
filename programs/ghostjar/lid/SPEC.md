@@ -244,7 +244,8 @@ consistency; not used for placeholder swap) and
 The runner also seeds the guest with Claude state files (`.claude.json`,
 `.claude/.config.json`, `.claude/settings.json`) to suppress onboarding
 prompts. For a subscription host credential it writes a placeholder
-`.claude/.credentials.json` (placeholder tokens, far-future expiry, the host's
+`.claude/.credentials.json` (placeholder access token, no refresh token,
+far-future expiry, the host's
 real scopes/`subscriptionType`/`rateLimitTier`) so guest Claude sees a claude.ai
 subscriber (e.g. Remote Control works) and sets no `apiKeyHelper`; for an API
 key it sets an `apiKeyHelper` printing a placeholder key and removes any
