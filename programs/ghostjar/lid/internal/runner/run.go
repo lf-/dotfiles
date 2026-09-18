@@ -265,7 +265,7 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 	}
 
 	if oauthSpec != nil {
-		if err := bootstrapClaudeOAuth(ctx, client, cwdGuest, id, opts.Stderr); err != nil {
+		if err := bootstrapClaudeOAuth(ctx, client, oauthProvider, cwdGuest, id, opts.Stderr); err != nil {
 			return 1, err
 		}
 	}
@@ -445,8 +445,9 @@ func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
-// guestAPIKeyPlaceholder is the dummy API key embedded in guest Claude config.
-// It never leaves the guest because the network hook strips X-Api-Key headers.
+// guestAPIKeyPlaceholder is the dummy API key embedded in guest Claude config
+// when the host authenticates with a Console API key. It never leaves the guest
+// because the network hook overwrites X-Api-Key headers.
 const guestAPIKeyPlaceholder = "sk-ant-api03-lid-guest-placeholder"
 
 // bootstrapClaudeOAuth seeds the guest with Claude state files analogous to
@@ -454,9 +455,16 @@ const guestAPIKeyPlaceholder = "sk-ant-api03-lid-guest-placeholder"
 // cwdGuest is the guest path where the project is mounted; it is used to key
 // the Claude project-trust entry so Claude trusts the real project dir.
 // Errors writing core state files are returned; non-critical ops only warn.
-func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, cwdGuest string, id guestIdentity, logw io.Writer) error {
+//
+// For a subscription host credential the guest gets a placeholder OAuth
+// .credentials.json, so Claude sees a claude.ai subscriber and enables
+// subscriber-only features like Remote Control. For an API key it gets an
+// apiKeyHelper printing a placeholder key. Either way the network hook swaps
+// in the real credential host-side.
+func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, provider *ClaudeOAuthProvider, cwdGuest string, id guestIdentity, logw io.Writer) error {
 	home := id.Home
 	configDir := home + "/.claude"
+	subscription := provider.Kind() == claudeCredOAuth
 
 	// Create .claude directory.
 	res, err := client.Exec(ctx, "mkdir -p "+configDir+" && chmod 700 "+configDir)
@@ -470,7 +478,7 @@ func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, cwdGuest stri
 	// Build state JSON (written to both .claude.json and .claude/.config.json).
 	// Key the project trust entry by cwdGuest (the actual project mount path)
 	// rather than the workspace root, so Claude trusts the real project dir.
-	stateJSON := buildGuestClaudeStateJSON(cwdGuest)
+	stateJSON := buildGuestClaudeStateJSON(cwdGuest, subscription)
 
 	if err := client.WriteFileMode(ctx, home+"/.claude.json", []byte(stateJSON), 0o644); err != nil {
 		return fmt.Errorf("write .claude.json: %w", err)
@@ -480,17 +488,28 @@ func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, cwdGuest stri
 	}
 
 	// Build settings JSON.
-	settingsJSON := buildGuestClaudeSettingsJSON()
+	settingsJSON := buildGuestClaudeSettingsJSON(subscription)
 	if err := client.WriteFileMode(ctx, configDir+"/settings.json", []byte(settingsJSON), 0o644); err != nil {
 		return fmt.Errorf("write .claude/settings.json: %w", err)
 	}
 
-	// Remove any credentials file so the guest doesn't try to use it.
-	res, err = client.Exec(ctx, "rm -f "+configDir+"/.credentials.json")
-	if err != nil {
-		fmt.Fprintf(logw, "lid: warning: could not remove guest .credentials.json: %v\n", err)
-	} else if res.ExitCode != 0 {
-		fmt.Fprintf(logw, "lid: warning: rm .credentials.json exited %d\n", res.ExitCode)
+	if subscription {
+		// Placeholder OAuth creds; also replaces any stale file from the image.
+		creds, err := provider.GuestCredentialsJSON()
+		if err != nil {
+			return fmt.Errorf("build guest .credentials.json: %w", err)
+		}
+		if err := client.WriteFileMode(ctx, configDir+"/.credentials.json", creds, 0o600); err != nil {
+			return fmt.Errorf("write .claude/.credentials.json: %w", err)
+		}
+	} else {
+		// Remove any credentials file so the guest doesn't try to use it.
+		res, err = client.Exec(ctx, "rm -f "+configDir+"/.credentials.json")
+		if err != nil {
+			fmt.Fprintf(logw, "lid: warning: could not remove guest .credentials.json: %v\n", err)
+		} else if res.ExitCode != 0 {
+			fmt.Fprintf(logw, "lid: warning: rm .credentials.json exited %d\n", res.ExitCode)
+		}
 	}
 
 	// The state files were written by the root RPC; hand ownership to the
@@ -506,13 +525,7 @@ func bootstrapClaudeOAuth(ctx context.Context, client *sdk.Client, cwdGuest stri
 	return nil
 }
 
-func buildGuestClaudeStateJSON(workspace string) string {
-	// Last 20 chars of the placeholder, matching what the Python example uses.
-	ph := guestAPIKeyPlaceholder
-	if len(ph) > 20 {
-		ph = ph[len(ph)-20:]
-	}
-
+func buildGuestClaudeStateJSON(workspace string, subscription bool) string {
 	projectState := map[string]any{
 		"allowedTools":                            []any{},
 		"mcpContextUris":                          []any{},
@@ -532,18 +545,29 @@ func buildGuestClaudeStateJSON(workspace string) string {
 		"theme":                  "dark",
 		"hasCompletedOnboarding": true,
 		"lastOnboardingVersion":  "2.1.96",
-		"customApiKeyResponses":  map[string]any{"approved": []string{ph}},
 		"projects":               map[string]any{workspace: projectState},
+	}
+	if !subscription {
+		// Last 20 chars of the placeholder, matching what the Python example uses.
+		ph := guestAPIKeyPlaceholder
+		if len(ph) > 20 {
+			ph = ph[len(ph)-20:]
+		}
+		state["customApiKeyResponses"] = map[string]any{"approved": []string{ph}}
 	}
 
 	data, _ := json.MarshalIndent(state, "", "  ")
 	return string(data) + "\n"
 }
 
-func buildGuestClaudeSettingsJSON() string {
+func buildGuestClaudeSettingsJSON(subscription bool) string {
 	settings := map[string]any{
-		"apiKeyHelper":                      "printf %s " + guestAPIKeyPlaceholder,
 		"skipDangerousModePermissionPrompt": true,
+	}
+	if !subscription {
+		// Any apiKeyHelper makes Claude treat the session as API-key auth,
+		// which hides claude.ai-only features, so only set it for API keys.
+		settings["apiKeyHelper"] = "printf %s " + guestAPIKeyPlaceholder
 	}
 	data, _ := json.MarshalIndent(settings, "", "  ")
 	return string(data) + "\n"

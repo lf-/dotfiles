@@ -122,13 +122,21 @@ The subscription auth flow is fundamentally different from placeholder MITM:
 4. **Guest state seeding (post-launch):** Analogous to `bootstrapGitCredential`,
    the runner calls `bootstrapClaudeOAuth` which:
    - Creates `<home>/.claude/` (chmod 700).
-   - Writes a dummy-key-approved state JSON to both `<home>/.claude.json` and
+   - Writes a state JSON to both `<home>/.claude.json` and
      `<home>/.claude/.config.json` (suppresses onboarding, trusts the workspace).
-   - Writes `<home>/.claude/settings.json` with `apiKeyHelper` pointing to the
-     dummy placeholder and `skipDangerousModePermissionPrompt: true`.
-   - Removes `<home>/.claude/.credentials.json` so the guest never tries file auth.
-   The dummy placeholder (`sk-ant-api03-lid-guest-placeholder`) never leaves
-   the guest; the hook strips `X-Api-Key` before requests egress.
+   - Writes `<home>/.claude/settings.json` with
+     `skipDangerousModePermissionPrompt: true`.
+   - **Subscription host creds:** writes `<home>/.claude/.credentials.json`
+     with placeholder OAuth tokens (`sk-ant-oat01-lid-guest-placeholder`, expiry
+     in 2100) and the host's real scopes, `subscriptionType`, and
+     `rateLimitTier`. Guest Claude therefore sees a claude.ai subscriber, which
+     enables subscriber-only features such as Remote Control; any
+     `apiKeyHelper` would make it an API-key user instead. The hook replaces the
+     placeholder bearer before egress.
+   - **API-key host creds:** adds `apiKeyHelper` printing the dummy
+     `sk-ant-api03-lid-guest-placeholder` (approved in the state JSON) and
+     removes `<home>/.claude/.credentials.json`. The hook overwrites
+     `X-Api-Key` before egress.
 
 The agent runs as a non-root user (see "Privilege drop" below), so `HOME` is
 exported by matchlock's guest from that user's `/etc/passwd` entry at exec time,
