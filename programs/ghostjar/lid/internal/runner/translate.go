@@ -218,9 +218,21 @@ func Translate(p *config.Profile, cwd, home, cwdGuestPath string, secrets []Reso
 				}, nil
 			}
 
-			// Remove any X-Api-Key header (case-insensitive).
+			// Leave foreign bearer tokens alone. Not every Authorization on these
+			// hosts is the user's OAuth token: e.g. Remote Control's session
+			// ingress authenticates with a server-minted worker JWT, and
+			// clobbering it makes the server close the transport (4094,
+			// "worker credential expired") on every re-mint.
+			for k, vals := range headers {
+				if strings.EqualFold(k, "Authorization") && len(vals) > 0 && vals[0] != "Bearer "+guestOAuthPlaceholder {
+					return &sdk.NetworkHookResult{Action: sdk.NetworkHookActionAllow}, nil
+				}
+			}
+
+			// Remove any X-Api-Key and placeholder Authorization headers
+			// (case-insensitive).
 			for k := range headers {
-				if strings.EqualFold(k, "X-Api-Key") {
+				if strings.EqualFold(k, "X-Api-Key") || strings.EqualFold(k, "Authorization") {
 					delete(headers, k)
 				}
 			}

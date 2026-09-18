@@ -194,6 +194,44 @@ func TestTranslateWithOAuthHookRewritesHeaders(t *testing.T) {
 	}
 }
 
+func TestTranslateWithOAuthHookAuthorizationHandling(t *testing.T) {
+	p := baseProfile()
+	p.Net = config.Network{AllowedHosts: []string{"api.anthropic.com"}, BlockPrivateIPs: true}
+	provider := buildOAuthProvider(t, "my-access-token")
+	rule := Translate(p, "/cwd", "/home/me", cwdGuest(p), nil, provider, []string{"api.anthropic.com"}, nil, guestUID, guestGID).Options().NetworkInterception.Rules[0]
+
+	// The guest's placeholder bearer is replaced with the real token.
+	res, err := rule.Hook(context.Background(), sdk.NetworkHookRequest{
+		RequestHeaders: map[string][]string{"authorization": {"Bearer " + guestOAuthPlaceholder}},
+	})
+	if err != nil {
+		t.Fatalf("hook: %v", err)
+	}
+	if res.Request == nil {
+		t.Fatalf("placeholder bearer not rewritten: %+v", res)
+	}
+	var auth []string
+	for k, v := range res.Request.Headers {
+		if strings.EqualFold(k, "Authorization") {
+			auth = append(auth, v...)
+		}
+	}
+	if len(auth) != 1 || auth[0] != "Bearer my-access-token" {
+		t.Errorf("Authorization = %v, want exactly [Bearer my-access-token]", auth)
+	}
+
+	// Any other bearer (e.g. a Remote Control worker JWT) passes through.
+	res, err = rule.Hook(context.Background(), sdk.NetworkHookRequest{
+		RequestHeaders: map[string][]string{"Authorization": {"Bearer worker-jwt"}},
+	})
+	if err != nil {
+		t.Fatalf("hook: %v", err)
+	}
+	if res.Action != sdk.NetworkHookActionAllow || res.Request != nil {
+		t.Errorf("foreign bearer was touched: %+v", res)
+	}
+}
+
 // buildAPIKeyProvider builds a ClaudeOAuthProvider backed by a raw API key.
 func buildAPIKeyProvider(t *testing.T, key string) *ClaudeOAuthProvider {
 	t.Helper()

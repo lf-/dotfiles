@@ -205,7 +205,10 @@ which kind of host credential was found (see resolution order below):
 
 - **Pro/Max subscription (OAuth token):** removes any `X-Api-Key` header, adds
   `Authorization: Bearer <access_token>`, and ensures `anthropic-beta` includes
-  `oauth-2025-04-20`.
+  `oauth-2025-04-20`. A request that already carries an `Authorization` other
+  than the guest placeholder (`Bearer sk-ant-oat01-lid-guest-placeholder`) is
+  passed through untouched: e.g. Remote Control's session ingress uses a
+  server-minted worker JWT, which must not be replaced.
 - **Console API key (`sk-ant-…`):** overwrites the `X-Api-Key` header with the
   real key. No `Authorization` bearer and no `oauth-2025-04-20` beta are added
   (the API rejects a key-authenticated request carrying either).
