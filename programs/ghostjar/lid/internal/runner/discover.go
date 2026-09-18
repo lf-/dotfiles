@@ -30,7 +30,11 @@ type DiscoverOptions struct {
 // Discover finds and loads the global and project configs relative to cwd,
 // then merges them. Per SPEC.md, file discovery/merging is CLI-layer I/O.
 func Discover(cwd string, opts DiscoverOptions) (*Discovery, error) {
-	env := discoverEnv{
+	return newDiscoverEnv(cwd, opts).discover()
+}
+
+func newDiscoverEnv(cwd string, opts DiscoverOptions) discoverEnv {
+	return discoverEnv{
 		cwd:            cwd,
 		home:           os.Getenv("HOME"),
 		xdgConfigHome:  os.Getenv("XDG_CONFIG_HOME"),
@@ -38,7 +42,6 @@ func Discover(cwd string, opts DiscoverOptions) (*Discovery, error) {
 		exists:         fileExists,
 		readFile:       os.ReadFile,
 	}
-	return env.discover()
 }
 
 // discoverEnv abstracts the host so discovery path logic is unit-testable with
@@ -118,6 +121,18 @@ func (e discoverEnv) discover() (*Discovery, error) {
 
 	d.Merged = config.Merge(d.Global, d.Project)
 	return d, nil
+}
+
+// paths returns the global and project config paths discovery would consult
+// right now. Either may be "" (no global location / no project config found);
+// a returned path need not exist.
+func (e discoverEnv) paths() (global, project string, err error) {
+	global = globalConfigPath(e.home, e.xdgConfigHome)
+	if e.configOverride != "" {
+		return global, e.configOverride, nil
+	}
+	project, err = findProjectConfig(e.cwd, e.home, e.exists)
+	return global, project, err
 }
 
 func (e discoverEnv) load(path string) (*config.File, error) {

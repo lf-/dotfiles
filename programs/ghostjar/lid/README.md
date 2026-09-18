@@ -15,6 +15,8 @@ $ lid                  # boots a VM, mounts the project at /workspace, runs clau
 - **Secrets never enter the VM** — the guest sees placeholders; the host MITM
   proxy injects real values into requests to allowed hosts only. `lid.github()`
   wires this up for git/gh, including base64 basic-auth replacement.
+- **Live allowlist edits** — while a VM runs, saving `lid.star` applies
+  `allow` changes to it without a restart (`--no-reload` to disable).
 
 ## Config
 

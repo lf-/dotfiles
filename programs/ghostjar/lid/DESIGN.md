@@ -33,7 +33,7 @@ matchlock `rpc` subprocess (JSON-RPC over stdio) → microVM
 ```
 
 - **cmd/lid** — CLI (stdlib `flag`, hand-rolled subcommands): `run`, `shell`,
-  `ls`, `check`.
+  `bake`, `ls`, `check`.
 - **internal/config** — starlark → validated `Profile`. Pure: no I/O, no
   clock, no env access during evaluation. All security-relevant normalization
   (allowlist union, private-IP defaults, no-network defaults) happens here so
@@ -266,6 +266,30 @@ tag when `matchlock image ls` shows it, else falls back to the base image with a
 tags first, so a baked tag is directly usable. The command then becomes just
 `["claude", ...]` instead of the npx bootstrap.
 
+## Live reload (network allowlist)
+
+While `lid run`/`lid shell` is attached, a watcher (`internal/runner/reload.go`)
+polls the global and project `lid.star` once a second (contents, not mtimes, so
+atomic-rename saves work and no-op saves are ignored). On change it re-runs
+discovery, looks up the *resolved* profile name, and diffs it against what the VM
+is running. Allowlist changes are applied live via matchlock's
+`allow_list_add` / `allow_list_delete` RPCs; the result is one stderr line
+(`lid: reload: +pypi.org -old.example`). `--no-reload` disables it.
+
+- **Never through empty.** Matchlock's policy engine treats an empty allowlist
+  as allow-all, so the watcher always adds new hosts *before* deleting stale
+  ones, and refuses any plan whose desired list is empty. A property test
+  checks the live list is never empty at any step.
+- **Bad config ⇒ no change.** A syntax/validation error mid-edit is reported
+  and the running rules are left alone.
+- **Only a restricted allowlist is mutable.** A VM launched with no network or
+  `allow_all` gets no watcher; switching to/from those needs a restart.
+  Everything else (private-IP blocking, `add_hosts`, DNS, secrets, image,
+  mounts, env, …) is fixed at launch; changes are reported as
+  "restart needed for: …" while allowlist edits in the same save still apply.
+- **Partial failure converges.** The watcher tracks the live list as each RPC
+  succeeds, so a failed delete is retried on the next edit.
+
 ## Future / stretch
 
 - Host-controlled live bind mounts into arbitrary guest paths (matchlock
@@ -273,4 +297,3 @@ tags first, so a baked tag is directly usable. The command then becomes just
   boot-time copy.
 - Overlay (snapshot) mounts for cwd once matchlock's overlay VFS type is the
   right fit.
-- Per-run allowlist mutation (`lid allow <host>` against a running VM).

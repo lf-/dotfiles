@@ -30,6 +30,12 @@ type RunOptions struct {
 	// Requires pasta on PATH and /dev/kvm access; no file-caps or netdev group needed.
 	UseUserns bool
 
+	// Live reload: while the VM runs, re-evaluate the config on change and
+	// apply allowlist edits to the running VM (see reload.go). ConfigOverride
+	// mirrors --config so the watcher rediscovers the same files.
+	ConfigOverride string
+	NoReload       bool
+
 	// Optional overrides; defaulted to the process std streams / real resolver.
 	Stdin        *os.File
 	Stdout       *os.File
@@ -195,6 +201,29 @@ func Run(ctx context.Context, opts RunOptions) (int, error) {
 
 	if _, err := client.Launch(builder); err != nil {
 		return 1, fmt.Errorf("launch sandbox: %w", err)
+	}
+
+	// Watch the config for allowlist edits. Only a restricted allowlist is
+	// mutable live; for no-network/allow-all every change needs a restart. The
+	// baseline is the caller's profile, not prof (which carries run-local
+	// adjustments like the baked image and persist mount). Deferred after the
+	// Close defer, so it stops (and is waited for) before the VM goes away.
+	if !opts.NoReload && !opts.Profile.Net.NoNetwork && !opts.Profile.Net.AllowAll {
+		watchCtx, stopWatch := context.WithCancel(ctx)
+		watchDone := make(chan struct{})
+		go func() {
+			defer close(watchDone)
+			watchConfig(watchCtx, client, opts.Profile, ReloadOptions{
+				Cwd:            opts.Cwd,
+				ConfigOverride: opts.ConfigOverride,
+				ProfileName:    opts.Profile.Name,
+				Log:            opts.Stderr,
+			})
+		}()
+		defer func() {
+			stopWatch()
+			<-watchDone
+		}()
 	}
 
 	if err := runInitCmds(ctx, client, prof.Init, opts.Stderr); err != nil {

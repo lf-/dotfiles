@@ -16,4 +16,5 @@ go_test(
     name = "runner_test",
     srcs = glob(["*_test.go"]),
     target_under_test = ":runner",
+    deps = ["//third_party/go/deps:pgregory.net/rapid"],
 )
