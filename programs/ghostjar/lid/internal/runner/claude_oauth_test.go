@@ -393,3 +393,54 @@ func TestPersistenceFailureNonFatal(t *testing.T) {
 		t.Errorf("token = %q, want new-access", tok)
 	}
 }
+
+func TestGuestCredentialsJSON(t *testing.T) {
+	p := &ClaudeOAuthProvider{creds: claudeOAuthCredentials{
+		Kind:             claudeCredOAuth,
+		AccessToken:      "real-access",
+		RefreshToken:     "real-refresh",
+		ExpiresAtMS:      1,
+		Scopes:           []string{"user:inference", "user:profile"},
+		SubscriptionType: "max",
+		RateLimitTier:    "default_claude_max_20x",
+	}}
+	data, err := p.GuestCredentialsJSON()
+	if err != nil {
+		t.Fatalf("GuestCredentialsJSON: %v", err)
+	}
+	if bytes.Contains(data, []byte("real-")) {
+		t.Fatalf("guest creds leak real tokens: %s", data)
+	}
+	got, err := parseCredsJSON(data)
+	if err != nil {
+		t.Fatalf("parse guest creds: %v", err)
+	}
+	if got.AccessToken != guestOAuthPlaceholder || got.RefreshToken != guestOAuthPlaceholder {
+		t.Errorf("tokens = %q/%q, want placeholder", got.AccessToken, got.RefreshToken)
+	}
+	if !strings.HasPrefix(got.AccessToken, "sk-ant-oat") {
+		t.Errorf("placeholder %q lacks sk-ant-oat prefix", got.AccessToken)
+	}
+	if got.ExpiresAtMS < 4000000000000 {
+		t.Errorf("expiresAt = %d, want far future", got.ExpiresAtMS)
+	}
+	if got.SubscriptionType != "max" || got.RateLimitTier != "default_claude_max_20x" {
+		t.Errorf("subscription = %q/%q", got.SubscriptionType, got.RateLimitTier)
+	}
+	if strings.Join(got.Scopes, " ") != "user:inference user:profile" {
+		t.Errorf("scopes = %v", got.Scopes)
+	}
+}
+
+func TestGuestClaudeConfigSubscriptionHasNoAPIKey(t *testing.T) {
+	for _, sub := range []bool{true, false} {
+		settings := buildGuestClaudeSettingsJSON(sub)
+		state := buildGuestClaudeStateJSON("/workspace", sub)
+		if got := strings.Contains(settings, "apiKeyHelper"); got == sub {
+			t.Errorf("subscription=%v: apiKeyHelper present=%v", sub, got)
+		}
+		if got := strings.Contains(state, "customApiKeyResponses"); got == sub {
+			t.Errorf("subscription=%v: customApiKeyResponses present=%v", sub, got)
+		}
+	}
+}

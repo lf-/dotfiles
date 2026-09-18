@@ -253,6 +253,40 @@ func (p *ClaudeOAuthProvider) refreshCreds(ctx context.Context, old claudeOAuthC
 	return newCreds, nil
 }
 
+// guestOAuthPlaceholder is the dummy access/refresh token written into the
+// guest's ~/.claude/.credentials.json. The sk-ant-oat prefix makes Claude
+// treat it as a claude.ai OAuth token; the network hook replaces the bearer
+// with the real token before anything leaves the host.
+const guestOAuthPlaceholder = "sk-ant-oat01-lid-guest-placeholder"
+
+// guestOAuthDefaultScopes is used when the host blob carries no scopes.
+var guestOAuthDefaultScopes = []string{"user:inference", "user:profile", "user:sessions:claude_code"}
+
+// GuestCredentialsJSON returns a ~/.claude/.credentials.json blob for the
+// guest: placeholder tokens that never expire, plus the host's real scopes,
+// subscription type, and rate-limit tier. This makes guest Claude see a
+// claude.ai subscription (enabling subscriber-only features like Remote
+// Control) instead of an API-key user. Only meaningful for claudeCredOAuth.
+func (p *ClaudeOAuthProvider) GuestCredentialsJSON() ([]byte, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	scopes := p.creds.Scopes
+	if len(scopes) == 0 {
+		scopes = guestOAuthDefaultScopes
+	}
+	return marshalCreds(claudeOAuthCredentials{
+		AccessToken:  guestOAuthPlaceholder,
+		RefreshToken: guestOAuthPlaceholder,
+		// Far future: the guest must never try to refresh (the hook does that
+		// host-side, and the placeholder refresh token would be rejected).
+		ExpiresAtMS:      4102444800000, // 2100-01-01
+		Scopes:           scopes,
+		SubscriptionType: p.creds.SubscriptionType,
+		RateLimitTier:    p.creds.RateLimitTier,
+	})
+}
+
 // persistCreds writes updated credentials back to their original source.
 // Any error is returned (caller decides whether to log and continue).
 func (p *ClaudeOAuthProvider) persistCreds(creds claudeOAuthCredentials) error {

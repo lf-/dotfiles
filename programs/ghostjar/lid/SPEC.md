@@ -243,8 +243,12 @@ consistency; not used for placeholder swap) and
 
 The runner also seeds the guest with Claude state files (`.claude.json`,
 `.claude/.config.json`, `.claude/settings.json`) to suppress onboarding
-prompts, and removes any `.credentials.json` from the guest to prevent
-accidental use of stale file-based credentials. These are written into the
+prompts. For a subscription host credential it writes a placeholder
+`.claude/.credentials.json` (placeholder tokens, far-future expiry, the host's
+real scopes/`subscriptionType`/`rateLimitTier`) so guest Claude sees a claude.ai
+subscriber (e.g. Remote Control works) and sets no `apiKeyHelper`; for an API
+key it sets an `apiKeyHelper` printing a placeholder key and removes any
+`.credentials.json`. These are written into the
 non-root agent user's home (see DESIGN.md "Privilege drop") and chowned to it;
 `HOME` is exported by the guest from that user's passwd entry.
 
@@ -349,7 +353,7 @@ When `persist_claude = True`, the runner:
 
 Managed files (`~/.claude.json`, `~/.claude/settings.json`,
 `~/.claude/.config.json`) are regenerated each run. `~/.claude/.credentials.json`
-is removed each boot. Neither ever reaches the host store.
+is rewritten (placeholder) or removed each boot. Neither ever reaches the host store.
 
 ## Go API (pinned)
 
