@@ -1,0 +1,21 @@
+"""Configuration modifier setup, required for `-m`/`--modifier` to do anything:
+without a registered cfg constructor buck2 silently drops every modifier.
+
+https://buck2.build/docs/users/how_tos/modifiers_setup/
+"""
+
+load("@prelude//cfg/modifier:cfg_constructor.bzl", "cfg_constructor_post_constraint_analysis", "cfg_constructor_pre_constraint_analysis")
+load("@prelude//cfg/modifier:common.bzl", "MODIFIER_METADATA_KEY")
+
+native.set_cfg_constructor(
+    aliases = struct(
+        # `-m profiling` instead of the full constraint value label.
+        profiling = [
+            "toolchains//haskell/constraints:profiling[enabled]",
+        ],
+    ),
+    extra_data = struct(),
+    key = MODIFIER_METADATA_KEY,
+    stage0 = cfg_constructor_pre_constraint_analysis,
+    stage1 = cfg_constructor_post_constraint_analysis,
+)

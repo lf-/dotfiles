@@ -1,0 +1,20 @@
+# Whether the GHC bindist is unpacked with its profiling libraries -- 1.3 GB
+# of dead weight unless something compiles with `-prof`, so the default archive
+# drops them. To swap in the un-pruned one:
+#
+#     buck2 build -m profiling ...
+#
+# A constraint because it has to reach the `select()` that picks the archive;
+# the `profiling` alias and the cfg constructor `-m` requires live in the root
+# `PACKAGE`. This only makes the libraries *available* -- the prelude's
+# per-target `enable_profiling` attribute still has to be set.
+
+constraint(
+    name = "profiling",
+    default = "disabled",
+    values = [
+        "disabled",
+        "enabled",
+    ],
+    visibility = ["PUBLIC"],
+)

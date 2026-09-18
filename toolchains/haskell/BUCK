@@ -1,0 +1,16 @@
+# GHC's boot packages, one `haskell_prebuilt_library` each, projected out of the
+# archives `toolchains//:haskell` unpacks.
+#
+# Use sites name them explicitly, e.g. `deps = ["toolchains//haskell:base"]`.
+# `base` is not injected for you: the prelude's `-package base` makes the
+# modules visible but links nothing.
+#
+# The table comes from the generated `boot_packages.bzl`; see
+# `toolchains//:update_hermetic_toolchain`.
+
+load("@toolchains//:hermetic_haskell_toolchain.bzl", "haskell_boot_packages")
+
+haskell_boot_packages(
+    toolchain = "toolchains//:haskell",
+    visibility = ["PUBLIC"],
+)

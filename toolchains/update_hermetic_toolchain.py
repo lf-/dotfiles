@@ -2,33 +2,44 @@
 """Fetch upstream SHA256 hashes and update a hermetic toolchain target via buildozer.
 
 Usage:
-    buck run toolchains//:update_hermetic_toolchain -- <rust|go|java> <target> <version>
+    buck run toolchains//:update_hermetic_toolchain -- <rust|go|java|haskell> <target> <version>
     buck run toolchains//:update_hermetic_toolchain -- python <target> <version> [rev]
 
 Examples:
-    buck run toolchains//:update_hermetic_toolchain -- rust   toolchains//:rust   1.87.0
-    buck run toolchains//:update_hermetic_toolchain -- go     toolchains//:go     1.23.5
-    buck run toolchains//:update_hermetic_toolchain -- java   toolchains//:java   24.0.2
-    buck run toolchains//:update_hermetic_toolchain -- python toolchains//:python 3.13.6 20250807
+    buck run toolchains//:update_hermetic_toolchain -- rust    toolchains//:rust    1.87.0
+    buck run toolchains//:update_hermetic_toolchain -- go      toolchains//:go      1.23.5
+    buck run toolchains//:update_hermetic_toolchain -- java    toolchains//:java    24.0.2
+    buck run toolchains//:update_hermetic_toolchain -- haskell toolchains//:haskell 9.14.1
+    buck run toolchains//:update_hermetic_toolchain -- python  toolchains//:python  3.13.6 20250807
 
 `rev` is the python-build-standalone release tag; it defaults to the latest
 release, which does not necessarily publish the CPython version you asked for.
 
 A java `version` may be a prefix ("24"); the exact OpenJDK version it resolves to
 is written back along with the Zulu version publishing it.
+
+haskell also regenerates `toolchains/haskell/boot_packages.bzl`, whose unit ids
+are hash-suffixed per platform: every bindist is downloaded (~870 MB total,
+cached under $TMPDIR) and its `lib/package.conf.d` read. Takes a few minutes;
+no GHC is executed.
 """
 
 import ast
 import configparser
+import hashlib
 import json
 import os
+import posixpath
 import re
+import shutil
 import subprocess
 import sys
+import tarfile
+import tempfile
 import urllib.parse
 import urllib.request
 
-KINDS = ("go", "java", "python", "rust")
+KINDS = ("go", "haskell", "java", "python", "rust")
 
 
 def find_workspace_root():
@@ -211,6 +222,302 @@ def fetch_python_sha256s(version, rev, triples):
     return result
 
 
+GHC_BASE_URL = "https://downloads.haskell.org/~ghc"
+
+# Downloaded bindists, kept between runs; only read after their sha256 checks.
+GHC_CACHE_DIR = os.path.join(tempfile.gettempdir(), "ghc-bindists")
+
+# `${pkgroot}` in a package .conf is the directory holding `package.conf.d`.
+GHC_PKGROOT = "lib"
+
+GHC_PACKAGE_DB = "lib/package.conf.d"
+
+
+def fetch_ghc_sha256s(version, platforms):
+    """Read a GHC release's own SHA256SUMS. Keys are GHC's URL flavours."""
+    url = f"{GHC_BASE_URL}/{version}/SHA256SUMS"
+    print(f"  fetching {url}", flush=True)
+    sums = {}
+    with urllib.request.urlopen(url) as resp:
+        for line in resp.read().decode().splitlines():
+            fields = line.split()
+            if len(fields) == 2:
+                sums[os.path.basename(fields[1])] = fields[0]
+
+    result = {}
+    for platform in platforms:
+        archive = f"ghc-{version}-{platform}.tar.xz"
+        if archive not in sums:
+            raise ValueError(f"{archive} is not in {url}")
+        result[platform] = sums[archive]
+    return result
+
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def download_ghc_bindist(version, platform, sha256):
+    """Fetch one bindist into the cache, or reuse a cached copy that hashes right."""
+    os.makedirs(GHC_CACHE_DIR, exist_ok=True)
+    name = f"ghc-{version}-{platform}.tar.xz"
+    path = os.path.join(GHC_CACHE_DIR, name)
+
+    if os.path.exists(path):
+        if sha256_file(path) == sha256:
+            print(f"  using cached {path}", flush=True)
+            return path
+        print(f"  cached {path} has the wrong hash, refetching", flush=True)
+
+    url = f"{GHC_BASE_URL}/{version}/{name}"
+    print(f"  fetching {url} (a few hundred MB)", flush=True)
+    partial = path + ".part"
+    with urllib.request.urlopen(url) as resp, open(partial, "wb") as out:
+        shutil.copyfileobj(resp, out)
+
+    got = sha256_file(partial)
+    if got != sha256:
+        os.unlink(partial)
+        raise ValueError(f"{url} hashed to {got}, expected {sha256}")
+    os.replace(partial, path)
+    return path
+
+
+def parse_package_conf(text):
+    """Parse a GHC package .conf.
+
+    RFC822-ish: `field: value`, continuations indented. Every field we read is
+    a whitespace-separated list, so joining continuations with spaces is enough.
+    """
+    fields = {}
+    key = None
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if line[0].isspace():
+            if key is not None:
+                fields[key].append(line.strip())
+        else:
+            key, _, rest = line.partition(":")
+            key = key.strip().lower()
+            fields[key] = [rest.strip()] if rest.strip() else []
+    return {key: " ".join(value) for key, value in fields.items()}
+
+
+def read_ghc_bindist(path):
+    """Stream one bindist, returning (member paths, {conf basename: contents}).
+
+    Paths come back relative to the root of the unpacked archive, with the
+    `ghc-<version>-<platform>/` wrapper directory stripped off.
+    """
+    members = set()
+    confs = {}
+    prefix = None
+
+    with tarfile.open(path, mode="r:xz") as tar:
+        for member in tar:
+            name = member.name
+            if prefix is None:
+                prefix = name.split("/")[0] + "/"
+            if name == prefix.rstrip("/"):
+                # The wrapper directory's own entry.
+                continue
+            if not name.startswith(prefix):
+                raise ValueError(f"{path}: {name!r} is outside {prefix!r}")
+            name = name[len(prefix) :]
+            members.add(name)
+            if posixpath.dirname(name) == GHC_PACKAGE_DB and name.endswith(".conf"):
+                confs[posixpath.basename(name)] = tar.extractfile(member).read().decode()
+
+    if not confs:
+        raise ValueError(f"{path}: no package .conf files under {GHC_PACKAGE_DB}")
+    return members, confs
+
+
+def conf_paths(value):
+    """Archive-relative paths out of a `.conf` directory field.
+
+    Returns (kept, dropped). Anything not under `${pkgroot}` is dropped: GHC
+    bakes some of its build machine's absolute paths into these fields.
+    """
+    kept, dropped = [], []
+    for raw in value.split():
+        if raw.startswith("${pkgroot}"):
+            kept.append(posixpath.normpath(raw.replace("${pkgroot}", GHC_PKGROOT)))
+        else:
+            dropped.append(raw)
+    return kept, dropped
+
+
+def conf_flags(value):
+    """`ld-options`-style fields, which quote elements that need it."""
+    return [token.strip('"') for token in value.split()]
+
+
+def ghc_shared_library_names(hs_library, version, ext):
+    """Spellings of an `hs-libraries` entry's shared counterpart, best first.
+
+    Haskell libraries carry the compiler version in the soname; a bundled C
+    library (`Cffi`, the Linux libffi) drops both the `C` marker and the version.
+    """
+    if hs_library.startswith("HS"):
+        return [f"lib{hs_library}-ghc{version}{ext}"]
+    names = [f"lib{hs_library}{ext}"]
+    if hs_library.startswith("C"):
+        names.append(f"lib{hs_library[1:]}{ext}")
+    return names
+
+
+def ghc_boot_packages(members, confs, version):
+    """Turn one bindist's package .conf files into `boot_packages.bzl` data.
+
+    Every derived path is checked against the archive's file list, so an
+    upstream layout change fails the bump rather than a later link.
+    """
+    parsed = {}
+    for filename, text in sorted(confs.items()):
+        conf = parse_package_conf(text)
+        if "name" not in conf or "id" not in conf:
+            raise ValueError(f"{filename}: no name/id")
+        parsed[conf["name"]] = conf
+
+    ids_to_names = {conf["id"]: name for name, conf in parsed.items()}
+
+    # `lib/<arch>-<os>-ghc-<version>-<hash>`, holding the per-package dirs and
+    # the shared libraries. The rts's `library-dirs` is empty, so the default
+    # has to be derivable.
+    libdirs = {
+        posixpath.dirname(path)
+        for conf in parsed.values()
+        for path in conf_paths(conf.get("import-dirs", ""))[0]
+    }
+    if len(libdirs) != 1:
+        raise ValueError(f"expected exactly one package library directory, found {sorted(libdirs)}")
+    libdir = libdirs.pop()
+
+    shared_ext = ".dylib" if any(m.endswith(".dylib") for m in members) else ".so"
+
+    packages = {}
+    missing = []
+    dropped = {}
+
+    for name, conf in sorted(parsed.items()):
+        unit_id = conf["id"]
+
+        static_dirs, drop = conf_paths(conf.get("library-dirs-static", ""))
+        dropped.setdefault(name, []).extend(drop)
+        static_dir = static_dirs[0] if static_dirs else posixpath.join(libdir, unit_id)
+
+        shared_dirs, drop = conf_paths(conf.get("dynamic-library-dirs", ""))
+        dropped[name].extend(drop)
+        shared_dir = shared_dirs[0] if shared_dirs else libdir
+
+        header_dirs, drop = conf_paths(conf.get("include-dirs", ""))
+        dropped[name].extend(drop)
+
+        static_libs, profiled_static_libs, shared_libs = [], [], {}
+        for hs_library in conf.get("hs-libraries", "").split():
+            static_libs.append(f"{static_dir}/lib{hs_library}.a")
+            profiled_static_libs.append(f"{static_dir}/lib{hs_library}_p.a")
+
+            candidates = ghc_shared_library_names(hs_library, version, shared_ext)
+            present = [c for c in candidates if f"{shared_dir}/{c}" in members]
+            if present:
+                shared_libs[present[0]] = f"{shared_dir}/{present[0]}"
+            else:
+                print(f"  note: {name} ships no shared {hs_library} (tried {candidates})")
+
+        for path in static_libs + profiled_static_libs + list(shared_libs.values()) + header_dirs:
+            if path not in members:
+                missing.append(f"{name}: {path}")
+
+        packages[name] = {
+            "id": unit_id,
+            "version": conf.get("version", ""),
+            "deps": sorted(
+                ids_to_names[dep] for dep in conf.get("depends", "").split() if dep in ids_to_names
+            ),
+            "static_libs": static_libs,
+            "profiled_static_libs": profiled_static_libs,
+            "shared_libs": shared_libs,
+            "cxx_header_dirs": header_dirs,
+            # System libraries (libm, libffi, ...) the C linker finds; not in
+            # the archive.
+            "exported_linker_flags": [
+                f"-l{lib}" for lib in conf.get("extra-libraries", "").split()
+            ]
+            + conf_flags(conf.get("ld-options", "")),
+        }
+
+        unknown_deps = [
+            dep for dep in conf.get("depends", "").split() if dep not in ids_to_names
+        ]
+        if unknown_deps:
+            raise ValueError(f"{name} depends on unregistered {unknown_deps}")
+
+    if missing:
+        raise ValueError(
+            "these paths are not in the bindist -- GHC's layout has moved:\n  "
+            + "\n  ".join(sorted(missing))
+        )
+
+    for name, paths in sorted(dropped.items()):
+        for path in paths:
+            print(f"  note: {name} references {path}, outside the archive; dropped")
+
+    return packages
+
+
+def write_boot_packages(path, version, per_platform):
+    """Write `toolchains/haskell/boot_packages.bzl`."""
+    body = json.dumps(per_platform, indent=4, sort_keys=True)
+    contents = f'''\
+# @generated by `buck run toolchains//:update_hermetic_toolchain -- haskell toolchains//:haskell {version}`
+# Do not edit: unit ids are hash-suffixed per platform.
+#
+# GHC {version}'s boot packages, read from each bindist's `lib/package.conf.d`;
+# paths are relative to the unpacked archive root.
+
+GHC_VERSION = "{version}"
+
+GHC_PACKAGE_DB = "{GHC_PACKAGE_DB}"
+
+BOOT_PACKAGES = {body}
+'''
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write(contents)
+
+    # Cosmetic only, and buildifier is not a hard dependency of a version bump.
+    try:
+        subprocess.run(["buildifier", path], check=True)
+    except FileNotFoundError:
+        print("  note: buildifier not on PATH; generated file is unformatted")
+
+
+def update_haskell_boot_packages(root, cells, version, sha256s):
+    per_platform = {}
+    for platform in sorted(sha256s):
+        print(f"reading {platform} boot packages", flush=True)
+        archive = download_ghc_bindist(version, platform, sha256s[platform])
+        members, confs = read_ghc_bindist(archive)
+        per_platform[platform] = ghc_boot_packages(members, confs, version)
+        print(f"  {len(per_platform[platform])} packages", flush=True)
+
+    names = {platform: sorted(packages) for platform, packages in per_platform.items()}
+    if len(set(map(tuple, names.values()))) != 1:
+        raise ValueError(f"platforms ship different boot packages: {names}")
+
+    out = os.path.join(root, cells.get("toolchains", "toolchains"), "haskell", "boot_packages.bzl")
+    write_boot_packages(out, version, per_platform)
+    print(f"wrote {out}")
+
+
 def main():
     if len(sys.argv) < 4:
         print(__doc__, file=sys.stderr)
@@ -257,6 +564,12 @@ def main():
         new_hashes = fetch_python_sha256s(version, rev, triples)
         for k, v in new_hashes.items():
             print(f"  {k}: {v}")
+    elif kind == "haskell":
+        platforms = list(current)
+        print(f"platforms: {platforms}")
+        new_hashes = fetch_ghc_sha256s(version, platforms)
+        for k, v in sorted(new_hashes.items()):
+            print(f"  {k}: {v}")
     else:
         platforms = set(current)
         print(f"platforms: {sorted(platforms)}")
@@ -273,6 +586,12 @@ def main():
     if kind == "java":
         buildozer_set("zulu_version", f'"{zulu_version}"', target, root)
     buildozer_dict_set(sha256_attr, new_hashes, target, root)
+
+    # The hashes are only half a GHC bump; the unit ids in `boot_packages.bzl`
+    # move with them.
+    if kind == "haskell":
+        update_haskell_boot_packages(root, cells, version, new_hashes)
+
     print("done")
 
 

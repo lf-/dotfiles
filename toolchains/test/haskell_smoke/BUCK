@@ -1,0 +1,16 @@
+# Smoke test for the hermetic GHC toolchain -- nothing else in the repo is
+# Haskell. Building a binary exercises the compiler, linker, global package db,
+# boot-package targets and `-pgm*` C toolchain wiring together.
+
+sh_test(
+    name = "haskell_smoke",
+    test = ":main",
+)
+
+haskell_binary(
+    name = "main",
+    srcs = ["Main.hs"],
+    # Explicit on purpose: the prelude's `-package base` makes the modules
+    # visible but links nothing.
+    deps = ["toolchains//haskell:base"],
+)

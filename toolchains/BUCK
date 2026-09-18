@@ -6,10 +6,11 @@ load("@prelude//toolchains:remote_test_execution.bzl", "remote_test_execution_to
 load("@prelude//toolchains:zip_file.bzl", "zip_file_toolchain")
 load("@root//platforms:defs.bzl", "remote_test_execution_profiles")
 load("@toolchains//:hermetic_go_toolchain.bzl", "hermetic_go_toolchain")
+load("@toolchains//:hermetic_haskell_toolchain.bzl", "hermetic_haskell_toolchain")
 load("@toolchains//:hermetic_java_toolchain.bzl", "hermetic_java_toolchain")
 load("@toolchains//:hermetic_python_toolchain.bzl", "hermetic_python_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
-load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain")
+load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain", "path_gcc_tools")
 
 _RE_TESTS = remote_test_execution_profiles()
 
@@ -17,6 +18,12 @@ _RE_TESTS = remote_test_execution_profiles()
 # Virtualization.framework backend is written in it. See the bzl file.
 objc_cxx_toolchain(
     name = "cxx",
+    visibility = ["PUBLIC"],
+)
+
+# What `:cxx` resolves to on Linux; see its `_cxx_tools_info`.
+path_gcc_tools(
+    name = "gcc_tools",
     visibility = ["PUBLIC"],
 )
 
@@ -52,6 +59,18 @@ hermetic_go_toolchain(
     },
     version = "1.26.5",
     visibility = ["PUBLIC"],
+)
+
+# GHC's own bindists, run in place unmodified. The boot packages live in
+# `toolchains//haskell`, generated from the same archives.
+hermetic_haskell_toolchain(
+    name = "haskell",
+    sha256s = {
+        "aarch64-apple-darwin": "841591f152085be605616682779341847d24fd56bd6d22ca61bb37ee32b50681",
+        "aarch64-deb12-linux": "6aa27a377451851c851eefdd869e8f5a9217b02ce66c6ca9b418b72efee28427",
+        "x86_64-deb12-linux": "60f7ab75f28df892729fbaff3a54f58ee3ad7e731929f1b2f3eb0208f73de841",
+    },
+    version = "9.14.1",
 )
 
 # Capped at 24 by `:kotlin_bootstrap` below, not by taste.

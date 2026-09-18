@@ -24,6 +24,7 @@ load(
     "CxxInternalTools",
     "DepTrackingMode",
     "LinkerInfo",
+    "LinkerType",
     "PicBehavior",
     "ShlibInterfacesMode",
     "cxx_toolchain_infos",
@@ -34,6 +35,32 @@ load("@prelude//linking:link_info.bzl", "LinkOrdering", "LinkStyle")
 load("@prelude//linking:lto.bzl", "LtoMode")
 load("@prelude//os_lookup:defs.bzl", "Os", "OsLookup")
 load("@prelude//toolchains:cxx.bzl", "CxxToolsInfo")
+
+def _path_gcc_tools_impl(_ctx: AnalysisContext) -> list[Provider]:
+    return [
+        DefaultInfo(),
+        CxxToolsInfo(
+            compiler = "gcc",
+            compiler_type = "gcc",
+            cxx_compiler = "g++",
+            asm_compiler = "gcc",
+            asm_compiler_type = "gcc",
+            rc_compiler = None,
+            cvtres_compiler = None,
+            archiver = "ar",
+            archiver_type = "gnu",
+            linker = "g++",
+            linker_type = LinkerType("gnu"),
+        ),
+    ]
+
+# `prelude//toolchains/cxx/clang:path_clang_tools` for gcc, which the prelude
+# has no equivalent of. The Linux RE image (`buildpack-deps:bookworm`, see
+# `//platforms`) ships build-essential and no clang.
+path_gcc_tools = rule(
+    impl = _path_gcc_tools_impl,
+    attrs = {},
+)
 
 def _run_info(args):
     return None if args == None else RunInfo(args = [args])
@@ -150,7 +177,16 @@ objc_cxx_toolchain = rule(
         "link_style": attrs.string(default = "shared"),
         "post_link_flags": attrs.list(attrs.arg(), default = []),
         "supports_content_based_paths": attrs.bool(default = False),
-        "_cxx_tools_info": attrs.exec_dep(providers = [CxxToolsInfo], default = "prelude//toolchains/cxx/clang:path_clang_tools"),
+        # clang on macOS, gcc on Linux: the Linux RE image has no clang. The
+        # select resolves in the target configuration, which matches the exec
+        # platform for every build here (`@platforms/<cpu>-<os>.mode` pins both).
+        "_cxx_tools_info": attrs.exec_dep(
+            providers = [CxxToolsInfo],
+            default = select({
+                "DEFAULT": "prelude//toolchains/cxx/clang:path_clang_tools",
+                "config//os:linux": "toolchains//:gcc_tools",
+            }),
+        ),
         "_target_os_type": buck.target_os_type_arg(),
     },
     is_toolchain_rule = True,
