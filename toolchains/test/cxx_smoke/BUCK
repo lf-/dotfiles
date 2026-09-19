@@ -1,0 +1,38 @@
+# Smoke test for the hermetic zig C toolchain. Nothing else in the repo is a
+# first-party `cxx_binary` -- C reaches `toolchains//:cxx` only through cgo,
+# rust and python native extensions -- so without this a bad toolchain edit
+# surfaces as a silent fallback to a system compiler.
+#
+# Wrapped in `sh_test` like the haskell and java smoke tests: the binaries
+# assert on themselves and exit nonzero, so running them is the whole test.
+
+sh_test(
+    name = "cxx_smoke",
+    test = ":main",
+)
+
+cxx_binary(
+    name = "main",
+    srcs = [
+        "hello.cpp",
+        "main.c",
+    ],
+    headers = ["hello.h"],
+)
+
+sh_test(
+    name = "objc_smoke",
+    test = ":objc_main",
+    target_compatible_with = ["config//os:macos"],
+)
+
+cxx_binary(
+    name = "objc_main",
+    srcs = ["objc_smoke.m"],
+    linker_flags = [
+        "-lobjc",
+        "-framework",
+        "Foundation",
+    ],
+    target_compatible_with = ["config//os:macos"],
+)

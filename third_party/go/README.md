@@ -60,7 +60,7 @@ Objective-C. Two prelude gaps are patched around in `//toolchains`, both
 sent upstream:
 
 - `system_cxx_toolchain` never sets `objc_compiler_info`, so any `.m` source
-  fails analysis. `objc_cxx_toolchain.bzl` is that rule built through
+  fails analysis. `hermetic_zig_toolchain.bzl` goes through
   `cxx_toolchain_infos()`, which fills the field in from the C compiler.
 
   <https://github.com/facebook/buck2/pull/1423>

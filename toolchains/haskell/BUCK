@@ -14,3 +14,12 @@ haskell_boot_packages(
     toolchain = "toolchains//:haskell",
     visibility = ["PUBLIC"],
 )
+
+# Assembled by `toolchains//:haskell` itself and added to every link on the
+# platforms in its `_OUTLINE_ATOMICS_SYNC`; exported because a source attribute
+# needs a label, and this package declares nothing else by hand.
+export_file(
+    name = "outline_atomics_sync.S",
+    src = "outline_atomics_sync.S",
+    visibility = ["PUBLIC"],
+)

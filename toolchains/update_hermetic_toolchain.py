@@ -2,7 +2,7 @@
 """Fetch upstream SHA256 hashes and update a hermetic toolchain target via buildozer.
 
 Usage:
-    buck run toolchains//:update_hermetic_toolchain -- <rust|go|java|haskell> <target> <version>
+    buck run toolchains//:update_hermetic_toolchain -- <rust|go|java|haskell|zig> <target> <version>
     buck run toolchains//:update_hermetic_toolchain -- python <target> <version> [rev]
 
 Examples:
@@ -10,6 +10,7 @@ Examples:
     buck run toolchains//:update_hermetic_toolchain -- go      toolchains//:go      1.23.5
     buck run toolchains//:update_hermetic_toolchain -- java    toolchains//:java    24.0.2
     buck run toolchains//:update_hermetic_toolchain -- haskell toolchains//:haskell 9.14.1
+    buck run toolchains//:update_hermetic_toolchain -- zig     toolchains//:cxx     0.16.0
     buck run toolchains//:update_hermetic_toolchain -- python  toolchains//:python  3.13.6 20250807
 
 `rev` is the python-build-standalone release tag; it defaults to the latest
@@ -39,7 +40,7 @@ import tempfile
 import urllib.parse
 import urllib.request
 
-KINDS = ("go", "haskell", "java", "python", "rust")
+KINDS = ("go", "haskell", "java", "python", "rust", "zig")
 
 
 def find_workspace_root():
@@ -219,6 +220,31 @@ def fetch_python_sha256s(version, rev, triples):
         if archive not in sums:
             raise ValueError(f"{archive} is not in release {rev}'s SHA256SUMS")
         result[triple] = sums[archive]
+    return result
+
+
+ZIG_INDEX = "https://ziglang.org/download/index.json"
+
+
+def fetch_zig_sha256s(version, platforms):
+    """Read a zig release out of upstream's download index.
+
+    The index is keyed by version then by platform, spelled exactly as the
+    `sha256s` dict is -- these are zig's own names, not ours.
+    """
+    print(f"  fetching {ZIG_INDEX}", flush=True)
+    with urllib.request.urlopen(ZIG_INDEX) as resp:
+        index = json.loads(resp.read())
+
+    if version not in index:
+        raise ValueError(f"zig {version} is not in {ZIG_INDEX}; found {sorted(index)}")
+    release = index[version]
+
+    result = {}
+    for platform in platforms:
+        if platform not in release:
+            raise ValueError(f"zig {version} publishes no {platform}; found {sorted(release)}")
+        result[platform] = release[platform]["shasum"]
     return result
 
 
@@ -568,6 +594,12 @@ def main():
         platforms = list(current)
         print(f"platforms: {platforms}")
         new_hashes = fetch_ghc_sha256s(version, platforms)
+        for k, v in sorted(new_hashes.items()):
+            print(f"  {k}: {v}")
+    elif kind == "zig":
+        platforms = list(current)
+        print(f"platforms: {platforms}")
+        new_hashes = fetch_zig_sha256s(version, platforms)
         for k, v in sorted(new_hashes.items()):
             print(f"  {k}: {v}")
     else:

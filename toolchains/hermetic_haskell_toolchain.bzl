@@ -10,6 +10,15 @@
 # the archive byte-identical to upstream so the sha256 pin means something.
 # The one host-dependent piece is `lib/settings`, which names its C tools by
 # bare PATH-resolved names; the `-pgm*` block below overrides that instead.
+#
+# TODO: the boot packages are not hermetic about *system libraries*. Their
+# `exported_linker_flags` name whatever GHC's build machine linked against --
+# `-lgmp -lc -lm` on Linux, `-liconv`/`-lncurses`/`-lffi` on darwin (see
+# `toolchains/haskell/boot_packages.bzl`) -- so every Haskell link quietly
+# pulls those off the host. That was already true before `toolchains//:cxx`
+# became hermetic, and it is the concrete reason a native build there cannot
+# pass `zig cc -target`: an explicit triple stops zig searching host library
+# paths, and these would stop resolving. We should ship our own gmp.
 
 load("@prelude//cxx:cxx_toolchain_types.bzl", "CxxToolchainInfo", "LinkerType")
 load("@prelude//haskell:toolchain.bzl", "HaskellPlatformInfo", "HaskellToolchainInfo")
@@ -27,6 +36,12 @@ _PLATFORMS = {
 }
 
 _PROFILING = "toolchains//haskell/constraints:profiling"
+
+# Bindists whose C half was built by a gcc with `-moutline-atomics` on, leaving
+# calls to libgcc's `__aarch64_*_sync` helpers in the RTS. zig's compiler_rt has
+# no `_sync` family, so these need the shims in `outline_atomics_sync.S`; read
+# that file before touching this, it documents the one semantic compromise.
+_OUTLINE_ATOMICS_SYNC = ["aarch64-deb12-linux"]
 
 # Matched against the tarball listing, which still carries the
 # `ghc-<version>-<platform>/` wrapper directory -- hence `^[^/]+/`.
@@ -195,6 +210,43 @@ def _hermetic_haskell_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
     if cxx.linker_info.type == LinkerType("gnu"):
         cxx_flags += ["-optl-no-pie"]
 
+    # Link-only. GHC compiles a small C file during linking to carry the
+    # link-info section, and hands its C compiler `picCCOpts` -- which is
+    # `-fno-PIC` whenever GHC's own `Opt_PIC` is off. `prelude//haskell` sets
+    # `-fPIC` on the *compile* action for the shared and static_pic link styles
+    # but never on the link action, so the link invocation always defaulted to
+    # off. That went unnoticed against gcc and Apple clang, which happily
+    # produce non-PIC objects; `zig cc` instead refuses `-fno-PIC` outright on
+    # its Linux targets ("the selected target requires position independent
+    # code"), and there is no way to satisfy it by turning PIE off either
+    # (`-fno-PIC -fno-PIE` fails identically).
+    #
+    # So say what we actually mean rather than letting GHC guess: the stub
+    # should be PIC. It costs nothing in a static link -- PIC objects link into
+    # a non-PIE executable fine, which is what `-optl-no-pie` above keeps this
+    # producing -- and on darwin GHC already forces PIC, so it is a no-op there.
+    linker_flags = ["-fPIC"]
+
+    if ctx.attrs.platform_name in _OUTLINE_ATOMICS_SYNC:
+        shims = ctx.actions.declare_output("outline_atomics_sync.o")
+        ctx.actions.run(
+            cmd_args(
+                cxx.c_compiler_info.compiler,
+                "-fPIC",
+                "-c",
+                ctx.attrs.outline_atomics_sync,
+                "-o",
+                shims.as_output(),
+            ),
+            category = "ghc_outline_atomics_sync",
+        )
+
+        # A bare object rather than an archive, so that link order cannot
+        # matter: an archive would only be searched for symbols already
+        # undefined at the point it appears, and GHC decides where `-optl`
+        # arguments land. Sixteen four-byte branches cost nothing.
+        linker_flags.append(cmd_args(shims, format = "-optl{}"))
+
     return [
         DefaultInfo(default_output = dist),
         HaskellToolchainInfo(
@@ -204,7 +256,7 @@ def _hermetic_haskell_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
             packager = packager,
             haddock = haddock,
             compiler_flags = cxx_flags + ctx.attrs.compiler_flags,
-            linker_flags = cxx_flags + ctx.attrs.linker_flags,
+            linker_flags = cxx_flags + linker_flags + ctx.attrs.linker_flags,
             compiler_major_version = _major_version(version),
             use_argsfile = True,
         ),
@@ -222,6 +274,9 @@ _hermetic_haskell_toolchain = rule(
         # workers (`@platforms/<cpu>-<os>.mode`).
         "dist": attrs.source(allow_directory = True),
         "linker_flags": attrs.list(attrs.arg(), default = []),
+        "outline_atomics_sync": attrs.default_only(
+            attrs.source(default = "toolchains//haskell:outline_atomics_sync.S"),
+        ),
         "platform_name": attrs.string(),
         # The wrapper directory inside the tarball; see `_root`.
         "root": attrs.string(),

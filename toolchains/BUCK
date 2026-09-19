@@ -10,21 +10,28 @@ load("@toolchains//:hermetic_haskell_toolchain.bzl", "hermetic_haskell_toolchain
 load("@toolchains//:hermetic_java_toolchain.bzl", "hermetic_java_toolchain")
 load("@toolchains//:hermetic_python_toolchain.bzl", "hermetic_python_toolchain")
 load("@toolchains//:hermetic_rust_toolchain.bzl", "hermetic_rust_toolchain")
-load("@toolchains//:objc_cxx_toolchain.bzl", "objc_cxx_toolchain", "path_gcc_tools")
+load("@toolchains//:hermetic_zig_toolchain.bzl", "hermetic_zig_toolchain")
 
 _RE_TESTS = remote_test_execution_profiles()
 
-# `system_cxx_toolchain` cannot compile Objective-C; matchlock's
-# Virtualization.framework backend is written in it. See the bzl file.
-objc_cxx_toolchain(
-    name = "cxx",
+# What `:cxx` actually invokes for every compile, archive and link: the zig
+# cache, response-file flattening and target flags all live in there.
+python_bootstrap_binary(
+    name = "zig_wrapper",
+    main = "zig_wrapper.py",
     visibility = ["PUBLIC"],
 )
 
-# What `:cxx` resolves to on Linux; see its `_cxx_tools_info`.
-path_gcc_tools(
-    name = "gcc_tools",
-    visibility = ["PUBLIC"],
+# `zig cc`: a clang driver with bundled libc for every target. See the bzl file
+# for why this is not `prelude//toolchains/cxx/zig`.
+hermetic_zig_toolchain(
+    name = "cxx",
+    sha256s = {
+        "aarch64-macos": "b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489",
+        "aarch64-linux": "ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17",
+        "x86_64-linux": "70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00",
+    },
+    version = "0.16.0",
 )
 
 hermetic_rust_toolchain(

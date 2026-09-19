@@ -55,10 +55,15 @@ def _host_platform():
 
 HOST_PLATFORM = _host_platform()
 
-# cgo needs a C compiler targeting the target platform; the only one we have
-# is the host's (`toolchains//:cxx`).  Disabling cgo for cross platforms
-# prevents `go_stdlib` from feeding Linux headers to Xcode's clang.
-_CGO_DISABLED = "prelude//go/constraints:cgo_enabled[false]"
+# cgo needs a C compiler targeting the target platform, and since
+# `toolchains//:cxx` grew a `zig cc` branch there is one for every non-macOS
+# target: zig passes `-target` and brings its own libc headers, so a macOS host
+# cross-compiling for Linux builds cgo rather than switching it off.  Nothing
+# cross-compiles *to* macOS, so zig's darwin gap does not come up here.
+#
+# The limit is system libraries: a package that links one needs the *target's*
+# copy, which zig does not ship -- only the headers and libc come out of the
+# toolchain.
 
 def target_platforms():
     """One `platform()` per supported (cpu, os), plus `:default` for the host.
@@ -71,13 +76,12 @@ def target_platforms():
     configuration instead of analysing every target twice.
     """
     for (cpu, os) in SUPPORTED_PLATFORMS:
-        cross_compiled = (cpu, os) != HOST_PLATFORM
         native.platform(
             name = _platform_name(cpu, os),
             constraint_values = [
                 "prelude//cpu/constraints:{}".format(cpu),
                 "prelude//os/constraints:{}".format(os),
-            ] + ([_CGO_DISABLED] if cross_compiled else []),
+            ],
             visibility = ["PUBLIC"],
         )
 
@@ -99,10 +103,10 @@ _RE_ARCH = {
     "x86_64": "amd64",
 }
 
-# Image for Linux actions.  buildpack-deps provides the shell tools
-# (`unzip`, `xz`) that `http_archive` needs; our Go/Rust/Python toolchains
-# are hermetic.  Pulled via gcr.io's Hub mirror to dodge rate limits.
-# Does not include clang -- Linux C compiles need a cross toolchain.
+# Image for Linux actions.  All it has to provide is the shell tools (`unzip`,
+# `xz`) that `http_archive` needs to unpack the toolchains; every toolchain
+# itself, C included, is hermetic.  Pulled via gcr.io's Hub mirror to dodge
+# rate limits.
 _DEFAULT_CONTAINER_IMAGE = "docker://mirror.gcr.io/library/buildpack-deps:bookworm"
 
 # Remotely available (cpu, os) pairs, preference order.  x86_64 first so

@@ -18,7 +18,7 @@
 //
 // This is a copy of prelude//go/tools:pkg_analyzer with one change, marked
 // OBJC-FIX below: it reports a package's Objective-C sources instead of
-// discarding them. See //toolchains/objc_cxx_toolchain.bzl for the other half.
+// discarding them. See //toolchains/hermetic_zig_toolchain.bzl for the other half.
 package main
 
 import (
