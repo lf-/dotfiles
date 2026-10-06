@@ -1,0 +1,43 @@
+cabal-version: 3.0
+name:          hackage2buck
+version:       0.1.0.0
+synopsis:      Generate //third_party/haskell/BUCK from a cabal solve
+build-type:    Simple
+
+common shared
+  default-language:   GHC2021
+  default-extensions: LambdaCase OverloadedStrings
+  ghc-options:      -Wall
+  build-depends:
+    , aeson
+    , base
+    , bytestring
+    , Cabal-syntax
+    , containers
+    , directory
+    , filepath
+    , hackage-db    ^>=2.1
+    , tar
+    , text
+    , typed-process
+    , zlib
+
+library
+  import:          shared
+  hs-source-dirs:  src
+  exposed-modules:
+    Hackage2Buck.Boot
+    Hackage2Buck.Freeze
+    Hackage2Buck.Generate
+    Hackage2Buck.Packages
+    Hackage2Buck.Platforms
+    Hackage2Buck.Solve
+    Hackage2Buck.Starlark
+
+executable hackage2buck
+  import:         shared
+  hs-source-dirs: app
+  main-is:        Main.hs
+  build-depends:
+    , hackage2buck
+    , optparse-applicative

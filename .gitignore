@@ -13,3 +13,6 @@ buck-out/
 # `-p no:cacheprovider` if that lands.)
 .pytest_cache/
 .hypothesis/
+
+# cabal
+dist-newstyle/
