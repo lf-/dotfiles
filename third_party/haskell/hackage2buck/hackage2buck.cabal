@@ -27,12 +27,15 @@ library
   hs-source-dirs:  src
   exposed-modules:
     Hackage2Buck.Boot
+    Hackage2Buck.Config
+    Hackage2Buck.Fixups
     Hackage2Buck.Freeze
     Hackage2Buck.Generate
     Hackage2Buck.Packages
     Hackage2Buck.Platforms
     Hackage2Buck.Solve
     Hackage2Buck.Starlark
+    Hackage2Buck.Target
 
 executable hackage2buck
   import:         shared

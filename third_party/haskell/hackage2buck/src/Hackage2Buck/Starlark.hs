@@ -6,7 +6,7 @@ module Hackage2Buck.Starlark
   , renderCall
   ) where
 
-data Expr = Str String | List [Expr] | Bool Bool
+data Expr = Str String | List [Expr] | Bool Bool | Dict [(String, Expr)]
 
 data Call = Call String [(String, Expr)]
 
@@ -17,7 +17,8 @@ renderCall (Call fn kwargs) =
   where
     kwarg (k, v) = indent 1 <> k <> " = " <> renderExpr 1 v <> ",\n"
 
--- | Lists of two or more elements get a line each, with a trailing comma.
+-- | Lists of two or more elements, and dicts, get a line per element with a
+-- trailing comma.
 renderExpr :: Int -> Expr -> String
 renderExpr depth = \case
   Str s -> show' s
@@ -29,6 +30,12 @@ renderExpr depth = \case
       <> concatMap (\x -> indent (depth + 1) <> renderExpr (depth + 1) x <> ",\n") xs
       <> indent depth
       <> "]"
+  Dict [] -> "{}"
+  Dict kvs ->
+    "{\n"
+      <> concatMap (\(k, v) -> indent (depth + 1) <> show' k <> ": " <> renderExpr (depth + 1) v <> ",\n") kvs
+      <> indent depth
+      <> "}"
 
 indent :: Int -> String
 indent n = replicate (4 * n) ' '

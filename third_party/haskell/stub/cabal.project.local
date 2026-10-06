@@ -1,0 +1,2 @@
+-- hermetic: build zlib's bundled C rather than linking the host's libz
+constraints: zlib +bundled-c-zlib -pkg-config

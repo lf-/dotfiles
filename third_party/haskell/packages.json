@@ -2,5 +2,7 @@
     "discovered": [
         "hscolour"
     ],
-    "extra": []
+    "extra": [
+        "http-client"
+    ]
 }

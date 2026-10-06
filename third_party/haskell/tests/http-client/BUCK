@@ -1,0 +1,24 @@
+# Links http-client into a real binary and makes a GET with it against
+# `:server`: exercises hsc2hs, cbits, capi stubs, a pure-C package (zlib-clib)
+# and the network Configure fixup.
+
+sh_test(
+    name = "http-client",
+    env = {"HTTP_SERVER": "$(exe :server)"},
+    test = ":main",
+)
+
+haskell_binary(
+    name = "main",
+    srcs = ["Main.hs"],
+    deps = [
+        "//third_party/haskell:base",
+        "//third_party/haskell:http-client",
+        "//third_party/haskell:process",
+    ],
+)
+
+python_binary(
+    name = "server",
+    main = "server.py",
+)
