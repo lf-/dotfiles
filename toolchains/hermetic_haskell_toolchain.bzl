@@ -26,6 +26,14 @@ load("@toolchains//haskell:boot_packages.bzl", "BOOT_PACKAGES", "GHC_PACKAGE_DB"
 
 _BASE_URL = "https://downloads.haskell.org/~ghc"
 
+# The bindist's hsc2hs, which the prelude has no use for: `third_party/haskell`
+# runs it itself. `cc` doubles as hsc2hs's linker, as for GHC.
+Hsc2hsInfo = provider(fields = {
+    "cc": provider_field(typing.Any),
+    "hsc2hs": provider_field(RunInfo),
+    "template": provider_field(Artifact),
+})
+
 # Keys are GHC's own download flavours. The third column is the directory
 # inside the tarball, which disagrees with the flavour on Linux. deb12 matches
 # the Linux RE image, `buildpack-deps:bookworm` (see `//platforms`).
@@ -190,11 +198,13 @@ def _hermetic_haskell_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
         cxx.linker_info.archiver,
         "-pgmranlib",
         cxx.binary_utilities_info.ranlib,
-        # Merging objects needs a real `ld -r`, which `CxxToolchainInfo` does
-        # not expose. Poisoned (GHC's own idiom, cf. windres) rather than left
-        # to fall back to `ld.gold` off PATH; if needed, add an `ld` to `:cxx`.
+        # Merging objects (a module's `capi`/`foreign export` stub object
+        # into the module's own) is a relocatable link, which the cc driver
+        # does with `-r`. `-pgmlm` drops `settings`' "Merge objects flags"
+        # along with the program, hence the explicit `-optlm-r`.
         "-pgmlm",
-        "false",
+        cxx.c_compiler_info.compiler,
+        "-optlm-r",
     ]
 
     # `-pgma` clears the assembler's flags like `-pgmP` does, and GHC hands
@@ -261,6 +271,16 @@ def _hermetic_haskell_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
             use_argsfile = True,
         ),
         HaskellPlatformInfo(name = ctx.attrs.platform_name),
+        Hsc2hsInfo(
+            cc = cxx.c_compiler_info.compiler,
+            # Dynamically linked against the bindist's own Haskell libraries
+            # on Linux, which it finds under `lib/` by RUNPATH.
+            hsc2hs = RunInfo(cmd_args(
+                dist.project("{}/bin/hsc2hs-ghc-{}".format(root, version)),
+                hidden = tree,
+            )),
+            template = dist.project(root + "/lib/template-hsc.h"),
+        ),
     ]
 
 _hermetic_haskell_toolchain = rule(
