@@ -1,12 +1,14 @@
 # Links a third-party Hackage package into a real binary and runs it: proves
 # the sdist -> `http_archive` -> `haskell_library` path end to end.
 
+load("//rules:haskell.bzl", "depot_haskell_binary")
+
 sh_test(
     name = "hscolour",
     test = ":main",
 )
 
-haskell_binary(
+depot_haskell_binary(
     name = "main",
     srcs = ["Main.hs"],
     deps = [

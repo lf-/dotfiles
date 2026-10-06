@@ -2,13 +2,15 @@
 # `:server`: exercises hsc2hs, cbits, capi stubs, a pure-C package (zlib-clib)
 # and the network Configure fixup.
 
+load("//rules:haskell.bzl", "depot_haskell_binary")
+
 sh_test(
     name = "http-client",
     env = {"HTTP_SERVER": "$(exe :server)"},
     test = ":main",
 )
 
-haskell_binary(
+depot_haskell_binary(
     name = "main",
     srcs = ["Main.hs"],
     deps = [
