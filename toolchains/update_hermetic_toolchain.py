@@ -29,7 +29,6 @@ import ast
 import configparser
 import hashlib
 import json
-import os
 import posixpath
 import re
 import shutil
@@ -39,24 +38,19 @@ import tarfile
 import tempfile
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 KINDS = ("go", "haskell", "java", "python", "rust", "zig")
 
 
-def find_workspace_root():
-    d = os.getcwd()
-    while True:
-        if os.path.exists(os.path.join(d, ".buckroot")):
-            return d
-        parent = os.path.dirname(d)
-        if parent == d:
-            return os.getcwd()
-        d = parent
+def find_workspace_root() -> Path:
+    cwd = Path.cwd()
+    return next((d for d in (cwd, *cwd.parents) if (d / ".buckroot").exists()), cwd)
 
 
-def read_cells(root):
+def read_cells(root: Path) -> dict[str, str]:
     cfg = configparser.ConfigParser()
-    cfg.read(os.path.join(root, ".buckconfig"))
+    cfg.read(root / ".buckconfig")
     return dict(cfg.items("cells")) if cfg.has_section("cells") else {}
 
 
@@ -251,7 +245,7 @@ def fetch_zig_sha256s(version, platforms):
 GHC_BASE_URL = "https://downloads.haskell.org/~ghc"
 
 # Downloaded bindists, kept between runs; only read after their sha256 checks.
-GHC_CACHE_DIR = os.path.join(tempfile.gettempdir(), "ghc-bindists")
+GHC_CACHE_DIR = Path(tempfile.gettempdir()) / "ghc-bindists"
 
 # `${pkgroot}` in a package .conf is the directory holding `package.conf.d`.
 GHC_PKGROOT = "lib"
@@ -268,7 +262,7 @@ def fetch_ghc_sha256s(version, platforms):
         for line in resp.read().decode().splitlines():
             fields = line.split()
             if len(fields) == 2:
-                sums[os.path.basename(fields[1])] = fields[0]
+                sums[posixpath.basename(fields[1])] = fields[0]
 
     result = {}
     for platform in platforms:
@@ -279,21 +273,21 @@ def fetch_ghc_sha256s(version, platforms):
     return result
 
 
-def sha256_file(path):
+def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with open(path, "rb") as f:
+    with path.open("rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
 
 
-def download_ghc_bindist(version, platform, sha256):
+def download_ghc_bindist(version: str, platform: str, sha256: str) -> Path:
     """Fetch one bindist into the cache, or reuse a cached copy that hashes right."""
-    os.makedirs(GHC_CACHE_DIR, exist_ok=True)
+    GHC_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     name = f"ghc-{version}-{platform}.tar.xz"
-    path = os.path.join(GHC_CACHE_DIR, name)
+    path = GHC_CACHE_DIR / name
 
-    if os.path.exists(path):
+    if path.exists():
         if sha256_file(path) == sha256:
             print(f"  using cached {path}", flush=True)
             return path
@@ -301,15 +295,15 @@ def download_ghc_bindist(version, platform, sha256):
 
     url = f"{GHC_BASE_URL}/{version}/{name}"
     print(f"  fetching {url} (a few hundred MB)", flush=True)
-    partial = path + ".part"
-    with urllib.request.urlopen(url) as resp, open(partial, "wb") as out:
+    partial = path.with_name(f"{name}.part")
+    with urllib.request.urlopen(url) as resp, partial.open("wb") as out:
         shutil.copyfileobj(resp, out)
 
     got = sha256_file(partial)
     if got != sha256:
-        os.unlink(partial)
+        partial.unlink()
         raise ValueError(f"{url} hashed to {got}, expected {sha256}")
-    os.replace(partial, path)
+    partial.replace(path)
     return path
 
 
@@ -334,7 +328,7 @@ def parse_package_conf(text):
     return {key: " ".join(value) for key, value in fields.items()}
 
 
-def read_ghc_bindist(path):
+def read_ghc_bindist(path: Path) -> tuple[set[str], dict[str, str]]:
     """Stream one bindist, returning (member paths, {conf basename: contents}).
 
     Paths come back relative to the root of the unpacked archive, with the
@@ -498,7 +492,7 @@ def ghc_boot_packages(members, confs, version):
     return packages
 
 
-def write_boot_packages(path, version, per_platform):
+def write_boot_packages(path: Path, version: str, per_platform: dict[str, dict]) -> None:
     """Write `toolchains/haskell/boot_packages.json`.
 
     JSON rather than starlark so tools outside buck (hackage2buck) can read it
@@ -510,13 +504,13 @@ def write_boot_packages(path, version, per_platform):
         "package_db": GHC_PACKAGE_DB,
         "packages": per_platform,
     }
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=4, sort_keys=True)
-        f.write("\n")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=4, sort_keys=True) + "\n")
 
 
-def update_haskell_boot_packages(root, cells, version, sha256s):
+def update_haskell_boot_packages(
+    root: Path, cells: dict[str, str], version: str, sha256s: dict[str, str]
+) -> None:
     per_platform = {}
     for platform in sorted(sha256s):
         print(f"reading {platform} boot packages", flush=True)
@@ -529,7 +523,7 @@ def update_haskell_boot_packages(root, cells, version, sha256s):
     if len(set(map(tuple, names.values()))) != 1:
         raise ValueError(f"platforms ship different boot packages: {names}")
 
-    out = os.path.join(root, cells.get("toolchains", "toolchains"), "haskell", "boot_packages.json")
+    out = root / cells.get("toolchains", "toolchains") / "haskell" / "boot_packages.json"
     write_boot_packages(out, version, per_platform)
     print(f"wrote {out}")
 
