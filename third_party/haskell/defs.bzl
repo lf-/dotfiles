@@ -318,6 +318,9 @@ def third_party_haskell_library(
         public: Visible outside this package; packages the repo asked for.
         visibility: Overrides `public` when given.
     """
+    # always optimize third party libs
+    compiler_flags = ["-O2"] + compiler_flags
+
     libraries = {
         name: (
             _per_platform(name, {
