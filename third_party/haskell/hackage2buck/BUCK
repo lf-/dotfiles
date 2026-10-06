@@ -1,0 +1,37 @@
+# hackage2buck, built from the third_party/haskell it generates. `cabal run`
+# from this directory still works too, for when BUCK is broken.
+
+load("//rules:haskell.bzl", "depot_haskell_binary", "depot_haskell_library")
+
+depot_haskell_library(
+    name = "lib",
+    srcs = {path.removeprefix("src/"): path for path in glob(["src/**/*.hs"])},
+    deps = [
+        "//third_party/haskell:Cabal-syntax",
+        "//third_party/haskell:aeson",
+        "//third_party/haskell:base",
+        "//third_party/haskell:bytestring",
+        "//third_party/haskell:containers",
+        "//third_party/haskell:directory",
+        "//third_party/haskell:filepath",
+        "//third_party/haskell:hackage-db",
+        "//third_party/haskell:tar",
+        "//third_party/haskell:text",
+        "//third_party/haskell:typed-process",
+        "//third_party/haskell:zlib",
+    ],
+)
+
+depot_haskell_binary(
+    name = "hackage2buck",
+    srcs = {"Main.hs": "app/Main.hs"},
+    deps = [
+        ":lib",
+        "//third_party/haskell:base",
+        "//third_party/haskell:bytestring",
+        "//third_party/haskell:filepath",
+        "//third_party/haskell:optparse-applicative",
+        "//third_party/haskell:typed-process",
+    ],
+    visibility = ["PUBLIC"],
+)

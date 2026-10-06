@@ -19,7 +19,7 @@ data Freeze = Freeze
   { freezeVersions :: Map PackageName Version
   , freezeFlags :: Map PackageName FlagAssignment
   }
-  deriving (Show)
+  deriving stock (Show)
 
 readFreeze :: FilePath -> IO Freeze
 readFreeze path = either (fail . ((path <> ": ") <>)) pure . parseFreeze =<< readFile path

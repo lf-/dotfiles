@@ -6,19 +6,20 @@ build-type:    Simple
 
 common shared
   default-language:   GHC2021
-  default-extensions: LambdaCase OverloadedStrings
+  default-extensions: DerivingStrategies LambdaCase OverloadedStrings
   ghc-options:      -Wall
   build-depends:
     , aeson
     , base
     , bytestring
-    , Cabal-syntax
+    , Cabal-syntax  ^>=3.16
     , containers
     , directory
     , filepath
     , hackage-db    ^>=2.1
     , tar
     , text
+
     , typed-process
     , zlib
 
@@ -28,6 +29,7 @@ library
   exposed-modules:
     Hackage2Buck.Boot
     Hackage2Buck.Config
+    Hackage2Buck.Discover
     Hackage2Buck.Fixups
     Hackage2Buck.Freeze
     Hackage2Buck.Generate

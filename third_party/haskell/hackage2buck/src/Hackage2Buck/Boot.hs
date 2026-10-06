@@ -39,7 +39,7 @@ readBoot path = either (fail . ((path <> ": ") <>)) pure =<< parse <$> eitherDec
       pure (Boot ghcVersion (Map.fromList (zip allPlats byPlat)))
     forPlat pkgs plat = case Map.lookup (platKey plat) pkgs of
       Nothing -> Left ("no '" <> platKey plat <> "' entry")
-      Just m -> Map.fromList <$> traverse (\(n, v) -> (mkPackageName n,) <$> eitherParsec v) (Map.toList m)
+      Just m -> Map.mapKeys mkPackageName <$> traverse eitherParsec m
 
 -- | Boot packages on any platform.
 bootNames :: Boot -> Set PackageName

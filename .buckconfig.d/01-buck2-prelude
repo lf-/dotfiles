@@ -2,7 +2,8 @@
 prelude = git
 
 [external_cell_prelude]
-# jade/haskell-arg-compiler-flags: jade/fix-python (python script hermeticity)
-# plus arg-typed haskell compiler_flags and -optc for inherited headers
+# jade/haskell-reexported-modules: jade/fix-python (python script hermeticity)
+# plus arg-typed haskell compiler_flags, -optc for inherited headers and
+# reexported_modules (and source-less libraries for re-export-only packages)
 git_origin = https://github.com/lf-/buck2-prelude
-commit_hash = 578886abda1b0c6b2f71c6f0f9a2a7181fe2e403
+commit_hash = 3e946e4057bfa410c8315d821593a998bf35b73c

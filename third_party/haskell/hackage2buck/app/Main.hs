@@ -4,6 +4,7 @@ import Data.ByteString.Lazy.Char8 qualified as BL
 import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 import Hackage2Buck.Boot
+import Hackage2Buck.Discover
 import Hackage2Buck.Freeze
 import Hackage2Buck.Generate
 import Hackage2Buck.Packages
@@ -13,7 +14,7 @@ import Options.Applicative
 import System.FilePath ((</>))
 import System.Process.Typed (proc, readProcessStdout_)
 
-data Command = Solve | Generate | Regen
+data Command = Solve | Generate | Regen | Discover Bool
 
 main :: IO ()
 main = do
@@ -23,6 +24,12 @@ main = do
         ( command "solve" (info (pure Solve) (progDesc "Re-solve into stub/cabal.project.freeze and download sdists"))
             <> command "generate" (info (pure Generate) (progDesc "Write BUCK from the freeze file; no network"))
             <> command "regen" (info (pure Regen) (progDesc "solve, then generate"))
+            <> command
+              "discover"
+              ( info
+                  (Discover <$> switch (long "prune" <> help "Also drop packages nothing names any more"))
+                  (progDesc "Update packages.json from the repo's Haskell deps")
+              )
         )
   root <- trim . BL.unpack <$> readProcessStdout_ (proc "buck2" ["root", "--kind", "project"])
   host <- either fail pure hostPlat
@@ -38,5 +45,8 @@ main = do
     Solve -> doSolve
     Generate -> doGenerate
     Regen -> doSolve >> doGenerate
+    Discover prune ->
+      writePackages (haskellDir </> "packages.json")
+        =<< discover root (bootNames boot) prune pkgs
   where
     trim = dropWhileEnd isSpace . dropWhile isSpace

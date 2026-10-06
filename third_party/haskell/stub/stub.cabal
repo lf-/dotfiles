@@ -5,5 +5,11 @@ version: 0
 
 library
   build-depends:
+    , aeson
+    , hackage-db
     , hscolour
     , http-client
+    , optparse-applicative
+    , tar
+    , typed-process
+    , zlib

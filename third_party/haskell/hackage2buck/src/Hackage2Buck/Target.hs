@@ -20,11 +20,19 @@ data PlatBuild = PlatBuild
   , pbCSrcs :: [FilePath]
   , pbIncludeDirs :: [FilePath]
   , pbDeps :: [PackageName]
+  , pbSublibDeps :: [String]
+  -- ^ The package's own internal sub-libraries this one uses.
+  , pbReexports :: [(String, String)]
+  -- ^ @reexported-modules@: module -> label of the library providing it.
   , pbCompilerFlags :: [String]
   , pbCppFlags :: [String]
   , pbCcFlags :: [String]
+  , pbLinkerFlags :: [String]
+  -- ^ @ld-options@ and @frameworks@, for every link the library ends up in.
+  , pbPathsModule :: Bool
+  -- ^ Whether the package imports its @Paths_<pkg>@, which defs.bzl writes.
   }
-  deriving (Eq, Show)
+  deriving stock (Eq, Show)
 
 data Target = Target
   { tName :: PackageName
@@ -35,4 +43,7 @@ data Target = Target
   , tCxxDeps :: [String]
   -- ^ Non-Hackage header providers, added by fixups.
   , tByPlat :: Map Plat PlatBuild
+  -- ^ The main library.
+  , tSublibs :: Map String (Map Plat PlatBuild)
+  -- ^ Internal sub-libraries the main library needs, by name.
   }

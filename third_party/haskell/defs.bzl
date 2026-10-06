@@ -145,6 +145,58 @@ _hsc2hs = rule(
     },
 )
 
+def _paths_module_name(package):
+    return "Paths_" + package.replace("-", "_")
+
+_PATHS_MODULE = """\
+{{-# LANGUAGE NoRebindableSyntax #-}}
+-- Written by //third_party/haskell:defs.bzl in place of cabal's: the version is
+-- real, but there is no install layout, so the directories are errors.
+module {module} (
+    version,
+    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir,
+    getDataFileName,
+  ) where
+
+import Data.Version (Version (..))
+import Prelude
+
+version :: Version
+version = Version {branch} []
+
+unsupported :: String -> IO a
+unsupported what = ioError (userError ("{package}: " ++ what ++ " is unsupported in the buck build"))
+
+getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath
+getBinDir = unsupported "getBinDir"
+getLibDir = unsupported "getLibDir"
+getDynLibDir = unsupported "getDynLibDir"
+getDataDir = unsupported "getDataDir (data-files)"
+getLibexecDir = unsupported "getLibexecDir"
+getSysconfDir = unsupported "getSysconfDir"
+
+getDataFileName :: FilePath -> IO FilePath
+getDataFileName _ = unsupported "getDataFileName (data-files)"
+"""
+
+def _paths_module_impl(ctx: AnalysisContext) -> list[Provider]:
+    module = _paths_module_name(ctx.attrs.package_name)
+    out = ctx.actions.write(module + ".hs", _PATHS_MODULE.format(
+        module = module,
+        package = ctx.attrs.package_name,
+        branch = "[{}]".format(", ".join(ctx.attrs.version.split("."))),
+    ))
+    return [DefaultInfo(default_output = out)]
+
+# Cabal's generated `Paths_<pkg>` module.
+_paths_module = rule(
+    impl = _paths_module_impl,
+    attrs = {
+        "package_name": attrs.string(),
+        "version": attrs.string(),
+    },
+)
+
 def _boot_version(name):
     versions = {packages[name]["version"]: None for packages in BOOT_PACKAGES.values() if name in packages}
     if len(versions) != 1:
@@ -183,6 +235,34 @@ def _collapse(values):
         by_os.setdefault(os_key, {})[cpu_key] = values[platform]
     return select({os_key: select(cpus) for os_key, cpus in by_os.items()})
 
+# The attrs of one library component that may differ between platforms.
+_LIBRARY_ATTRS = {
+    "c_srcs": [],
+    "cc_flags": [],
+    "compiler_flags": [],
+    "cpp_flags": [],
+    "deps": [],
+    "hs_source_dirs": ["."],
+    "hsc_srcs": [],
+    "include_dirs": [],
+    "linker_flags": [],
+    "reexported_modules": {},
+    "srcs": [],
+}
+
+def _per_platform(name, attrs, platform):
+    """platform -> the library's full attrs there."""
+    for p, overrides in platform.items():
+        if p not in _PLATFORMS:
+            fail("third_party_haskell_library({}): unknown platform '{}'".format(name, p))
+        for attr in overrides:
+            if attr not in _LIBRARY_ATTRS:
+                fail("third_party_haskell_library({}): '{}' cannot vary by platform".format(name, attr))
+    return {p: dict(attrs, **platform.get(p, {})) for p in _PLATFORMS}
+
+def _c_dirs(kw):
+    return sorted({_dirname(x): None for x in kw["c_srcs"] if _dirname(x) != "."})
+
 def third_party_haskell_library(
         name,
         version,
@@ -193,13 +273,16 @@ def third_party_haskell_library(
         c_srcs = [],
         include_dirs = [],
         deps = [],
+        reexported_modules = {},
         compiler_flags = [],
         cpp_flags = [],
         cc_flags = [],
-        cxx_deps = [],
         linker_flags = [],
-        public = False,
+        paths_module = False,
         platform = {},
+        sublibraries = {},
+        cxx_deps = [],
+        public = False,
         visibility = None):
     """One Hackage package's library component, built from its sdist.
 
@@ -215,35 +298,86 @@ def third_party_haskell_library(
         include_dirs: The component's `include-dirs`; like cabal, these reach
              dependents' compiles too.
         deps: Other `third_party/haskell` targets, boot packages included.
+        reexported_modules: `reexported-modules`: module -> the dep providing
+             it.
         compiler_flags: Extra GHC flags (extensions, ghc-options).
         cpp_flags: `cpp-options`: for GHC's CPP, hsc2hs and the C sources.
         cc_flags: `cc-options`: for hsc2hs and the C sources.
-        cxx_deps: Header-providing C targets that are not Hackage packages,
-             e.g. a fixup's stand-in for a `Configure` step.
-        linker_flags: Extra GHC link flags.
-        public: Visible outside this package; packages the repo asked for.
+        linker_flags: `ld-options` and `-framework`s, for every link the
+             library ends up in.
+        paths_module: The library imports its `Paths_<pkg>`, which is
+             generated here.
         platform: platform -> {attr: value} for the attrs above that differ
              between platforms; each replaces the attr whole.
+        sublibraries: Internal sub-libraries the library needs: name -> the
+             attrs from `hs_source_dirs` to `platform` above. Each is target
+             `:<name>_<sublibrary>` (`_` cannot occur in a Hackage name),
+             private to this package.
+        cxx_deps: Header-providing C targets that are not Hackage packages,
+             e.g. a fixup's stand-in for a `Configure` step.
+        public: Visible outside this package; packages the repo asked for.
         visibility: Overrides `public` when given.
     """
-    common = {
-        "c_srcs": c_srcs,
-        "cc_flags": cc_flags,
-        "compiler_flags": compiler_flags,
-        "cpp_flags": cpp_flags,
-        "deps": deps,
-        "hs_source_dirs": hs_source_dirs,
-        "hsc_srcs": hsc_srcs,
-        "include_dirs": include_dirs,
-        "srcs": srcs,
+    libraries = {
+        name: (
+            _per_platform(name, {
+                "c_srcs": c_srcs,
+                "cc_flags": cc_flags,
+                "compiler_flags": compiler_flags,
+                "cpp_flags": cpp_flags,
+                "deps": deps,
+                "hs_source_dirs": hs_source_dirs,
+                "hsc_srcs": hsc_srcs,
+                "include_dirs": include_dirs,
+                "linker_flags": linker_flags,
+                "reexported_modules": reexported_modules,
+                "srcs": srcs,
+            }, platform),
+            paths_module,
+        ),
     }
-    for p, overrides in platform.items():
-        if p not in _PLATFORMS:
-            fail("third_party_haskell_library({}): unknown platform '{}'".format(name, p))
-        for attr in overrides:
-            if attr not in common:
-                fail("third_party_haskell_library({}): '{}' cannot vary by platform".format(name, attr))
-    per = {p: dict(common, **platform.get(p, {})) for p in _PLATFORMS}
+    for sub, attrs in sublibraries.items():
+        attrs = dict(attrs)
+        sub_platform = attrs.pop("platform", {})
+        sub_paths = attrs.pop("paths_module", False)
+        for attr in attrs:
+            if attr not in _LIBRARY_ATTRS:
+                fail("third_party_haskell_library({}): sub-library {} has unknown attr '{}'".format(name, sub, attr))
+        libraries["{}_{}".format(name, sub)] = (_per_platform(name, dict(_LIBRARY_ATTRS, **attrs), sub_platform), sub_paths)
+
+    archive = _archive(name)
+    native.http_archive(
+        name = archive,
+        urls = ["{}/{}-{}/{}-{}.tar.gz".format(_HACKAGE, name, version, name, version)],
+        sha256 = sha256,
+        strip_prefix = "{}-{}".format(name, version),
+        # Buck resolves sources at analysis time, before the archive exists,
+        # so every path any library names, on any platform, must be projected
+        # up front.
+        sub_targets = sorted(
+            {x: None for per, _ in libraries.values() for kw in per.values() for attr in ("srcs", "hsc_srcs", "c_srcs", "include_dirs") for x in kw[attr]} |
+            {x: None for per, _ in libraries.values() for kw in per.values() for x in _c_dirs(kw)},
+        ),
+    )
+
+    if visibility == None:
+        visibility = ["PUBLIC"] if public else []
+
+    for target, (per, has_paths) in libraries.items():
+        _library(
+            target = target,
+            package = name,
+            version = version,
+            archive = archive,
+            per = per,
+            paths_module = has_paths,
+            cxx_deps = cxx_deps,
+            visibility = visibility if target == name else [],
+        )
+
+def _library(target, package, version, archive, per, paths_module, cxx_deps, visibility):
+    """One library component: `:<target>` and its sidecars."""
+    name = target
 
     def each(f):
         return _collapse({p: f(kw) for p, kw in per.items()})
@@ -251,29 +385,10 @@ def third_party_haskell_library(
     def anywhere(attr):
         return {x: None for kw in per.values() for x in kw[attr]}
 
-    archive = _archive(name)
-    c_dirs = lambda kw: sorted({_dirname(x): None for x in kw["c_srcs"] if _dirname(x) != "."})
-    native.http_archive(
-        name = archive,
-        urls = ["{}/{}-{}/{}-{}.tar.gz".format(_HACKAGE, name, version, name, version)],
-        sha256 = sha256,
-        strip_prefix = "{}-{}".format(name, version),
-        # Buck resolves sources at analysis time, before the archive exists,
-        # so every path the library names, on any platform, must be projected
-        # up front.
-        sub_targets = sorted(
-            {x: None for kw in per.values() for attr in ("srcs", "hsc_srcs", "c_srcs", "include_dirs") for x in kw[attr]} |
-            {x: None for kw in per.values() for x in c_dirs(kw)},
-        ),
-    )
-
-    if visibility == None:
-        visibility = ["PUBLIC"] if public else []
-
     info = ":{}.info".format(name)
     _haskell_package_info(
         name = name + ".info",
-        package_name = name,
+        package_name = package,
         version = version,
         deps = each(lambda kw: [d + ".info" for d in kw["deps"]]),
     )
@@ -294,6 +409,17 @@ def third_party_haskell_library(
         extra_deps += own_headers
         c_deps += own_headers
 
+    # Link flags ride on a C target's exported link info, which reaches every
+    # link the library ends up in; a `haskell_library`'s own `linker_flags`
+    # only reach its shared-library link.
+    if anywhere("linker_flags"):
+        native.cxx_library(
+            name = name + "-link",
+            exported_linker_flags = each(lambda kw: kw["linker_flags"]),
+        )
+        extra_deps.append(":{}-link".format(name))
+        c_deps.append(":{}-link".format(name))
+
     if anywhere("c_srcs") or anywhere("hsc_srcs"):
         _headers_of(
             name = name + "-deps-headers",
@@ -303,7 +429,7 @@ def third_party_haskell_library(
 
     # A package of C alone (zlib-clib, ...) is just its cbits: an empty
     # `haskell_library` has nothing to archive.
-    c_only = not anywhere("srcs") and not anywhere("hsc_srcs")
+    c_only = not anywhere("srcs") and not anywhere("hsc_srcs") and not anywhere("reexported_modules")
     if anywhere("c_srcs"):
         native.cxx_library(
             name = name if c_only else name + "-cbits",
@@ -311,7 +437,7 @@ def third_party_haskell_library(
             compiler_flags = each(lambda kw: kw["cc_flags"] + kw["cpp_flags"]),
             # The archive is projected file by file, so a C file's siblings
             # (`#include "foo.h"`) are only there if asked for.
-            preprocessor_flags = each(lambda kw: ["-I$(location :{}[{}])".format(archive, d) for d in c_dirs(kw)]),
+            preprocessor_flags = each(lambda kw: ["-I$(location :{}[{}])".format(archive, d) for d in _c_dirs(kw)]),
             deps = c_deps,
             # What a Haskell library's include-dirs get from re-export.
             exported_deps = own_headers if c_only else [],
@@ -342,6 +468,13 @@ def third_party_haskell_library(
             deps = c_deps,
         )
 
+    if paths_module:
+        _paths_module(
+            name = name + "-paths",
+            package_name = package,
+            version = version,
+        )
+
     def hs_srcs(kw):
         out = {
             _module_path(name, path, kw["hs_source_dirs"]): ":{}[{}]".format(archive, path)
@@ -350,13 +483,15 @@ def third_party_haskell_library(
         for path in kw["hsc_srcs"]:
             module = hsc_module(kw, path)
             out[module] = ":" + hsc_target(module)
+        if paths_module:
+            out[_paths_module_name(package) + ".hs"] = ":{}-paths".format(name)
         return out
 
     native.haskell_library(
         name = name,
         srcs = each(hs_srcs),
         deps = each(lambda kw: kw["deps"] + extra_deps),
+        reexported_modules = each(lambda kw: kw["reexported_modules"]),
         compiler_flags = each(lambda kw: ["-optP" + f for f in macros + kw["cpp_flags"]] + kw["compiler_flags"]),
-        linker_flags = linker_flags,
         visibility = visibility,
     )

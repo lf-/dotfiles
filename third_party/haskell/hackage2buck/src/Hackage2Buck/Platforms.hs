@@ -11,7 +11,7 @@ import Distribution.System (Arch (..), OS (..), Platform (..))
 import System.Info qualified
 
 data Plat = Aarch64Darwin | Aarch64Linux | X86_64Linux
-  deriving (Eq, Ord, Show, Enum, Bounded)
+  deriving stock (Eq, Ord, Show, Enum, Bounded)
 
 allPlats :: [Plat]
 allPlats = [minBound .. maxBound]

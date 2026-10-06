@@ -1,6 +1,13 @@
 {
     "discovered": [
-        "hscolour"
+        "aeson",
+        "hackage-db",
+        "hscolour",
+        "http-client",
+        "optparse-applicative",
+        "tar",
+        "typed-process",
+        "zlib"
     ],
     "extra": [
         "http-client"

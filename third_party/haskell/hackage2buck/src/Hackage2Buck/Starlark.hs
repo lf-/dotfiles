@@ -7,6 +7,7 @@ module Hackage2Buck.Starlark
   ) where
 
 data Expr = Str String | List [Expr] | Bool Bool | Dict [(String, Expr)]
+  deriving stock (Eq, Show)
 
 data Call = Call String [(String, Expr)]
 
