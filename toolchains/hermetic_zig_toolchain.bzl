@@ -374,7 +374,12 @@ _hermetic_zig_toolchain = rule(
         "internal_tools": attrs.default_only(attrs.exec_dep(providers = [CxxInternalTools], default = "prelude//cxx/tools:internal_tools")),
         "link_flags": attrs.list(attrs.arg(), default = []),
         "link_ordering": attrs.option(attrs.enum(LinkOrdering.values()), default = None),
-        "link_style": attrs.string(default = "shared"),
+        # Not `system_cxx_toolchain`'s "shared": Haskell rules read this too,
+        # and under "shared" GHC still links the RTS and boot packages into the
+        # executable statically while each `haskell_library` dylib loads the
+        # shared ones -- two RTSes in one process, which segfaults on startup.
+        # PIC because zig's Linux targets refuse non-PIC code anyway.
+        "link_style": attrs.string(default = "static_pic"),
         "post_link_flags": attrs.list(attrs.arg(), default = []),
         "supports_content_based_paths": attrs.bool(default = False),
         # Overrides `_ZIG_TARGETS` for cross builds, so an odd triple (a
