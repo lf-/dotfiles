@@ -5,7 +5,7 @@
 # `base` is not injected for you: the prelude's `-package base` makes the
 # modules visible but links nothing.
 #
-# The table comes from the generated `boot_packages.bzl`; see
+# The table comes from the generated `boot_packages.json`; see
 # `toolchains//:update_hermetic_toolchain`.
 
 load("@toolchains//:hermetic_haskell_toolchain.bzl", "haskell_boot_packages")
