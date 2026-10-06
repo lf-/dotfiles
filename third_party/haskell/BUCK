@@ -1,0 +1,36 @@
+# Hand-written for now; hackage2buck will generate this file.
+load("//third_party/haskell:defs.bzl", "boot_package", "third_party_haskell_library")
+
+boot_package(name = "base")
+
+boot_package(name = "containers")
+
+third_party_haskell_library(
+    name = "hscolour",
+    version = "1.25",
+    sha256 = "54ce30da55599e872fd38d927aa518369e2971b284acc67ed0caac6ae14cc77c",
+    srcs = [
+        "Language/Haskell/HsColour.hs",
+        "Language/Haskell/HsColour/ACSS.hs",
+        "Language/Haskell/HsColour/ANSI.hs",
+        "Language/Haskell/HsColour/Anchors.hs",
+        "Language/Haskell/HsColour/CSS.hs",
+        "Language/Haskell/HsColour/Classify.hs",
+        "Language/Haskell/HsColour/ColourHighlight.hs",
+        "Language/Haskell/HsColour/Colourise.hs",
+        "Language/Haskell/HsColour/General.hs",
+        "Language/Haskell/HsColour/HTML.hs",
+        "Language/Haskell/HsColour/InlineCSS.hs",
+        "Language/Haskell/HsColour/LaTeX.hs",
+        "Language/Haskell/HsColour/MIRC.hs",
+        "Language/Haskell/HsColour/Options.hs",
+        "Language/Haskell/HsColour/Output.hs",
+        "Language/Haskell/HsColour/TTY.hs",
+    ],
+    deps = [
+        ":base",
+        ":containers",
+    ],
+    compiler_flags = ["-XHaskell98"],
+    public = True,
+)
