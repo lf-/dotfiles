@@ -1,12 +1,17 @@
 {
     "discovered": [
         "aeson",
+        "esqueleto",
         "hackage-db",
         "hscolour",
         "http-client",
+        "http-types",
         "optparse-applicative",
+        "persistent",
         "tar",
         "typed-process",
+        "wai",
+        "yesod",
         "zlib"
     ],
     "extra": [

@@ -7,6 +7,7 @@ module Hackage2Buck.Fixups
   , applyFixups
   , fixedPackages
   , configureDoneBy
+  , setupDoneBy
   ) where
 
 import Data.Map.Strict (Map)
@@ -15,6 +16,7 @@ import Data.Monoid (Endo (..))
 import Data.Set (Set)
 import Distribution.Types.BuildType (BuildType (Simple))
 import Distribution.Types.PackageName (PackageName, mkPackageName)
+import Hackage2Buck.Platforms (Plat)
 import Hackage2Buck.Target
 
 newtype Fixups = Fixups (Map PackageName (Endo Target))
@@ -39,3 +41,13 @@ fixedPackages (Fixups fs) = Map.keysSet fs
 -- provides them instead.
 configureDoneBy :: String -> Target -> Target
 configureDoneBy label t = t {tBuildType = Simple, tCxxDeps = tCxxDeps t <> [label]}
+
+-- | The package's @Custom@ setup only probes the C compiler for @-D@ defines,
+-- and @defines@ answers those probes for each platform. They go to GHC's CPP
+-- and the C sources alike, as such setups pass them to both.
+setupDoneBy :: (Plat -> [String]) -> Target -> Target
+setupDoneBy defines t =
+  t
+    { tBuildType = Simple
+    , tByPlat = Map.mapWithKey (\p b -> b {pbCppFlags = pbCppFlags b <> defines p}) (tByPlat t)
+    }

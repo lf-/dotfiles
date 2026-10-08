@@ -3,3 +3,6 @@ constraints: zlib +bundled-c-zlib -pkg-config
 
 -- its Cmm counter needs cmm-sources support, which the macro lacks
 constraints: atomic-counter +no-cmm
+
+-- GHC 9.14's template-haskell is newer than persistent's upper bound
+allow-newer: persistent:template-haskell, http-api-data:text-iso8601, persistent:aeson

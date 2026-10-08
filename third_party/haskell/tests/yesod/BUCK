@@ -1,0 +1,26 @@
+# Links yesod, persistent and esqueleto into a real binary and runs it: Yesod
+# and persistent Template Haskell, a WAI request through the app, and an
+# esqueleto query rendered to SQL.
+
+load("//rules:haskell.bzl", "depot_haskell_binary")
+
+sh_test(
+    name = "yesod",
+    test = ":main",
+)
+
+depot_haskell_binary(
+    name = "main",
+    srcs = ["Main.hs"],
+    deps = [
+        "//third_party/haskell:base",
+        "//third_party/haskell:bytestring",
+        "//third_party/haskell:esqueleto",
+        "//third_party/haskell:http-types",
+        "//third_party/haskell:persistent",
+        "//third_party/haskell:text",
+        "//third_party/haskell:transformers",
+        "//third_party/haskell:wai",
+        "//third_party/haskell:yesod",
+    ],
+)

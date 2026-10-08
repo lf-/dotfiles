@@ -23,6 +23,11 @@ def _archive(name):
 def _dirname(path):
     return path.rpartition("/")[0] or "."
 
+def _archive_path(archive, path):
+    """`path` in the unpacked sdist; `.` is the whole archive, which needs no
+    sub-target."""
+    return ":" + archive if path == "." else ":{}[{}]".format(archive, path)
+
 def _module_path(name, path, hs_source_dirs):
     """The module path GHC expects (`Data/Foo.hs`): the path with its longest
     matching `hs-source-dirs` entry stripped. hackage2buck checks this agrees
@@ -358,7 +363,7 @@ def third_party_haskell_library(
         # so every path any library names, on any platform, must be projected
         # up front.
         sub_targets = sorted(
-            {x: None for per, _ in libraries.values() for kw in per.values() for attr in ("srcs", "hsc_srcs", "c_srcs", "include_dirs") for x in kw[attr]} |
+            {x: None for per, _ in libraries.values() for kw in per.values() for attr in ("srcs", "hsc_srcs", "c_srcs", "include_dirs") for x in kw[attr] if x != "."} |
             {x: None for per, _ in libraries.values() for kw in per.values() for x in _c_dirs(kw)},
         ),
     )
@@ -405,7 +410,7 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
     if anywhere("include_dirs"):
         native.prebuilt_cxx_library(
             name = name + "-headers",
-            header_dirs = each(lambda kw: [":{}[{}]".format(archive, d) for d in kw["include_dirs"]]),
+            header_dirs = each(lambda kw: [_archive_path(archive, d) for d in kw["include_dirs"]]),
             header_only = True,
         )
         own_headers = [":{}-headers".format(name)]
@@ -449,8 +454,9 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
         if c_only:
             return
         extra_deps.append(":{}-cbits".format(name))
-    elif c_only:
-        fail("third_party_haskell_library({}): no Haskell or C sources".format(name))
+
+    # A package of nothing at all (persistent-template, a deprecated shim)
+    # still gets its `haskell_library`, empty, for its dependents to name.
 
     def hsc_module(kw, path):
         return _module_path(name, path, kw["hs_source_dirs"]).removesuffix(".hsc") + ".hs"

@@ -41,7 +41,7 @@ import Hackage2Buck.Starlark
 import Hackage2Buck.Target
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
-import System.FilePath (normalise, (<.>), (</>))
+import System.FilePath (dropTrailingPathSeparator, isAbsolute, normalise, splitDirectories, (<.>), (</>))
 import System.IO (hPutStrLn, stderr)
 
 -- | Writes the BUCK file at @out@, or reports every package it cannot yet
@@ -170,18 +170,18 @@ libBuild :: PackageDescription -> Map String Library -> Set FilePath -> (Package
 libBuild pd subs files providers lib = do
   let bi = libBuildInfo lib
       self = packageName pd
-      dirs = case map getSymbolicPath (hsSourceDirs bi) of
+      dirs = case map (dir . getSymbolicPath) (hsSourceDirs bi) of
         [] -> ["."]
         ds -> ds
       (selfDeps, otherDeps) = partition ((== self) . depPkgName) (targetBuildDepends bi)
       deps = nub (sort (map depPkgName otherDeps))
       sublibDeps = nub (sort [unUnqualComponentName n | d <- selfDeps, LSubLibName n <- toList (depLibraries d)])
-      includeDirs' = map (normalise . getSymbolicPath) (includeDirs bi)
+      includeDirs' = map (dir . getSymbolicPath) (includeDirs bi)
   unsupported pd lib
   unless (all ((== [LMainLibName]) . toList . depLibraries) otherDeps) $
     Left ["depends on another package's sub-library, which is unsupported"]
-  unless (all (`notElem` [".", "/"]) (map (take 1) includeDirs' <> includeDirs')) $
-    Left ["include-dirs " <> show includeDirs' <> " name the package root or an absolute path, which is unsupported"]
+  unless (all (\d -> not (isAbsolute d) && ".." `notElem` splitDirectories d) includeDirs') $
+    Left ["include-dirs " <> show includeDirs' <> " leave the package, which is unsupported"]
   let modules = exposedModules lib <> otherModules bi
       paths = pathsModule pd
   (srcs, hscSrcs) <- resolveModules files dirs (filter (/= paths) modules)
@@ -191,7 +191,8 @@ libBuild pd subs files providers lib = do
       { pbHsSourceDirs = dirs
       , pbSrcs = srcs
       , pbHscSrcs = hscSrcs
-      , pbCSrcs = sort (map (normalise . getSymbolicPath) (cSources bi <> cxxSources bi))
+      -- The C toolchain assembles @.S@ like it compiles @.c@.
+      , pbCSrcs = sort (map (normalise . getSymbolicPath) (cSources bi <> cxxSources bi <> asmSources bi))
       , pbIncludeDirs = includeDirs'
       , pbDeps = deps
       , pbSublibDeps = sublibDeps
@@ -206,6 +207,9 @@ libBuild pd subs files providers lib = do
       , pbPathsModule = paths `elem` modules
       }
   where
+    -- @src/@ and @src@ are the same directory to cabal, but not to the
+    -- prefix-stripping here and in defs.bzl.
+    dir = dropTrailingPathSeparator . normalise
     -- The one dep (one of the package's own sub-libraries, or a Hackage
     -- package) whose library exposes the module.
     resolveReexport self deps sublibDeps (ModuleReexport origPkg orig new)
@@ -243,7 +247,6 @@ unsupported pd lib = unless (null problems) (Left problems)
         <> [unPackageName n | LegacyExeDependency s _ <- buildTools bi, let n = mkPackageName s]
     checks =
       [ ("autogen-modules other than Paths_", any (/= pathsModule pd) (autogenModules bi))
-      , ("asm-sources", not (null (asmSources bi)))
       , ("cmm-sources", not (null (cmmSources bi)))
       , ("extra-libraries", not (null (extraLibs bi)))
       , ("pkgconfig-depends", not (null (pkgconfigDepends bi)))

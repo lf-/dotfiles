@@ -1,0 +1,10 @@
+# unix-time is `build-type: Configure`, and all its configure step produces is
+# `cbits/config.h`; this is that header, checked in. Wired up by the
+# `unix-time` fixup in hackage2buck.
+
+prebuilt_cxx_library(
+    name = "config",
+    header_dirs = ["include"],
+    header_only = True,
+    visibility = ["//third_party/haskell/..."],
+)
