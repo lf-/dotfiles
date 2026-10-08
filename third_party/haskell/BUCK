@@ -2704,7 +2704,7 @@ third_party_haskell_library(
             ],
             "include_dirs": [],
             "cpp_flags": ["-DHAVE_GETENTROPY"],
-            "cc_flags": [],
+            "cc_flags": ["-DHAVE_GETENTROPY"],
         },
         "aarch64-deb12-linux": {
             "c_srcs": [
@@ -2717,7 +2717,11 @@ third_party_haskell_library(
                 "-DHAVE_LIBC_GETRANDOM",
                 "-DHAVE_GETENTROPY",
             ],
-            "cc_flags": [],
+            "cc_flags": [
+                "-DHAVE_GETRANDOM",
+                "-DHAVE_LIBC_GETRANDOM",
+                "-DHAVE_GETENTROPY",
+            ],
         },
         "x86_64-deb12-linux": {
             "c_srcs": [
@@ -2736,6 +2740,10 @@ third_party_haskell_library(
             "cc_flags": [
                 "-Darch_x86_64",
                 "-O2",
+                "-DHAVE_RDRAND",
+                "-DHAVE_GETRANDOM",
+                "-DHAVE_LIBC_GETRANDOM",
+                "-DHAVE_GETENTROPY",
             ],
         },
     },

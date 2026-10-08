@@ -306,7 +306,7 @@ def third_party_haskell_library(
         reexported_modules: `reexported-modules`: module -> the dep providing
              it.
         compiler_flags: Extra GHC flags (extensions, ghc-options).
-        cpp_flags: `cpp-options`: for GHC's CPP, hsc2hs and the C sources.
+        cpp_flags: `cpp-options`: for GHC's CPP and hsc2hs, not the C sources.
         cc_flags: `cc-options`: for hsc2hs and the C sources.
         linker_flags: `ld-options` and `-framework`s, for every link the
              library ends up in.
@@ -456,7 +456,10 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
         native.cxx_library(
             name = name if c_only else name + "-cbits",
             srcs = each(lambda kw: [":{}[{}]".format(archive, x) for x in kw["c_srcs"]]),
-            compiler_flags = each(lambda kw: kw["cc_flags"] + kw["cpp_flags"]),
+            # Not `cpp_flags`: cabal's `cpp-options` are for Haskell (GHC's CPP
+            # and hsc2hs) only. crypton's `-DSUPPORT_SSE` would pick an
+            # include path its C never takes under cabal.
+            compiler_flags = each(lambda kw: kw["cc_flags"]),
             # The archive is projected file by file, so a C file's siblings
             # (`#include "foo.h"`) are only there if asked for.
             preprocessor_flags = each(lambda kw: ["-I$(location :{}[{}])".format(archive, d) for d in _c_dirs(kw)]),

@@ -44,10 +44,11 @@ configureDoneBy label t = t {tBuildType = Simple, tCxxDeps = tCxxDeps t <> [labe
 
 -- | The package's @Custom@ setup only probes the C compiler for @-D@ defines,
 -- and @defines@ answers those probes for each platform. They go to GHC's CPP
--- and the C sources alike, as such setups pass them to both.
+-- and the C sources alike, as such setups pass them to both (cpp-options alone
+-- would not reach the C).
 setupDoneBy :: (Plat -> [String]) -> Target -> Target
 setupDoneBy defines t =
   t
     { tBuildType = Simple
-    , tByPlat = Map.mapWithKey (\p b -> b {pbCppFlags = pbCppFlags b <> defines p}) (tByPlat t)
+    , tByPlat = Map.mapWithKey (\p b -> b {pbCppFlags = pbCppFlags b <> defines p, pbCcFlags = pbCcFlags b <> defines p}) (tByPlat t)
     }
