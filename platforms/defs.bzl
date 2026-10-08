@@ -151,7 +151,7 @@ def _execution_platform_impl(ctx: AnalysisContext) -> list[Provider]:
         executor["remote_dep_file_cache_enabled"] = True
 
         # Per-action upload for rules that opt in (genrule, rust, cxx).
-        executor["allow_cache_uploads"] = read_root_config("buck2_re_client", "cache_upload", "true") == "true"
+        executor["allow_cache_uploads"] = read_root_config("buck2_re_client", "cache_upload", "false") == "true"
 
         # "strict" is what REAPI specifies; the alternative is Meta-internal.
         executor["remote_output_paths"] = "strict"
