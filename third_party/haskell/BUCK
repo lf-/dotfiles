@@ -1090,10 +1090,6 @@ third_party_haskell_library(
     compiler_flags = [
         "-XHaskell2010",
         "-Wall",
-        "-F",
-        "-pgmF",
-        "$(exe //third_party/haskell/fixups/package-imports:rewrite)",
-        "-optFcrypton=root-third-party-haskell-crypton",
     ],
 )
 
@@ -5847,10 +5843,6 @@ third_party_haskell_library(
         "-XStrict",
         "-XStrictData",
         "-Wall",
-        "-F",
-        "-pgmF",
-        "$(exe //third_party/haskell/fixups/package-imports:rewrite)",
-        "-optFiproute=root-third-party-haskell-iproute",
     ],
     cpp_flags = [
         "-DSENDFILEFD",

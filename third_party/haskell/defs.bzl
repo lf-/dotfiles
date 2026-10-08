@@ -502,5 +502,8 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
         deps = each(lambda kw: kw["deps"] + extra_deps),
         reexported_modules = each(lambda kw: kw["reexported_modules"]),
         compiler_flags = each(lambda kw: ["-optP" + f for f in macros + kw["cpp_flags"]] + kw["compiler_flags"]),
+        # The Hackage name, which `import "<pkg>" M` resolves against.
+        # Sub-libraries keep the label-derived one: nothing can name them so.
+        ghc_pkg_name = package if target == package else None,
         visibility = visibility,
     )

@@ -1,9 +1,0 @@
-# A GHC `-F` preprocessor for packages that `import "<pkg>" Module` a Hackage
-# package: buck names the package after its label, not `<pkg>`. Wired up by
-# `packageImports` in hackage2buck's fixups.
-
-python_binary(
-    name = "rewrite",
-    main = "rewrite.py",
-    visibility = ["//third_party/haskell/..."],
-)
