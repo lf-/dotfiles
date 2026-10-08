@@ -1325,7 +1325,15 @@ third_party_haskell_library(
         ":tagged",
         ":transformers",
     ],
-    compiler_flags = ["-XHaskell98"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-XForeignFunctionInterface",
+        "-XMultiParamTypeClasses",
+        "-XBangPatterns",
+        "-XFunctionalDependencies",
+        "-XFlexibleInstances",
+        "-XTypeSynonymInstances",
+    ],
 )
 
 third_party_haskell_library(
@@ -4689,6 +4697,10 @@ third_party_haskell_library(
     ],
     compiler_flags = [
         "-XHaskell98",
+        "-XBangPatterns",
+        "-XCPP",
+        "-XForeignFunctionInterface",
+        "-XMultiParamTypeClasses",
         "-Wall",
     ],
     platform = {

@@ -202,7 +202,8 @@ libBuild pd subs files providers lib = do
           -- Cabal's default too: GHC's own (GHC2021) parses some old
           -- packages differently (NondecreasingIndentation, NamedWildCards).
           ["-X" <> prettyShow (fromMaybe Haskell98 (defaultLanguage bi))]
-            <> map (("-X" <>) . prettyShow) (defaultExtensions bi)
+            -- With the legacy @extensions:@ field, as cabal's usedExtensions.
+            <> map (("-X" <>) . prettyShow) (oldExtensions bi <> defaultExtensions bi)
             <> hcOptions GHC bi
       , pbCppFlags = cppOptions bi
       , pbCcFlags = ccOptions bi

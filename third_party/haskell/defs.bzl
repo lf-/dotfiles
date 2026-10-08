@@ -383,6 +383,20 @@ def third_party_haskell_library(
             visibility = visibility if target == name else [],
         )
 
+# What cabal's own GHC invocation would do differently from the prelude's.
+_CABAL_LIKE_FLAGS = [
+    # Only the declared deps are visible, which the prelude exposes one by one
+    # (boot packages too); otherwise every boot package in GHC's global db is,
+    # and e.g. template-haskell-lift's `Language.Haskell.TH.Lift` clashes with
+    # th-lift's.
+    "-hide-all-packages",
+    # GHC would define `MIN_VERSION_<dep>` from the package db, where the
+    # prelude registers every library as version 1.0.0; with `ghc_pkg_name`
+    # those now carry the Hackage names, so they would win over the real ones
+    # in `<pkg>.info`'s cabal_macros.h.
+    "-fno-version-macros",
+]
+
 def _library(target, package, version, archive, per, paths_module, cxx_deps, visibility):
     """One library component: `:<target>` and its sidecars."""
     name = target
@@ -501,7 +515,7 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
         srcs = each(hs_srcs),
         deps = each(lambda kw: kw["deps"] + extra_deps),
         reexported_modules = each(lambda kw: kw["reexported_modules"]),
-        compiler_flags = each(lambda kw: ["-optP" + f for f in macros + kw["cpp_flags"]] + kw["compiler_flags"]),
+        compiler_flags = each(lambda kw: _CABAL_LIKE_FLAGS + ["-optP" + f for f in macros + kw["cpp_flags"]] + kw["compiler_flags"]),
         # The Hackage name, which `import "<pkg>" M` resolves against.
         # Sub-libraries keep the label-derived one: nothing can name them so.
         ghc_pkg_name = package if target == package else None,
