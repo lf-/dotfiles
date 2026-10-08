@@ -39,6 +39,7 @@ import Hackage2Buck.Freeze
 import Hackage2Buck.Platforms
 import Hackage2Buck.Starlark
 import Hackage2Buck.Target
+import Language.Haskell.Extension (Language (Haskell98))
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
 import System.FilePath (dropTrailingPathSeparator, isAbsolute, normalise, splitDirectories, (<.>), (</>))
@@ -198,7 +199,9 @@ libBuild pd subs files providers lib = do
       , pbSublibDeps = sublibDeps
       , pbReexports = reexports
       , pbCompilerFlags =
-          maybe [] (\l -> ["-X" <> prettyShow l]) (defaultLanguage bi)
+          -- Cabal's default too: GHC's own (GHC2021) parses some old
+          -- packages differently (NondecreasingIndentation, NamedWildCards).
+          ["-X" <> prettyShow (fromMaybe Haskell98 (defaultLanguage bi))]
             <> map (("-X" <>) . prettyShow) (defaultExtensions bi)
             <> hcOptions GHC bi
       , pbCppFlags = cppOptions bi

@@ -343,6 +343,7 @@ third_party_haskell_library(
         ":bytestring",
     ],
     compiler_flags = [
+        "-XHaskell98",
         "-Wall",
         "-Wcompat",
         "-Wnoncanonical-monad-instances",
@@ -950,6 +951,7 @@ third_party_haskell_library(
         ":bytestring",
     ],
     compiler_flags = [
+        "-XHaskell98",
         "-Wall",
         "-O2",
         "-Wcompat",
@@ -966,6 +968,7 @@ third_party_haskell_library(
         ":bytestring",
     ],
     compiler_flags = [
+        "-XHaskell98",
         "-Wall",
         "-fwarn-tabs",
     ],
@@ -977,6 +980,7 @@ third_party_haskell_library(
     sha256 = "bd20bbb586947f99c38a4c93d9d0266f49f6fc581767b51ba568f6d5d52d2919",
     srcs = ["System/ByteOrder.hs"],
     deps = [":base"],
+    compiler_flags = ["-XHaskell98"],
 )
 
 third_party_haskell_library(
@@ -1012,7 +1016,10 @@ third_party_haskell_library(
         ":hashable",
         ":text",
     ],
-    compiler_flags = ["-Wall"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-Wall",
+    ],
 )
 
 third_party_haskell_library(
@@ -1083,6 +1090,10 @@ third_party_haskell_library(
     compiler_flags = [
         "-XHaskell2010",
         "-Wall",
+        "-F",
+        "-pgmF",
+        "$(exe //third_party/haskell/fixups/package-imports:rewrite)",
+        "-optFcrypton=root-third-party-haskell-crypton",
     ],
 )
 
@@ -1318,6 +1329,7 @@ third_party_haskell_library(
         ":tagged",
         ":transformers",
     ],
+    compiler_flags = ["-XHaskell98"],
 )
 
 third_party_haskell_library(
@@ -3388,7 +3400,10 @@ third_party_haskell_library(
         ":monad-control",
         ":transformers-base",
     ],
-    compiler_flags = ["-Wall"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-Wall",
+    ],
 )
 
 third_party_haskell_library(
@@ -3588,6 +3603,7 @@ third_party_haskell_library(
     srcs = ["src/Control/Monad/Loops.hs"],
     deps = [":base"],
     compiler_flags = [
+        "-XHaskell98",
         "-Wall",
         "-fno-warn-unused-do-bind",
         "-fno-warn-name-shadowing",
@@ -3826,7 +3842,10 @@ third_party_haskell_library(
         ":text",
         ":time",
     ],
-    compiler_flags = ["-Wall"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-Wall",
+    ],
 )
 
 third_party_haskell_library(
@@ -4525,7 +4544,10 @@ third_party_haskell_library(
         ":base",
         ":unix",
     ],
-    compiler_flags = ["-Wall"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-Wall",
+    ],
 )
 
 third_party_haskell_library(
@@ -4669,7 +4691,10 @@ third_party_haskell_library(
         ":crypto-api",
         ":tagged",
     ],
-    compiler_flags = ["-Wall"],
+    compiler_flags = [
+        "-XHaskell98",
+        "-Wall",
+    ],
     platform = {
         "aarch64-apple-darwin": {
             "cc_flags": [],
@@ -5822,6 +5847,10 @@ third_party_haskell_library(
         "-XStrict",
         "-XStrictData",
         "-Wall",
+        "-F",
+        "-pgmF",
+        "$(exe //third_party/haskell/fixups/package-imports:rewrite)",
+        "-optFiproute=root-third-party-haskell-iproute",
     ],
     cpp_flags = [
         "-DSENDFILEFD",

@@ -205,6 +205,13 @@ def _hermetic_haskell_toolchain_impl(ctx: AnalysisContext) -> list[Provider]:
         "-pgmlm",
         cxx.c_compiler_info.compiler,
         "-optlm-r",
+        # Template Haskell splices run in `ghc-iserv` rather than in GHC
+        # itself. GHC is dynamically linked, so the in-process interpreter
+        # wants the `.dyn_hi`/`.so` of whatever a splice calls, which the
+        # static_pic build never makes (`Failed to load dynamic interface
+        # file`); the static iserv loads the deps' `.a`s the prelude already
+        # hands the compile.
+        "-fexternal-interpreter",
     ]
 
     # `-pgma` clears the assembler's flags like `-pgmP` does, and GHC hands

@@ -12,6 +12,8 @@ fixups =
   forPackage "network" (configureDoneBy "//third_party/haskell/fixups/network:config")
     <> forPackage "unix-time" (configureDoneBy "//third_party/haskell/fixups/unix-time:config")
     <> forPackage "entropy" (setupDoneBy entropyDefines)
+    <> forPackage "clientsession" (packageImports ["crypton"])
+    <> forPackage "warp" (packageImports ["iproute"])
 
 -- | entropy's Setup.hs compile checks: RDRAND on x86-64, getrandom(2) in
 -- glibc, and getentropy(3), which glibc and darwin both have.

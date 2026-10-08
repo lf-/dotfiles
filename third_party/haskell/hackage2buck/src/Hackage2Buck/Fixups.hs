@@ -8,6 +8,7 @@ module Hackage2Buck.Fixups
   , fixedPackages
   , configureDoneBy
   , setupDoneBy
+  , packageImports
   ) where
 
 import Data.Map.Strict (Map)
@@ -51,3 +52,14 @@ setupDoneBy defines t =
     { tBuildType = Simple
     , tByPlat = Map.mapWithKey (\p b -> b {pbCppFlags = pbCppFlags b <> defines p}) (tByPlat t)
     }
+
+-- | The package @import "<pkg>"@s these Hackage packages, which buck names
+-- after their labels instead (prelude//haskell/haskell.bzl's @pkgname@); a
+-- GHC preprocessor renames the imports to match.
+packageImports :: [String] -> Target -> Target
+packageImports names t = t {tByPlat = Map.map add (tByPlat t)}
+  where
+    add b = b {pbCompilerFlags = pbCompilerFlags b <> flags}
+    flags =
+      ["-F", "-pgmF", "$(exe //third_party/haskell/fixups/package-imports:rewrite)"]
+        <> ["-optF" <> n <> "=root-third-party-haskell-" <> n | n <- names]
