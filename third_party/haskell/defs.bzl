@@ -459,7 +459,10 @@ def _library(target, package, version, archive, per, paths_module, cxx_deps, vis
             # Not `cpp_flags`: cabal's `cpp-options` are for Haskell (GHC's CPP
             # and hsc2hs) only. crypton's `-DSUPPORT_SSE` would pick an
             # include path its C never takes under cabal.
-            compiler_flags = each(lambda kw: kw["cc_flags"]),
+            # `-O2` before the package's own flags, as cabal compiles C sources.
+            # Without it zig cc builds in debug mode, UBSan included, whose
+            # runtime GHC's loader cannot provide to Template Haskell.
+            compiler_flags = each(lambda kw: ["-O2"] + kw["cc_flags"]),
             # The archive is projected file by file, so a C file's siblings
             # (`#include "foo.h"`) are only there if asked for.
             preprocessor_flags = each(lambda kw: ["-I$(location :{}[{}])".format(archive, d) for d in _c_dirs(kw)]),
