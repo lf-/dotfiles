@@ -1,5 +1,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+-- What mkYesod and mkPersist generate: route/handler aliases and lenses this
+-- test does not use, and deriving clauses without strategies.
+{-# OPTIONS_GHC -Wno-unused-top-binds -Wno-missing-deriving-strategies #-}
 
 module Main (main) where
 
@@ -23,14 +26,13 @@ import Database.Persist.Sql (SqlBackend)
 import Database.Persist.SqlBackend (MkSqlBackendArgs (..), mkSqlBackend)
 import Database.Persist.TH (mkPersist, persistLowerCase, share, sqlSettings)
 import Network.HTTP.Types (status200)
-import Network.Wai (Request, defaultRequest, responseStatus, responseToStream, setPath)
+import Network.Wai (Request (..), defaultRequest, responseStatus, responseToStream)
 import Network.Wai.Internal (ResponseReceived (..))
-import Yesod.Core
+import Yesod
   ( HandlerFor
   , Yesod (..)
   , mkYesod
   , parseRoutes
-  , renderRoute
   , toWaiAppPlain
   )
 
@@ -83,7 +85,7 @@ renderOnly = do
         }
 
 request :: Request
-request = setPath defaultRequest "/hello/buck"
+request = defaultRequest {pathInfo = ["hello", "buck"], rawPathInfo = "/hello/buck"}
 
 expect :: String -> Bool -> IO ()
 expect what ok = if ok then putStrLn ("ok: " <> what) else error ("failed: " <> what)
